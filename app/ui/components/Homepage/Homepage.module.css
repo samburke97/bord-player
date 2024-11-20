@@ -1,0 +1,10 @@
+.space {
+  margin-top: 10.75rem;
+  width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .space {
+    margin-top: 7.75rem;
+  }
+}

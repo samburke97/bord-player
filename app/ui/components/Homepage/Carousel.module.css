@@ -1,0 +1,116 @@
+/* Carousel.module.css */
+
+.carousel__wrapper {
+  position: relative;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.carousel__container {
+  max-width: 100%;
+  padding-left: 1.25rem;
+}
+
+@media (min-width: 1024px) {
+  .carousel__container {
+    padding: 0 2rem;
+  }
+}
+
+.carousel__iconArrow {
+  display: flex;
+  padding: var(--1, 8px);
+  width: var(--2, 40px);
+  height: var(--2, 40px);
+  align-items: center;
+  position: absolute;
+  right: 28px;
+  top: 144px;
+  border-radius: 20px;
+  border: 3px solid var(--Surface-Surface-Base, #0d0d0d);
+  background: var(--Surface-Surface-Medium, #1f1f1f);
+  z-index: 1;
+}
+
+.carousel__card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding-top: 1.5rem;
+  gap: 8px;
+}
+
+.carousel__image {
+  width: 222px;
+  height: 222px;
+  border-radius: 9.25px;
+  border: 0.771px solid var(--Outline-Medium, #2a2a2a);
+}
+
+@media (min-width: 1288px) {
+  .carousel__image {
+    width: 288px;
+    height: 288px;
+    object-fit: cover;
+  }
+}
+
+.carousel__location {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  align-self: stretch;
+}
+
+.carousel__address {
+  overflow: hidden;
+  color: var(--On-Surface-Medium, #7e807e);
+  text-overflow: ellipsis;
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 12px;
+}
+
+.carousel__icon {
+  width: var(--2, 12px);
+  height: var(--2, 12px);
+  flex-shrink: 0;
+  padding-right: 2px;
+}
+
+.carousel__sportPill {
+  margin-right: 5px;
+  padding: 4px 8px;
+  border-radius: 16px;
+  background-color: var(--Primary-Container, #082e0f);
+  color: var(--Primary-Primary, #39b252);
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 12px;
+}
+
+.carousel__sportsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.carousel__name {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.carousel__noItems {
+  text-align: center;
+  font-size: 1rem;
+  color: #888;
+}
+
+.carousel__imagePlaceholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #888;
+  font-size: 0.9rem;
+}

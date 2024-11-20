@@ -9,16 +9,28 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@heroicons/react": "^2.1.5",
+    "@types/mapbox-gl": "^3.4.1",
+    "@vercel/postgres": "^0.10.0",
+    "heroicons": "^2.1.5",
+    "leaflet": "^1.9.4",
+    "mapbox-gl": "^3.8.0",
+    "next": "14.2.13",
     "react": "^18",
     "react-dom": "^18",
-    "next": "14.2.13"
+    "react-icons": "^5.3.0",
+    "react-leaflet": "^4.2.1",
+    "react-multi-carousel": "^2.8.5",
+    "swiper": "^11.1.14",
+    "vercel": "^37.6.0"
   },
   "devDependencies": {
-    "typescript": "^5",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "postcss": "^8",
-    "tailwindcss": "^3.4.1"
-  }
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5"
+  },
+  "packageManager": "pnpm@8.15.5+sha1.a58c038faac410c947dbdb93eb30994037d0fce2"
 }

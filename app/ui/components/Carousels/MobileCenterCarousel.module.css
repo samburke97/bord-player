@@ -1,0 +1,81 @@
+.carousel__wrapper {
+  position: relative;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.carousel__card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin: 0;
+}
+
+.carousel__icon {
+  display: flex;
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  width: 32px;
+  height: 32px;
+  padding: var(--1, 8px);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  border-radius: 100px;
+  border: 1px solid var(--Outline-Medium, #2a2a2a);
+  background: var(--Surface-Surface-Medium, #1f1f1f);
+}
+
+.carousel__slideCounter {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  display: inline-flex;
+  padding: 6.5px 9.8px;
+  justify-content: center;
+  align-items: center;
+  gap: 6.5px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 0.8px solid rgba(0, 0, 0, 0.5);
+  border-radius: 6.5px;
+  color: #fff;
+  font-size: 0.9rem;
+}
+
+.carousel__image {
+  width: 100%;
+  max-height: auto;
+  object-fit: cover;
+}
+
+@media (max-width: 767px) {
+  .carousel__image {
+    max-height: 576px;
+  }
+}
+
+@media (max-width: 480px) {
+  .carousel__image {
+    max-height: 200px;
+  }
+}
+
+@media (min-width: 768px) {
+  .carousel__wrapper {
+    display: none;
+  }
+}
+
+.carousel__imagePlaceholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #e0e0e0;
+  color: #b0b0b0;
+  width: 100%;
+  height: 240px;
+  font-size: 1.1rem;
+  font-style: italic;
+}

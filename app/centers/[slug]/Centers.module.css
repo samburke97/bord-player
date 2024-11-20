@@ -1,0 +1,43 @@
+.pill {
+  padding: 5px var(--2, 12px);
+  gap: var(--1, 8px);
+  border-radius: 100px;
+  border: 1px solid var(--Outline-Low, #1f1f1f);
+  background: var(--Primary-Conatiner, #082e0f);
+  color: var(--Primary-Primary, #39b252);
+  font-family: Inter;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 14px; /* 116.667% */
+}
+
+.wrapper h1 {
+  font-family: Inter;
+  font-size: 32px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 40px; /* 125% */
+  padding-top: 10px;
+}
+
+.title {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--Outline-Lowest, #1a1a1a);
+}
+
+.description {
+  display: flex;
+  padding: 16px 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  align-self: stretch;
+  color: var(--On-Surface-High, #e0e2e0);
+  font-family: Inter;
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 28px;
+  border-bottom: 1px solid var(--Outline-Lowest, #1a1a1a);
+}

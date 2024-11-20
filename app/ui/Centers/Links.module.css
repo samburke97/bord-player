@@ -1,0 +1,45 @@
+.link {
+  display: flex;
+  align-items: center;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--Outline-Lowest, #1a1a1a);
+}
+
+.icon {
+  width: 24px;
+  height: 24px;
+  margin-right: 12px;
+}
+
+.chevron {
+  width: 24px;
+  height: 24px;
+  margin-left: auto;
+  color: #fff;
+}
+
+.socialIcons {
+  display: flex;
+  flex-direction: row;
+}
+
+.socialIcons {
+  display: flex;
+  padding: 16px 0;
+  align-items: flex-start;
+  gap: 16px;
+  align-self: stretch;
+}
+
+.socialIcon {
+  display: flex;
+  width: 48px;
+  height: 48px;
+  padding: var(--1, 8px);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  border-radius: 100px;
+  border: 1px solid var(--Outline-Medium, #2a2a2a);
+  background: var(--Surface-Surface-Medium, #1f1f1f);
+}
