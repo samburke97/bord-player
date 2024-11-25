@@ -9,7 +9,12 @@ export type LinkOptions =
   | "Learn More"
   | "First Visit";
 
-export type SocialOptions = "Facebook" | "Instagram" | "Twitter" | "LinkedIn";
+export type SocialOptions =
+  | "Facebook"
+  | "Instagram"
+  | "Twitter"
+  | "LinkedIn"
+  | "Youtube";
 
 export type Center = {
   id: string;
@@ -22,8 +27,8 @@ export type Center = {
   longitude?: number;
   phone?: string;
   email?: string;
-  links?: Array<{ id: string; type: LinkOptions; url: string }>; // Use LinkOptions instead of string
-  socials?: Array<{ id: string; platform: SocialOptions; url: string }>; // Use SocialOptions instead of string
+  links?: Array<{ id: string; type: LinkOptions; url: string }>;
+  socials?: Array<{ id: string; platform: SocialOptions; url: string }>;
   establishment?: Array<{ id: string; name: string }>;
   sports?: Array<{ id: string; name: string }>;
   facilities?: Array<{ id: string; name: string }>;

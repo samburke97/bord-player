@@ -8,6 +8,7 @@ import {
   FaLinkedin,
   FaFacebookF,
   FaTwitter,
+  FaYoutube,
 } from "react-icons/fa";
 import { ChevronRightIcon } from "@heroicons/react/24/outline";
 
@@ -15,7 +16,13 @@ import styles from "./Links.module.css";
 
 interface Social {
   id: string;
-  platform: "Facebook" | "Instagram" | "TikTok" | "Linkedin" | "Twitter";
+  platform:
+    | "Facebook"
+    | "Instagram"
+    | "TikTok"
+    | "LinkedIn"
+    | "Twitter"
+    | "Youtube";
   url: string;
 }
 
@@ -30,8 +37,9 @@ const socialIcons: Record<Social["platform"], JSX.Element> = {
   Facebook: <FaFacebookF />,
   Instagram: <FaInstagram />,
   TikTok: <FaTiktok />,
-  Linkedin: <FaLinkedin />,
+  LinkedIn: <FaLinkedin />,
   Twitter: <FaTwitter />,
+  Youtube: <FaYoutube />,
 };
 
 const Links: React.FC<LinksProps> = ({ website, email, phone, socials }) => {

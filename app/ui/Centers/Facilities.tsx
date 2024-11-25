@@ -13,7 +13,7 @@ const DUMMY_DATA = [
   "Cafe",
 ];
 
-const Facilities = ({ facilities }) => {
+const Facilities = () => {
   return (
     <div className={styles.wrapper}>
       <div className={styles.title}>

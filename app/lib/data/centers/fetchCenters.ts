@@ -7,7 +7,7 @@ export default async function fetchCenters(): Promise<Center[]> {
 
   try {
     const data = await sql<Center>`
-      SELECT g.id, g.name, g.description, array_agg(i.image_url) AS images, g.last_edited, g.phone, g.email
+      SELECT g.id, g.name, g.description, array_agg(i.image_url) AS images, g.last_edited, g.phone, g.email, g.latitude, g.longitude
       FROM centers g
       LEFT JOIN center_images i ON g.id = i.center_id
       GROUP BY g.id;

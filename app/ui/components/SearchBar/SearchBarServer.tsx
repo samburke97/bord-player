@@ -8,15 +8,13 @@ import fetchGroups from "@/app/lib/data/groups/fetchGroups";
 export async function fetchSearchResults(query: string) {
   if (query.length < 2) return [];
 
-  // Fetch data in parallel
   const [tags, sports, centers, groups] = await Promise.all([
-    fetchTags(query),
-    fetchSports(query),
-    fetchCenters(query),
-    fetchGroups(query),
+    fetchTags(),
+    fetchSports(),
+    fetchCenters(),
+    fetchGroups(),
   ]);
 
-  // Filter the results to ensure they match the query
   const results = [
     { type: "search", name: `Search for "${query}"`, id: "search-option" },
     ...tags
@@ -51,6 +49,5 @@ export async function fetchSearchResults(query: string) {
       })),
   ];
 
-  // Limit to 4 results and return
   return results.slice(0, 4);
 }

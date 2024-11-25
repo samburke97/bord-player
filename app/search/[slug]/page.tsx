@@ -2,6 +2,7 @@ import fetchCenters from "@/app/lib/data/centers/fetchCenters";
 import SearchItem from "@/app/ui/Search/SeachItem";
 import SearchMap from "@/app/ui/Search/SearchMap";
 import styles from "./Search.module.css";
+import { Center } from "@/app/lib/definitions";
 
 const Search = async () => {
   const centers = await fetchCenters();

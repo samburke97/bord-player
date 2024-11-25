@@ -45,14 +45,16 @@ export default async function Centers({ params }: { params: Params }) {
           <h1>{center.name}</h1>
         </div>
         <p className={styles.description}>{center.description}</p>
-        {center.facilities ? <Facilities facilities={center.facilities} /> : ""}
+        <Facilities />
         <Address
           address={center.address}
-          latitude={center.latitude}
-          longitude={center.longitude}
+          latitude={typeof center.latitude === "number" ? center.latitude : 0}
+          longitude={
+            typeof center.longitude === "number" ? center.longitude : 0
+          }
         />
         <Links
-          socials={center.socials}
+          socials={center.socials || []}
           phone={center.phone}
           email={center.email}
         />
