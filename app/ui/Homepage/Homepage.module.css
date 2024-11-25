@@ -1,3 +1,13 @@
+.homepage h1 {
+  margin-bottom: 24px;
+}
+
+@media (min-width: 1024px) {
+  .homepage h1 {
+    margin-bottom: 48px;
+  }
+}
+
 .space {
   margin-top: 10.75rem;
   width: 100%;

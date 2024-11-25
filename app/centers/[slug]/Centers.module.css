@@ -5,11 +5,6 @@
   border: 1px solid var(--Outline-Low, #1f1f1f);
   background: var(--Primary-Conatiner, #082e0f);
   color: var(--Primary-Primary, #39b252);
-  font-family: Inter;
-  font-size: 12px;
-  font-style: normal;
-  font-weight: 500;
-  line-height: 14px; /* 116.667% */
 }
 
 .wrapper h1 {

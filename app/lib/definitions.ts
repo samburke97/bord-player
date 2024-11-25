@@ -18,10 +18,12 @@ export type Center = {
   images: string[];
   last_edited?: Date | null;
   address?: string;
-  phone: string;
-  email: string;
-  links: Array<{ id: string; type: LinkOptions; url: string }>; // Use LinkOptions instead of string
-  socials: Array<{ id: string; platform: SocialOptions; url: string }>; // Use SocialOptions instead of string
+  latitude?: number;
+  longitude?: number;
+  phone?: string;
+  email?: string;
+  links?: Array<{ id: string; type: LinkOptions; url: string }>; // Use LinkOptions instead of string
+  socials?: Array<{ id: string; platform: SocialOptions; url: string }>; // Use SocialOptions instead of string
   establishment?: Array<{ id: string; name: string }>;
   sports?: Array<{ id: string; name: string }>;
   facilities?: Array<{ id: string; name: string }>;

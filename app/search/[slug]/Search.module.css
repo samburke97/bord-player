@@ -1,0 +1,19 @@
+.contentContainer {
+  display: flex;
+  flex-grow: 1;
+  overflow: hidden;
+}
+
+.leftPanel {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.rightPanel {
+  flex-grow: 1;
+  overflow-y: scroll;
+  max-height: 100vh;
+  padding-right: 10px;
+}

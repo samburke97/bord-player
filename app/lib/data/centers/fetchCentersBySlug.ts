@@ -15,6 +15,8 @@ export default async function fetchCenterBySlug(
         c.id,
         c.name,
         c.address,
+        c.latitude,
+        c.longitude,
         c.description,
         c.last_edited,
         c.phone,
@@ -38,7 +40,7 @@ export default async function fetchCenterBySlug(
       WHERE center_id = ${slug};
     `;
     const images = imagesData.rows
-      .map((row) => row.image_url || "") // Provide a default empty string for image_url
+      .map((row) => row.image_url || "")
       .filter(Boolean);
 
     // Fetch associated establishment tag
@@ -107,14 +109,16 @@ export default async function fetchCenterBySlug(
       id: center.id,
       name: center.name,
       address: center.address || undefined,
+      latitude: center.latitude || undefined,
+      longitude: center.longitude || undefined,
       description: center.description || undefined,
       phone: center.phone || undefined,
       email: center.email || undefined,
-      links: links || [], // Ensure default to empty array
-      socials: socials || [], // Ensure default to empty array
+      links: links || [],
+      socials: socials || [],
       images,
       last_edited: center.last_edited ? new Date(center.last_edited) : null,
-      establishment, // Always an array, empty if no establishment
+      establishment,
       sports,
       facilities,
     };

@@ -6,26 +6,52 @@
   border-bottom: 1px solid var(--Outline-Lowest, #1a1a1a);
 }
 
-.wrapper h2 {
-  padding-left: 10px;
-}
-
 .search {
   width: 100%;
   display: flex;
   justify-content: space-between;
+  align-items: center;
 }
 
 .title {
   display: flex;
-  padding-bottom: 24px;
+  align-items: center;
+}
+
+.title h2 {
+  margin-left: 8px;
 }
 
 .icon {
   width: 24px;
   height: 24px;
+  color: var(--Surface-Surface-Highest, #ffffff);
 }
 
 .mapContainer {
+  padding: 24px 0;
   height: 200px;
+  width: 100%;
+  border-radius: 8px; /* Rounded corners */
+}
+
+@media (min-width: 768px) {
+  .mapContainer {
+    width: 100%;
+    height: 208px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .mapContainer {
+    width: 100%;
+    height: 252px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .mapContainer {
+    width: 100%;
+    height: 252px;
+  }
 }

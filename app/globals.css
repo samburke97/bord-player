@@ -11,6 +11,9 @@
   --primary-200: #76fb91;
   --primary-300: #59d472;
   --primary-400: #0b4316;
+  --primary-500: #39b252;
+
+  /* Surface */
 
   /* Grey Colors */
   --grey-100: #ffffff;
@@ -54,6 +57,7 @@
 
 html {
   font-size: 16px;
+  scroll-behavior: smooth;
 }
 
 body {

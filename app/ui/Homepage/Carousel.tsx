@@ -6,7 +6,7 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import styles from "./Carousel.module.css";
-import { Center } from "../../../lib/definitions";
+import { Center } from "../../lib/definitions";
 import { MapPinIcon, ArrowRightIcon } from "@heroicons/react/24/outline";
 import { Navigation, Pagination } from "swiper/modules";
 import Link from "next/link";
