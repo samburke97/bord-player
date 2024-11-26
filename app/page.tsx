@@ -18,13 +18,6 @@ export default async function Home() {
         </div>
       </div>
       <MyCarousel centers={centers} />
-      {/* Add this block for testing */}
-      <div style={{ height: "200vh", background: "#f0f0f0" }}>
-        {/* Dummy content to make the page scroll */}
-        <p style={{ padding: "2rem", textAlign: "center" }}>
-          Scroll down to see the SearchBar in the Nav!
-        </p>
-      </div>
     </div>
   );
 }
