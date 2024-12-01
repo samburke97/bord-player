@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/navigation";
@@ -22,6 +22,7 @@ const MyCarousel: React.FC<{ centers: Center[] }> = ({ centers }) => {
   const [swiper, setSwiper] = useState<any>(null);
   const [isBeginning, setIsBeginning] = useState(true);
   const [isEnd, setIsEnd] = useState(false);
+  const [isWideScreen, setIsWideScreen] = useState(true);
 
   const handleNextSlide = () => {
     if (swiper) {
@@ -42,10 +43,25 @@ const MyCarousel: React.FC<{ centers: Center[] }> = ({ centers }) => {
     }
   };
 
+  useEffect(() => {
+    const handleResize = () => {
+      setIsWideScreen(window.innerWidth > 1023);
+      if (swiper) {
+        swiper.update(); // Force Swiper to recalculate layout on resize
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    handleResize(); // Manually trigger resize check on mount
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [swiper]); // Add swiper as a dependency
+
   return (
     <div className={styles.carousel__wrapper}>
-      <div className="content-container">
-        {/* Left Arrow */}
+      <div className={isWideScreen ? "content-container" : ""}>
         {!isBeginning && (
           <ArrowLeftIcon
             className={`${styles.carousel__iconArrow} ${styles.carousel__iconArrowLeft}`}
@@ -59,23 +75,29 @@ const MyCarousel: React.FC<{ centers: Center[] }> = ({ centers }) => {
           className={`${styles.carousel__container}`}
           loop={false}
           breakpoints={{
-            1150: {
+            1400: {
               slidesPerView: 4,
+            },
+            1150: {
+              slidesPerView: 3.5,
+            },
+            1023: {
+              slidesPerView: 3.2,
             },
             943: {
               slidesPerView: 3.5,
             },
             783: {
-              slidesPerView: 3,
+              slidesPerView: 3.1,
             },
-            623: {
-              slidesPerView: 2.5,
+            620: {
+              slidesPerView: 2.4,
             },
             464: {
-              slidesPerView: 2,
+              slidesPerView: 1.7,
             },
             320: {
-              slidesPerView: 1.5,
+              slidesPerView: 1.3,
             },
           }}
         >

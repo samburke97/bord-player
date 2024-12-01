@@ -8,14 +8,12 @@
   background: var(--Surface-Surface-Base, #0d0d0d);
 }
 
-/* Inner navbar layout */
 .nav__navbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-/* Special layout for search page */
 .nav__navbar.nav__searchPage {
   justify-content: space-between;
   gap: 24px;
@@ -53,7 +51,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px;
+  padding: 11px;
   border-radius: 100px;
   border: 1px solid var(--Outline-Low, #1f1f1f);
   background: var(--Surface-Surface-Low, #1a1a1a);

@@ -1,23 +1,36 @@
-/* Carousel.module.css */
-@media (max-width: 1023px) {
-  .content-container {
-    display: none;
-  }
-}
-
-/* Wrapper styling */
 .carousel__wrapper {
   position: relative;
   max-width: 1280px;
   margin: 0 auto;
 }
 
-/* Swiper container */
+/* Default padding */
 .carousel__container {
   max-width: 100%;
+  padding-left: 0;
 }
 
-/* Base arrow styles */
+/* Up to 768px */
+@media (max-width: 768px) {
+  .carousel__container {
+    padding-left: 20px;
+  }
+}
+
+/* From 769px to 1023px */
+@media (min-width: 769px) and (max-width: 1023px) {
+  .carousel__container {
+    padding-left: 32px;
+  }
+}
+
+/* Above 1023px - no padding */
+@media (min-width: 1024px) {
+  .carousel__container {
+    padding-left: 0;
+  }
+}
+
 .carousel__iconArrow {
   display: flex;
   padding: var(--1, 8px);
@@ -29,50 +42,47 @@
   border-radius: 20px;
   border: 3px solid var(--Surface-Surface-Base, #0d0d0d);
   background: var(--Surface-Surface-Medium, #1f1f1f);
-  z-index: 10; /* Ensure arrows are above carousel content */
+  z-index: 10;
   cursor: pointer;
   justify-content: center;
   color: #fff;
   transition: background 0.3s, transform 0.3s;
 }
 
-/* Right arrow positioning */
 .carousel__iconArrow.carousel__iconArrowRight {
-  right: 28px;
+  right: 32px;
 }
 
-/* Left arrow positioning */
+@media (max-width: 1397px) {
+  .carousel__iconArrow.carousel__iconArrowRight {
+    right: 14px;
+  }
+}
+
 .carousel__iconArrow.carousel__iconArrowLeft {
   left: 16px;
 }
 
-/* Hover effect for arrows */
 .carousel__iconArrow:hover {
   background: var(--Surface-Surface-Base, #2a2a2a);
   transform: scale(1.05);
 }
 
-/* Hide arrows on screens smaller than 1023px */
 @media (max-width: 1023px) {
   .carousel__iconArrow {
     display: none;
   }
 }
 
-/* Card styling */
 .carousel__card {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   padding-top: 1.5rem;
+  padding-right: 0px;
 }
 
-.carousel__card:last_of_type {
-  gap: 0px;
-}
-
-/* Image styling */
 .carousel__image {
   width: 222px;
   height: 222px;
@@ -88,7 +98,6 @@
   }
 }
 
-/* Placeholder styling */
 .carousel__imagePlaceholder {
   display: flex;
   align-items: center;
@@ -97,7 +106,6 @@
   font-size: 0.9rem;
 }
 
-/* Location styling */
 .carousel__location {
   display: flex;
   align-items: center;
@@ -114,7 +122,6 @@
   line-height: 12px;
 }
 
-/* Icon styling */
 .carousel__icon {
   width: var(--2, 12px);
   height: var(--2, 12px);
@@ -122,7 +129,6 @@
   padding-right: 2px;
 }
 
-/* Sports pill styling */
 .carousel__sportPill {
   margin-right: 5px;
   padding: 4px 8px;
@@ -134,14 +140,12 @@
   line-height: 12px;
 }
 
-/* Sports container */
 .carousel__sportsContainer {
   display: flex;
   flex-wrap: wrap;
   padding-top: 12px;
 }
 
-/* Name styling */
 .carousel__name {
   font-size: 1.2rem;
   font-weight: 600;
@@ -149,7 +153,6 @@
   padding-bottom: 8px;
 }
 
-/* No items message */
 .carousel__noItems {
   text-align: center;
   font-size: 1rem;
