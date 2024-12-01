@@ -53,11 +53,13 @@ export default async function Centers({ params }: { params: Params }) {
             typeof center.longitude === "number" ? center.longitude : 0
           }
         />
-        <Links
-          socials={center.socials || []}
-          phone={center.phone}
-          email={center.email}
-        />
+        {center.socials && center.phone && center.email ? (
+          <Links
+            socials={center.socials || []}
+            phone={center.phone}
+            email={center.email}
+          />
+        ) : null}
       </div>
     </div>
   );

@@ -57,15 +57,17 @@ const NavBar = () => {
         >
           {/* Logo */}
           <div className={`${styles.nav__logoOrSearch}`}>
-            <Link href={`/`}>
-              <Image
-                src="/images/bord.png"
-                alt="Bord Logo"
-                width={78}
-                height={18}
-                layout="intrinsic"
-              />
-            </Link>
+            {(isLargeScreen || !showSearchInNav) && (
+              <Link href={`/`}>
+                <Image
+                  src="/images/bord.png"
+                  alt="Bord Logo"
+                  width={78}
+                  height={18}
+                  layout="intrinsic"
+                />
+              </Link>
+            )}
           </div>
 
           {/* SearchBar */}

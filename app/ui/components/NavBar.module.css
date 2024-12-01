@@ -13,37 +13,40 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  position: relative;
 }
 
 /* Special layout for search page */
 .nav__navbar.nav__searchPage {
   justify-content: space-between;
-  gap: 16px;
+  gap: 24px;
 }
 
-/* Logo or SearchBar Container */
 .nav__logoOrSearch {
   display: flex;
   align-items: center;
-  flex-grow: 1;
+  transition: opacity 0.3s ease;
+}
+
+.nav__logoOrSearch img {
+  display: block;
+  opacity: 1;
+}
+
+.nav__logoOrSearch.hide {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .nav__searchBarSmall {
   display: flex;
-  flex-grow: 1;
-  max-width: 600px;
-  min-width: 0;
+  flex-shrink: 1;
 }
 
 .nav__searchBarLarge {
   display: flex;
-  justify-content: center;
+  justify-self: center;
   flex-grow: 1;
-  width: 800px;
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
+  max-width: 800px;
 }
 
 .nav__icon {
@@ -70,7 +73,7 @@
     flex-grow: 1;
     width: 100%;
     max-width: 600px;
-    min-width: calc(100% - 32px);
+    min-width: calc(100% - 100px);
     margin-right: 16px;
   }
 }

@@ -74,6 +74,12 @@
   padding-left: 40px;
 }
 
+@media (max-width: 500px) {
+  .search input {
+    padding-left: 30px;
+  }
+}
+
 .search input::placeholder {
   color: #ccc;
 }
