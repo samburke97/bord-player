@@ -63,7 +63,7 @@ const Links: React.FC<LinksProps> = ({ website, email, phone, socials }) => {
         <div>
           <a href={`mailto:${email}`} className={styles.link}>
             <FaEnvelope className={styles.icon} />
-            <span>Email</span>
+            <span>{email}</span>
             <ChevronRightIcon className={styles.chevron} />
           </a>
         </div>
@@ -72,7 +72,7 @@ const Links: React.FC<LinksProps> = ({ website, email, phone, socials }) => {
         <div>
           <a href={`tel:${phone}`} className={styles.link}>
             <FaPhone className={styles.icon} />
-            <span>Phone</span>
+            <span>{phone}</span>
             <ChevronRightIcon className={styles.chevron} />
           </a>
         </div>
