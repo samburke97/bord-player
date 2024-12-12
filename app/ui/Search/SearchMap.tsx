@@ -39,7 +39,6 @@ const SearchMap: React.FC<{ centers: Center[] }> = ({ centers }) => {
       centers.forEach((center) => {
         if (center.latitude && center.longitude) {
           const position = map.project([center.longitude, center.latitude]);
-          console.log(position);
           positions.push({
             x: position.x,
             y: position.y,

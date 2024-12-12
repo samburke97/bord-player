@@ -33,8 +33,6 @@ export default async function Centers({ params }: { params: Params }) {
     facilities: [],
   };
 
-  console.log("center socials:", center.socials);
-
   return (
     <div className={styles.wrapper}>
       <MobileCenterCarousel centers={[center]} />

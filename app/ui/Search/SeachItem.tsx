@@ -6,7 +6,7 @@ import { MapPinIcon } from "@heroicons/react/24/outline";
 const DUMMY_SPORTS = ["Bouldering", "Bouldering", "Bouldering"];
 const DUMMY_ADDRESS = ["221 High St, London E15 2AE"];
 
-const SeachItem: React.FC<{ centers: Center[] }> = ({ centers }) => {
+const SearchItem: React.FC<{ centers: Center[] }> = ({ centers }) => {
   return (
     <div className={styles.listContainer}>
       {centers.map((center) => (
@@ -48,4 +48,4 @@ const SeachItem: React.FC<{ centers: Center[] }> = ({ centers }) => {
   );
 };
 
-export default SeachItem;
+export default SearchItem;
