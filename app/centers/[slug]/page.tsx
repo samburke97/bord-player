@@ -50,7 +50,9 @@ export default async function Centers({ params }: { params: Params }) {
             typeof center.longitude === "number" ? center.longitude : 0
           }
         />
-        {center.socials && center.phone && center.email ? (
+        {center.phone ||
+        center.email ||
+        (center.socials && center.socials.length > 0) ? (
           <Links
             socials={center.socials || []}
             phone={center.phone}
