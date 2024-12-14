@@ -4,7 +4,6 @@ import ImageLayout from "@/app/ui/components/Carousels/ImageLayout";
 import MobileCenterCarousel from "@/app/ui/components/Carousels/MobileCenterCarousel";
 import Facilities from "@/app/ui/centers/Facilities";
 import Links from "@/app/ui/centers/Links";
-
 import styles from "./Centers.module.css";
 import Address from "@/app/ui/centers/Address";
 

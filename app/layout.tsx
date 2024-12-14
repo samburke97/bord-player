@@ -18,7 +18,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.className} antialisaed`}>
+      <body className={`${inter.className} antialiased`}>
         <LocationProvider>
           <RootClientLayout>{children}</RootClientLayout>
         </LocationProvider>
