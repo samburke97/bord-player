@@ -12,24 +12,25 @@
   font-size: 32px;
   font-style: normal;
   font-weight: 600;
-  line-height: 40px; /* 125% */
+  line-height: 40px;
   padding-top: 10px;
 }
 
 .title {
   padding: 16px 0;
   border-bottom: 1px solid var(--Outline-Lowest, #1a1a1a);
+  font-family: Inter;
 }
 
 .description {
   display: flex;
+  font-family: Inter;
   padding: 16px 0;
   flex-direction: column;
   align-items: flex-start;
   gap: 16px;
   align-self: stretch;
   color: var(--On-Surface-High, #e0e2e0);
-  font-family: Inter;
   font-size: 18px;
   font-style: normal;
   font-weight: 400;
