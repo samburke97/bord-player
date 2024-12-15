@@ -21,13 +21,14 @@ export default async function fetchCenterBySlug(
         c.last_edited,
         c.phone,
         c.email,
-        c.establishment
+        c.establishment,
+        c.is_active
       FROM centers c
-      WHERE c.id = ${slug};
+      WHERE c.id = ${slug} AND c.is_active = true;
     `;
 
     if (centerData.rows.length === 0) {
-      console.log("No center found for slug:", slug);
+      console.log("No active center found for slug:", slug);
       return null;
     }
 
@@ -121,6 +122,7 @@ export default async function fetchCenterBySlug(
       establishment,
       sports,
       facilities,
+      is_active: center.is_active,
     };
   } catch (error) {
     console.error("Database Error:", error);

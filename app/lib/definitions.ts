@@ -32,6 +32,7 @@ export type Center = {
   establishment?: Array<{ id: string; name: string }>;
   sports?: Array<{ id: string; name: string }>;
   facilities?: Array<{ id: string; name: string }>;
+  is_active: boolean | null;
 };
 
 export type Sport = {

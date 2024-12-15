@@ -7,9 +7,10 @@ export default async function fetchCenters(): Promise<Center[]> {
 
   try {
     const data = await sql<Center>`
-      SELECT g.id, g.name, g.description, array_agg(i.image_url) AS images, g.last_edited, g.phone, g.email, g.latitude, g.longitude, g.address
+      SELECT g.id, g.name, g.description, array_agg(i.image_url) AS images, g.last_edited, g.phone, g.email, g.latitude, g.longitude, g.address, g.is_active
       FROM centers g
       LEFT JOIN center_images i ON g.id = i.center_id
+      WHERE g.is_active = true
       GROUP BY g.id;
     `;
 
@@ -28,6 +29,7 @@ export default async function fetchCenters(): Promise<Center[]> {
       establishment: [],
       sports: [],
       facilities: [],
+      is_active: row.is_active,
     }));
   } catch (error) {
     console.error("Database Error:", error);

@@ -30,6 +30,7 @@ export default async function Centers({ params }: { params: Params }) {
     establishment: [],
     sports: [],
     facilities: [],
+    is_active: null,
   };
 
   return (
