@@ -7,12 +7,32 @@ export default async function fetchCenters(): Promise<Center[]> {
 
   try {
     const data = await sql<Center>`
-      SELECT g.id, g.name, g.description, array_agg(i.image_url) AS images, g.last_edited, g.phone, g.email, g.latitude, g.longitude, g.address, g.is_active
-      FROM centers g
-      LEFT JOIN center_images i ON g.id = i.center_id
-      WHERE g.is_active = true
-      GROUP BY g.id;
-    `;
+SELECT 
+  g.id, 
+  g.name, 
+  g.description, 
+  array_agg(i.image_url) AS images, 
+  g.last_edited, 
+  g.phone, 
+  g.email, 
+  g.latitude, 
+  g.longitude, 
+  g.address, 
+  g.is_active,
+  array_agg(t.name) AS facilities,  
+  array_agg(t2.name) AS tags,
+  array_agg(t3.name) AS sports
+FROM centers g
+LEFT JOIN center_images i ON g.id = i.center_id
+LEFT JOIN center_facilities f ON g.id = f.center_id
+LEFT JOIN tags t ON f.tag_id = t.id 
+LEFT JOIN center_tags ct ON g.id = ct.center_id
+LEFT JOIN tags t2 ON ct.tag_id = t2.id 
+LEFT JOIN center_sports cs ON g.id = cs.center_id   
+LEFT JOIN sports t3 ON cs.sport_id = t3.id          
+WHERE g.is_active = true
+GROUP BY g.id;
+`;
 
     return data.rows.map((row) => ({
       id: row.id,
@@ -27,12 +47,14 @@ export default async function fetchCenters(): Promise<Center[]> {
       longitude: row.longitude,
       socials: [],
       establishment: [],
-      sports: [],
-      facilities: [],
+      sports: row.sports || [],
+      facilities: row.facilities || [],
+      address: row.address || "",
       is_active: row.is_active,
+      tags: row.tags || [],
     }));
   } catch (error) {
-    console.error("Database Error:", error);
-    throw new Error("Failed to fetch centers data.");
+    console.error("Error occurred while fetching centers data:", error);
+    throw new Error(`Failed to fetch centers data: ${error.message}`);
   }
 }

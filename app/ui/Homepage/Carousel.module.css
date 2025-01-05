@@ -114,6 +114,8 @@
 }
 
 .carousel__address {
+  width: 90%;
+  white-space: nowrap;
   overflow: hidden;
   color: var(--On-Surface-Medium, #7e807e);
   text-overflow: ellipsis;

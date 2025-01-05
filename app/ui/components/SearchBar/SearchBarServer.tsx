@@ -30,6 +30,7 @@ export async function fetchSearchResults(query: string) {
         type: "sport",
         name: sport.name,
         id: sport.id,
+        image: sport.image_url,
       })),
     ...centers
       .filter((center) =>

@@ -42,7 +42,7 @@ const MobileCenterCarousel: React.FC<{ centers: Center[] }> = ({ centers }) => {
                     <SwiperSlide key={index}>
                       <div className={styles.carousel__card}>
                         <img
-                          src={center.images[0]}
+                          src={image}
                           alt={center.name || `Center Image ${index + 1}`}
                           className={styles.carousel__image}
                         />

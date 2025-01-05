@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+
 import { fetchSearchResults } from "./SearchBarServer";
 import styles from "./SearchBar.module.css";
 import {
@@ -10,14 +10,19 @@ import {
   ChevronRightIcon,
   ChevronLeftIcon,
 } from "@heroicons/react/24/outline";
+import { useRouter } from "next/navigation";
 
-const SearchBar = () => {
+interface props {
+  className?: string;
+}
+
+const SearchBar = ({ ...props }) => {
+  const router = useRouter();
+
   const [searchText, setSearchText] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isMobileView, setIsMobileView] = useState(false);
-
-  const router = useRouter();
 
   const sports = [
     { name: "Bouldering", image: "/images/search/bouldering.png" },
@@ -66,8 +71,18 @@ const SearchBar = () => {
     setSearchResults([]);
   };
 
-  const handleResultClick = (term: string) => {
-    router.push(`/search/${encodeURIComponent(term)}`);
+  const handleResultClick = (term: string, type: string) => {
+    let encodedTerm = encodeURIComponent(term);
+
+    if (type === "search") {
+      const match = term.match(/Search for "(.+?)"/);
+      if (match && match[1]) {
+        encodedTerm = encodeURIComponent(match[1]);
+      }
+    }
+
+    console.log("Navigating to:", `/search/${encodedTerm}`);
+    router.push(`/search/${encodedTerm}`);
   };
 
   const dynamicResults = searchResults.filter(
@@ -77,7 +92,9 @@ const SearchBar = () => {
 
   return (
     <div
-      className={`${isMobileView ? styles.mobileContainer : styles.container}`}
+      className={`${isMobileView ? styles.mobileContainer : styles.container} ${
+        props.className
+      }`}
     >
       <div className={styles.search}>
         {isMobileView ? (
@@ -111,11 +128,13 @@ const SearchBar = () => {
                 onClick={() => handleResultClick(sport.name)}
               >
                 <div className={styles.dropdownSport}>
-                  <img
-                    src={sport.image}
-                    alt={sport.name}
-                    className={styles.image}
-                  />
+                  <div className={styles.imageContainer}>
+                    <img
+                      src={sport.image}
+                      alt={sport.name}
+                      className={styles.image}
+                    />
+                  </div>
                   <span>{sport.name}</span>
                 </div>
                 <ChevronRightIcon className={styles.arrowIcon} />
@@ -126,7 +145,9 @@ const SearchBar = () => {
             <div
               className={styles.dropdownItem}
               key={searchOption.id}
-              onClick={() => handleResultClick(searchOption.name)}
+              onClick={() =>
+                handleResultClick(searchOption.name, searchOption.type)
+              }
             >
               <div className={styles.dropdownSport}>
                 <div className={styles.imageContainer}>
@@ -150,13 +171,24 @@ const SearchBar = () => {
                 onClick={() => handleResultClick(result.name)}
               >
                 <div className={styles.dropdownSport}>
-                  <div className={styles.imageContainer}>
-                    <img
-                      src="/images/search/aero.svg"
-                      alt={result.type}
-                      className={styles.searchImage}
-                    />
-                  </div>
+                  {result.type === "sport" ? (
+                    <div className={styles.imageContainer}>
+                      <img
+                        src={result.image}
+                        alt={result.name}
+                        className={styles.image}
+                      />
+                    </div>
+                  ) : (
+                    <div className={styles.imageContainer}>
+                      <img
+                        src="/images/search/aero.svg"
+                        alt="Aero icon"
+                        className={styles.searchImage}
+                      />
+                    </div>
+                  )}
+
                   <span>{result.name}</span>
                 </div>
                 <ChevronRightIcon className={styles.arrowIcon} />

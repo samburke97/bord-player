@@ -15,9 +15,6 @@ import {
 import { Navigation, Pagination } from "swiper/modules";
 import Link from "next/link";
 
-const DUMMY_SPORTS = ["Padel", "Table Tennis"];
-const DUMMY_ADDRESS = ["221 High St, London E15 2AE"];
-
 const MyCarousel: React.FC<{ centers: Center[] }> = ({ centers }) => {
   const [swiper, setSwiper] = useState<any>(null);
   const [isBeginning, setIsBeginning] = useState(true);
@@ -47,18 +44,17 @@ const MyCarousel: React.FC<{ centers: Center[] }> = ({ centers }) => {
     const handleResize = () => {
       setIsWideScreen(window.innerWidth > 1023);
       if (swiper) {
-        swiper.update(); // Force Swiper to recalculate layout on resize
+        swiper.update();
       }
     };
 
     window.addEventListener("resize", handleResize);
-    handleResize(); // Manually trigger resize check on mount
+    handleResize();
 
     return () => {
       window.removeEventListener("resize", handleResize);
     };
-  }, [swiper]); // Add swiper as a dependency
-
+  }, [swiper]);
   return (
     <div className={styles.carousel__wrapper}>
       <div className={isWideScreen ? "content-container" : ""}>
@@ -104,7 +100,7 @@ const MyCarousel: React.FC<{ centers: Center[] }> = ({ centers }) => {
           {centers.length > 0 ? (
             centers.map((center) => (
               <SwiperSlide key={center.id}>
-                <Link key={center.id} href={`/centers/${center.id}`}>
+                <Link href={`/centers/${center.id}`}>
                   <div className={styles.carousel__card}>
                     {center.images && center.images.length > 0 ? (
                       <img
@@ -118,24 +114,34 @@ const MyCarousel: React.FC<{ centers: Center[] }> = ({ centers }) => {
                       </div>
                     )}
                     <div className={styles.carousel__sportsContainer}>
-                      {DUMMY_SPORTS.map((sport, index) => (
-                        <span
-                          key={index}
-                          className={styles.carousel__sportPill}
-                        >
-                          {sport}
+                      {center.sports && center.sports.length > 0 ? (
+                        center.sports.map((sport, index) => (
+                          <span
+                            key={index}
+                            className={styles.carousel__sportPill}
+                          >
+                            {sport && typeof sport === "string"
+                              ? sport
+                              : "Unknown Facility"}
+                          </span>
+                        ))
+                      ) : (
+                        <span className={styles.carousel__sportPill}>
+                          No Sports Available
                         </span>
-                      ))}
+                      )}
                     </div>
+
                     <div className={styles.carousel__name}>{center.name}</div>
-                    {DUMMY_ADDRESS.map((address, index) => (
-                      <div key={index} className={styles.carousel__location}>
+
+                    {center.address && (
+                      <div className={styles.carousel__location}>
                         <MapPinIcon className={styles.carousel__icon} />
                         <span className={styles.carousel__address}>
-                          {address}
+                          {center.address}
                         </span>
                       </div>
-                    ))}
+                    )}
                   </div>
                 </Link>
               </SwiperSlide>
@@ -144,7 +150,7 @@ const MyCarousel: React.FC<{ centers: Center[] }> = ({ centers }) => {
             <div className={styles.carousel__noItems}>No Centers Available</div>
           )}
         </Swiper>
-        {/* Right Arrow */}
+
         {!isEnd && (
           <ArrowRightIcon
             className={`${styles.carousel__iconArrow} ${styles.carousel__iconArrowRight}`}

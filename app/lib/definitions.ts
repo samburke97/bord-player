@@ -16,6 +16,13 @@ export type SocialOptions =
   | "LinkedIn"
   | "Youtube";
 
+export type Tags = {
+  id: string;
+  name: string;
+  icon?: string;
+  last_edited?: Date;
+};
+
 export type Center = {
   id: string;
   name: string;
@@ -30,9 +37,10 @@ export type Center = {
   links?: Array<{ id: string; type: LinkOptions; url: string }>;
   socials?: Array<{ id: string; platform: SocialOptions; url: string }>;
   establishment?: Array<{ id: string; name: string }>;
-  sports?: Array<{ id: string; name: string }>;
+  sports: Array<{ id: string; name: string }>;
   facilities?: Array<{ id: string; name: string }>;
   is_active: boolean | null;
+  tags: Tags[];
 };
 
 export type Sport = {
@@ -41,13 +49,6 @@ export type Sport = {
   icon?: string;
   image_url?: string;
   last_edited?: Date | null;
-};
-
-export type Tags = {
-  id: string;
-  name: string;
-  icon?: string;
-  last_edited?: Date;
 };
 
 export type Group = {

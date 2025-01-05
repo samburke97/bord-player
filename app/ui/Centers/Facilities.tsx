@@ -1,19 +1,8 @@
 import { BuildingStorefrontIcon } from "@heroicons/react/24/outline";
-
 import styles from "./Facilities.module.css";
 
-const DUMMY_DATA = [
-  "Kilter Board",
-  "Cafe",
-  "Cafe",
-  "Cafe",
-  "Cafe",
-  "Cafe",
-  "Cafe",
-  "Cafe",
-];
-
-const Facilities = () => {
+// Update the function signature to match the prop name correctly.
+const Facilities = ({ facilities }: { facilities: string[] }) => {
   return (
     <div className={styles.wrapper}>
       <div className={styles.title}>
@@ -22,8 +11,10 @@ const Facilities = () => {
       </div>
 
       <div className={styles.facilities}>
-        {DUMMY_DATA.map((item) => (
-          <div className={styles.facilitiesIcon}>{item}</div>
+        {facilities.map((item, index) => (
+          <div key={index} className={styles.facilitiesIcon}>
+            {item}
+          </div>
         ))}
       </div>
     </div>

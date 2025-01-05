@@ -11,14 +11,13 @@ import SearchBar from "./SearchBar/SearchBarClient";
 const NavBar = () => {
   const [showSearchInNav, setShowSearchInNav] = useState(false);
   const [isLargeScreen, setIsLargeScreen] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // Track mobile menu state
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
     const handleResize = () => {
       const isNowLargeScreen = window.innerWidth >= 1024;
 
-      // Close the mobile menu if transitioning to a large screen
       if (isNowLargeScreen) {
         setIsMobileMenuOpen(false);
       }
@@ -55,7 +54,6 @@ const NavBar = () => {
             isSearchPage ? styles.nav__searchPage : ""
           }`}
         >
-          {/* Logo */}
           <div className={`${styles.nav__logoOrSearch}`}>
             {(isLargeScreen || !showSearchInNav) && (
               <Link href={`/`}>
@@ -70,7 +68,6 @@ const NavBar = () => {
             )}
           </div>
 
-          {/* SearchBar */}
           {isSearchPage || (isLargeScreen && showSearchInNav) ? (
             <div className={`${styles.nav__searchBarLarge}`}>
               <SearchBar />
@@ -81,7 +78,6 @@ const NavBar = () => {
             </div>
           ) : null}
 
-          {/* Hamburger Icon */}
           <div
             className={`${styles.nav__icon}`}
             onClick={() => setIsMobileMenuOpen((prev) => !prev)}

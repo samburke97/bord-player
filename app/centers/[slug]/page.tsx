@@ -31,19 +31,29 @@ export default async function Centers({ params }: { params: Params }) {
     sports: [],
     facilities: [],
     is_active: null,
+    tags: [],
   };
+
+  console.log(center.sports);
 
   return (
     <div className={styles.wrapper}>
       <MobileCenterCarousel centers={[center]} />
       <div className="content-container">
-        <ImageLayout />
+        <ImageLayout images={center.images} />
         <div className={styles.title}>
-          <span className={styles.pill}>Bouldering</span>
+          <div className={styles.facilities}>
+            {center.sports.map((sport, index) => (
+              <span key={index} className={styles.pill}>
+                {sport}
+              </span>
+            ))}
+          </div>
+
           <h1>{center.name}</h1>
         </div>
         <p className={styles.description}>{center.description}</p>
-        <Facilities />
+        <Facilities facilities={center.facilities} />
         <Address
           address={center.address}
           latitude={typeof center.latitude === "number" ? center.latitude : 0}

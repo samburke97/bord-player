@@ -1,35 +1,37 @@
 import styles from "./ImageLayout.module.css";
 
-const ImageLayout = () => {
+type ImageLayoutProps = {
+  images: string[];
+};
+
+const ImageLayout = ({ images }: ImageLayoutProps) => {
+  const totalImages = 5;
+  const placeholdersNeeded = totalImages - images.length;
+
   return (
     <div>
       <div className={styles.imageContainer}>
-        <img
-          src="/images/test.jpg"
-          alt="Climbing wall 1"
-          className={styles.heroImage}
-        />
+        {images[0] ? (
+          <div className={styles.heroImage}>
+            <img src={images[0]} alt={`Image 1`} />
+          </div>
+        ) : (
+          <div className={`${styles.heroImage} ${styles.placeholder}`} />
+        )}
+
         <div className={styles.imageContainer__sub}>
-          <img
-            src="/images/test2.jpg"
-            alt="Climbing wall 2"
-            className={styles.subImage}
-          />
-          <img
-            src="/images/test3.jpg"
-            alt="Climbing wall 3"
-            className={styles.subImage}
-          />
-          <img
-            src="/images/test4.jpg"
-            alt="Climbing wall 4"
-            className={styles.subImage}
-          />
-          <img
-            src="/images/test5.jpg"
-            alt="Climbing wall 5"
-            className={styles.subImage}
-          />
+          {images.slice(1, 5).map((image, index) => (
+            <div key={index} className={styles.subImage}>
+              <img src={image} alt={`Image ${index + 2}`} />
+            </div>
+          ))}
+
+          {Array.from({ length: placeholdersNeeded }, (_, index) => (
+            <div
+              key={`placeholder-${index}`}
+              className={`${styles.subImage} ${styles.placeholder}`}
+            />
+          ))}
         </div>
       </div>
     </div>

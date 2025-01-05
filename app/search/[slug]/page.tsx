@@ -1,23 +1,33 @@
+import SearchClient from "@/app/search/[slug]/SearchClient";
 import fetchCenters from "@/app/lib/data/centers/fetchCenters";
-import SearchItem from "@/app/ui/Search/SeachItem";
-import SearchMap from "@/app/ui/Search/SearchMap";
-import styles from "./Search.module.css";
 
-const Search = async () => {
+export default async function Search({ params }: { params: { slug: string } }) {
   const centers = await fetchCenters();
+  const searchTerm = decodeURIComponent(params.slug).toLowerCase();
 
-  return (
-    <div className="content-container">
-      <div className={styles.contentContainer}>
-        <div className={styles.leftPanel}>
-          <SearchItem centers={centers} />
-        </div>
-        <div className={styles.rightPanel}>
-          <SearchMap centers={centers} />
-        </div>
-      </div>
-    </div>
-  );
-};
+  const filteredCenters = centers.filter((center) => {
+    const matchesCenterName = center.name.toLowerCase().includes(searchTerm);
+    const matchesSports = center.sports?.some((sport) =>
+      sport?.toLowerCase().includes(searchTerm)
+    );
+    const matchesTags = center.tags?.some((tag) =>
+      tag?.toLowerCase().includes(searchTerm)
+    );
+    const matchesFacilities = center.facilities?.some((facility) =>
+      facility?.toLowerCase().includes(searchTerm)
+    );
+    const matchesDescription = center.description
+      .toLowerCase()
+      .includes(searchTerm);
 
-export default Search;
+    return (
+      matchesCenterName ||
+      matchesSports ||
+      matchesTags ||
+      matchesFacilities ||
+      matchesDescription
+    );
+  });
+
+  return <SearchClient centers={filteredCenters} />;
+}

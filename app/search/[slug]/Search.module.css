@@ -1,19 +1,123 @@
+.container {
+  display: flex;
+  position: relative;
+  flex-direction: column;
+  height: calc(100vh - 85px);
+  margin: none;
+  padding: none;
+}
+
+.navbarLeft {
+  display: none;
+  width: 100%;
+  position: absolute;
+  padding: 16px;
+  z-index: 1000;
+}
+
+.navbarRight {
+  display: none;
+  padding: 16px;
+  background: var(--Surface-Surface-Base, #0d0d0d);
+  border-bottom: 1px solid var(--Outline-Low, #1f1f1f);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.mapToggleButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.searchBar {
+  padding-right: 8px;
+}
+
 .contentContainer {
   display: flex;
-  flex-grow: 1;
-  overflow: hidden;
+  flex: 1;
+  height: calc(100vh - 80px);
 }
 
 .leftPanel {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  overflow: hidden;
+  flex: 0 0 auto;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+@media screen and (max-width: 1023px) {
+  .container {
+    height: calc(100vh);
+  }
+  .leftPanel {
+    padding-right: 0;
+    width: 100%;
+  }
+  .leftPanel::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.leftPanel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.leftPanel::-webkit-scrollbar-thumb {
+  background: var(--On-Surface-Medium, #7e807e);
+  border-radius: 4px;
+}
+
+.leftPanel::-webkit-scrollbar-track {
+  background: var(--Surface-Surface-Base, #000);
+  border-radius: 8px;
 }
 
 .rightPanel {
   flex-grow: 1;
-  overflow-y: scroll;
-  max-height: 100vh;
-  padding-right: 10px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.icon {
+  display: flex;
+  padding: 12px;
+  align-items: center;
+  gap: 8px;
+  border-radius: 100px;
+  border: 1px solid var(--Outline-Low, #1f1f1f);
+  background: var(--On-Surface-Base, #fff);
+}
+
+.iconImg {
+  width: 24px;
+  height: 24px;
+  color: black;
+}
+
+@media (max-width: 1024px) {
+  .navbarLeft,
+  .navbarRight {
+    display: flex;
+  }
+
+  .leftPanel,
+  .rightPanel {
+    display: none;
+  }
+
+  .hiddenOnSmallScreens {
+    display: none !important;
+  }
+
+  .leftPanel.hiddenOnSmallScreens {
+    display: block !important;
+  }
+
+  .rightPanel.hiddenOnSmallScreens {
+    display: block !important;
+  }
 }

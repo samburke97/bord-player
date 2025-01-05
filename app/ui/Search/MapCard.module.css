@@ -1,0 +1,94 @@
+.card {
+  width: 350px;
+  height: 220px;
+  border-radius: 12px;
+  border: 1px solid var(--Outline-Medium, #4c4d4c);
+  background-color: var(--Surface-Surface-Low, #161616);
+}
+
+.card img {
+  height: 218px;
+  width: 100%;
+  align-self: stretch;
+  border-radius: 12px 12px 0px 0px;
+  background: lightgray 50% / cover no-repeat;
+}
+
+.card h2 {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.description {
+  display: flex;
+  padding: 18px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  align-self: stretch;
+  border-radius: 0 0 12px 12px;
+  background-color: var(--Surface-Surface-Low, #161616);
+}
+
+.pill {
+  margin-right: 5px;
+  padding: 4px 8px;
+  border-radius: 16px;
+  color: var(--Primary-Primary, #39b252);
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 12px;
+}
+
+.address {
+  width: 90%;
+  white-space: nowrap;
+  overflow: hidden;
+  color: var(--On-Surface-Medium, #7e807e);
+  text-overflow: ellipsis;
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 12px;
+}
+
+.carousel__location {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  align-self: stretch;
+}
+
+.carousel__address {
+  width: 90%;
+  white-space: nowrap;
+  overflow: hidden;
+  color: var(--On-Surface-Medium, #7e807e);
+  text-overflow: ellipsis;
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 12px;
+}
+
+.carousel__icon {
+  width: var(--2, 12px);
+  height: var(--2, 12px);
+  flex-shrink: 0;
+  padding-right: 2px;
+}
+
+.sportContainer {
+  display: flex;
+}
+
+.sportPill {
+  margin-right: 5px;
+  padding: 4px 8px;
+  border-radius: 16px;
+  background-color: var(--Primary-Container, #082e0f);
+  color: var(--Primary-Primary, #39b252);
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 12px;
+}

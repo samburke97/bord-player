@@ -1,5 +1,6 @@
 "use client";
 
+import "mapbox-gl/dist/mapbox-gl.css";
 import React, { useRef, useEffect, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import styles from "./Map.module.css";
@@ -66,7 +67,7 @@ const MapComponent: React.FC<{ latitude: number; longitude: number }> = ({
         }}
       >
         <img
-          src="/images/location.svg"
+          src="/images/map/active-pin.svg"
           alt="Location Marker"
           className={`${styles.image}`}
         />
