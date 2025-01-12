@@ -44,8 +44,8 @@ export default async function Centers({ params }: { params: Params }) {
         <div className={styles.title}>
           <div className={styles.facilities}>
             {center.sports.map((sport, index) => (
-              <span key={index} className={styles.pill}>
-                {sport}
+              <span key={sport.id} className={styles.pill}>
+                {sport.name}
               </span>
             ))}
           </div>
@@ -53,7 +53,11 @@ export default async function Centers({ params }: { params: Params }) {
           <h1>{center.name}</h1>
         </div>
         <p className={styles.description}>{center.description}</p>
-        <Facilities facilities={center.facilities} />
+        <Facilities
+          facilities={(center.facilities || []).map(
+            (facility) => facility.name
+          )}
+        />
         <Address
           address={center.address}
           latitude={typeof center.latitude === "number" ? center.latitude : 0}

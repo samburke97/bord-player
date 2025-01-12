@@ -53,8 +53,18 @@ GROUP BY g.id;
       is_active: row.is_active,
       tags: row.tags || [],
     }));
-  } catch (error) {
-    console.error("Error occurred while fetching centers data:", error);
-    throw new Error(`Failed to fetch centers data: ${error.message}`);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      // Log and re-throw with additional context
+      console.error(
+        "Error occurred while fetching centers data:",
+        error.message
+      );
+      throw new Error(`Failed to fetch centers data: ${error.message}`);
+    } else {
+      // Handle unexpected non-error objects
+      console.error("An unknown error occurred:", error);
+      throw new Error("Failed to fetch centers data: Unknown error");
+    }
   }
 }

@@ -11,8 +11,13 @@ const SearchClient: React.FC<{ centers: any[] }> = ({ centers }) => {
   const [activePin, setActivePin] = useState<string | null>(null);
   const [isMapView, setIsMapView] = useState(false);
   const [isLargeScreen, setIsLargeScreen] = useState(window.innerWidth > 1024);
+  const [userLocation, setUserLocation] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
 
   useEffect(() => {
+    // Handle screen resize
     const handleResize = () => {
       setIsLargeScreen(window.innerWidth > 1024);
       if (window.innerWidth > 1024) {
@@ -23,6 +28,30 @@ const SearchClient: React.FC<{ centers: any[] }> = ({ centers }) => {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  useEffect(() => {
+    // Get user's location
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          });
+        },
+        (error) => {
+          console.error("Error getting user location:", error);
+        }
+      );
+    } else {
+      console.error("Geolocation is not supported by this browser.");
+    }
+  }, []);
+
+  if (!userLocation) {
+    // Optionally display a loading spinner or fallback UI while fetching the location
+    return <div>Loading map...</div>;
+  }
 
   return (
     <div className={styles.container}>
@@ -67,7 +96,12 @@ const SearchClient: React.FC<{ centers: any[] }> = ({ centers }) => {
             !isMapView && !isLargeScreen ? styles.hiddenOnSmallScreens : ""
           }`}
         >
-          <SearchMap centers={centers} setActivePin={setActivePin} />
+          {/* Pass userLocation to SearchMap */}
+          <SearchMap
+            centers={centers}
+            setActivePin={setActivePin}
+            userLocation={userLocation}
+          />
         </div>
       </div>
     </div>

@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-
+import { useState, useEffect } from "react";
 import { fetchSearchResults } from "./SearchBarServer";
 import styles from "./SearchBar.module.css";
 import {
@@ -10,7 +9,7 @@ import {
   ChevronRightIcon,
   ChevronLeftIcon,
 } from "@heroicons/react/24/outline";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 interface props {
   className?: string;
@@ -18,7 +17,7 @@ interface props {
 
 const SearchBar = ({ ...props }) => {
   const router = useRouter();
-
+  const pathname = usePathname();
   const [searchText, setSearchText] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -32,6 +31,17 @@ const SearchBar = ({ ...props }) => {
     { name: "Swimming", image: "/images/search/swimming.png" },
     { name: "Basketball", image: "/images/search/basketball.png" },
   ];
+
+  useEffect(() => {
+    const match = pathname.match(/\/search\/(.+)/);
+    if (match && match[1]) {
+      const term = decodeURIComponent(match[1]);
+      setSearchText(term);
+      handleInputChange({
+        target: { value: term },
+      } as React.ChangeEvent<HTMLInputElement>);
+    }
+  }, [pathname]);
 
   const handleInputChange = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -125,7 +135,7 @@ const SearchBar = ({ ...props }) => {
               <div
                 className={styles.dropdownItem}
                 key={sport.name}
-                onClick={() => handleResultClick(sport.name)}
+                onClick={() => handleResultClick(sport.name, "sport")}
               >
                 <div className={styles.dropdownSport}>
                   <div className={styles.imageContainer}>
@@ -168,7 +178,7 @@ const SearchBar = ({ ...props }) => {
               <div
                 className={styles.dropdownItem}
                 key={result.id}
-                onClick={() => handleResultClick(result.name)}
+                onClick={() => handleResultClick(result.name, result.type)}
               >
                 <div className={styles.dropdownSport}>
                   {result.type === "sport" ? (

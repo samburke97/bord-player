@@ -23,7 +23,7 @@ export default async function fetchCenterBySlug(
         g.is_active,
         array_agg(t.name) AS facilities,  
         array_agg(t2.name) AS tags,
-        array_agg(t3.name) AS sports   
+        array_agg(jsonb_build_object('id', t3.id, 'name', t3.name)) AS sports  /* Updated here */
       FROM centers g
       LEFT JOIN center_images i ON g.id = i.center_id
       LEFT JOIN center_facilities f ON g.id = f.center_id
@@ -56,14 +56,24 @@ export default async function fetchCenterBySlug(
       longitude: row.longitude,
       socials: [],
       establishment: [],
-      sports: row.sports || [],
+      sports: row.sports || [], // This will now be an array of objects with `id` and `name`
       facilities: row.facilities || [],
       address: row.address || "",
       is_active: row.is_active,
       tags: row.tags || [],
     };
-  } catch (error) {
-    console.error("Error occurred while fetching center data by slug:", error);
-    throw new Error(`Failed to fetch center data by slug: ${error.message}`);
+  } catch (error: unknown) {
+    // Check if the error is an instance of the built-in Error class
+    if (error instanceof Error) {
+      console.error(
+        "Error occurred while fetching center data by slug:",
+        error.message
+      );
+      throw new Error(`Failed to fetch center data by slug: ${error.message}`);
+    } else {
+      // In case the error is not an instance of Error, log a generic message
+      console.error("An unknown error occurred", error);
+      throw new Error("Failed to fetch center data by slug: Unknown error");
+    }
   }
 }

@@ -8,13 +8,13 @@ export default async function Search({ params }: { params: { slug: string } }) {
   const filteredCenters = centers.filter((center) => {
     const matchesCenterName = center.name.toLowerCase().includes(searchTerm);
     const matchesSports = center.sports?.some((sport) =>
-      sport?.toLowerCase().includes(searchTerm)
+      sport.name.toLowerCase().includes(searchTerm)
     );
     const matchesTags = center.tags?.some((tag) =>
-      tag?.toLowerCase().includes(searchTerm)
+      tag.name.toLowerCase().includes(searchTerm)
     );
     const matchesFacilities = center.facilities?.some((facility) =>
-      facility?.toLowerCase().includes(searchTerm)
+      facility.name.toLowerCase().includes(searchTerm)
     );
     const matchesDescription = center.description
       .toLowerCase()
