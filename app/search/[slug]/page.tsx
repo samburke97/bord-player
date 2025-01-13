@@ -6,18 +6,22 @@ export default async function Search({ params }: { params: { slug: string } }) {
   const searchTerm = decodeURIComponent(params.slug).toLowerCase();
 
   const filteredCenters = centers.filter((center) => {
-    const matchesCenterName = center.name.toLowerCase().includes(searchTerm);
+    const matchesCenterName = center.name?.toLowerCase().includes(searchTerm);
+
     const matchesSports = center.sports?.some((sport) =>
-      sport.name.toLowerCase().includes(searchTerm)
+      sport?.name?.toLowerCase().includes(searchTerm)
     );
+
     const matchesTags = center.tags?.some((tag) =>
-      tag.name.toLowerCase().includes(searchTerm)
+      tag?.name?.toLowerCase().includes(searchTerm)
     );
+
     const matchesFacilities = center.facilities?.some((facility) =>
-      facility.name.toLowerCase().includes(searchTerm)
+      facility?.name?.toLowerCase().includes(searchTerm)
     );
+
     const matchesDescription = center.description
-      .toLowerCase()
+      ?.toLowerCase()
       .includes(searchTerm);
 
     return (

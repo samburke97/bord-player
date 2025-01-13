@@ -5,7 +5,7 @@ import { Center } from "@/app/lib/definitions";
 export default async function fetchCentersBySearchTerm(
   searchTerm: string
 ): Promise<Center[]> {
-  const sanitizedSearchTerm = `%${searchTerm}%`; // Sanitize input for partial match
+  const sanitizedSearchTerm = `%${searchTerm}%`;
 
   try {
     const { rows } = await sql<Center>`

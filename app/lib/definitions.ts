@@ -38,7 +38,7 @@ export type Center = {
   socials?: Array<{ id: string; platform: SocialOptions; url: string }>;
   establishment?: Array<{ id: string; name: string }>;
   sports: Array<{ id: string; name: string }>;
-  facilities?: Array<{ id: string; name: string }>;
+  facilities: Array<{ id: string; name: string }>;
   is_active: boolean | null;
   tags: Tags[];
 };

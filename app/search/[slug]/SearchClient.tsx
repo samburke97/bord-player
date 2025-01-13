@@ -49,7 +49,6 @@ const SearchClient: React.FC<{ centers: any[] }> = ({ centers }) => {
   }, []);
 
   if (!userLocation) {
-    // Optionally display a loading spinner or fallback UI while fetching the location
     return <div>Loading map...</div>;
   }
 

@@ -1,8 +1,11 @@
 import { BuildingStorefrontIcon } from "@heroicons/react/24/outline";
 import styles from "./Facilities.module.css";
 
-// Update the function signature to match the prop name correctly.
-const Facilities = ({ facilities }: { facilities: string[] }) => {
+interface FacilitiesProps {
+  facilities: Array<{ id: string; name: string }>;
+}
+
+const Facilities: React.FC<FacilitiesProps> = ({ facilities }) => {
   return (
     <div className={styles.wrapper}>
       <div className={styles.title}>
@@ -11,9 +14,9 @@ const Facilities = ({ facilities }: { facilities: string[] }) => {
       </div>
 
       <div className={styles.facilities}>
-        {facilities.map((item, index) => (
-          <div key={index} className={styles.facilitiesIcon}>
-            {item}
+        {facilities.map((item) => (
+          <div key={item.id} className={styles.facilitiesIcon}>
+            {item.name}
           </div>
         ))}
       </div>
