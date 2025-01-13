@@ -95,7 +95,6 @@ const SearchClient: React.FC<{ centers: any[] }> = ({ centers }) => {
             !isMapView && !isLargeScreen ? styles.hiddenOnSmallScreens : ""
           }`}
         >
-          {/* Pass userLocation to SearchMap */}
           <SearchMap
             centers={centers}
             setActivePin={setActivePin}

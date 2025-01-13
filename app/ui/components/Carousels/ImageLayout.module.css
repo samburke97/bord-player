@@ -8,7 +8,6 @@
   gap: clamp(13.8px, 2vw, 24px);
   width: 100%;
   margin: 32px 0;
-  border-radius: 9px;
   align-items: stretch;
 }
 
@@ -16,26 +15,22 @@
   grid-area: hero;
   position: relative;
   overflow: hidden;
-  border-radius: 8px;
+  border-radius: 12px;
   background-color: grey;
-  width: 100%; /* Hero image takes full width of its container */
-  height: auto; /* Allow the height to scale based on the width */
-  max-height: 572px; /* Max height to prevent excessive size on larger screens */
-  transition: height 0.3s ease; /* Smooth transition for height adjustment */
+  width: 100%;
+  padding-top: 100%; /* Aspect ratio 1:1 (square) */
+  position: relative; /* Ensures the padding works as expected */
 }
 
 .heroImage img {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  border-radius: 12px; /* Ensure the hero image has a border radius */
   transition: transform 0.3s ease;
-}
-
-/* Hide the entire component on small screens */
-@media (max-width: 768px) {
-  .imageContainer {
-    display: none;
-  }
 }
 
 .imageContainer__sub {
@@ -47,28 +42,33 @@
   border-radius: 8px;
 }
 
+.subImage {
+  position: relative;
+  padding-top: 100%; /* Aspect ratio 1:1 (square) */
+}
+
 .subImage img {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: 12px; /* Ensure sub images have a border radius */
   background-color: grey;
   transition: transform 0.3s ease;
 }
 
-.heroImage:hover img,
-.subImage:hover img {
-  transform: scale(1.1);
-  object-fit: cover;
-  border-radius: 8px;
-}
-
 .placeholder {
   background-color: grey;
-  border-radius: 8px;
+  border-radius: 12px; /* Match the radius with images */
 }
 
 @media (max-width: 768px) {
+  .imageContainer {
+    display: none;
+  }
+
   .imageContainer__sub {
     grid-template-columns: 1fr; /* Stack sub-images on smaller screens */
     grid-template-rows: auto;

@@ -14,25 +14,11 @@ type Params = {
 export default async function Centers({ params }: { params: Params }) {
   const fetchedCenter = await fetchCenterBySlug(params.slug);
 
-  const center: Center = fetchedCenter || {
-    id: "",
-    name: "",
-    description: "",
-    images: [],
-    last_edited: null,
-    address: "",
-    latitude: 0,
-    longitude: 0,
-    phone: "",
-    email: "",
-    links: [],
-    socials: [],
-    establishment: [],
-    sports: [],
-    facilities: [],
-    is_active: null,
-    tags: [],
-  };
+  if (!fetchedCenter) {
+    return <div>No center found</div>;
+  }
+
+  const center: Center = fetchedCenter;
 
   console.log(center.sports);
 
@@ -56,10 +42,8 @@ export default async function Centers({ params }: { params: Params }) {
         <Facilities facilities={center.facilities} />
         <Address
           address={center.address}
-          latitude={typeof center.latitude === "number" ? center.latitude : 0}
-          longitude={
-            typeof center.longitude === "number" ? center.longitude : 0
-          }
+          latitude={center.latitude || 0}
+          longitude={center.longitude || 0}
         />
         {center.phone ||
         center.email ||

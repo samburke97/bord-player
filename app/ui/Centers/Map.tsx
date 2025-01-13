@@ -31,6 +31,7 @@ const MapComponent: React.FC<{ latitude: number; longitude: number }> = ({
       center: [longitude, latitude],
       zoom: 14,
       attributionControl: false,
+      scrollZoom: false,
     });
 
     mapRef.current = map;

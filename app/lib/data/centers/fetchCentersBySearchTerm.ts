@@ -40,9 +40,9 @@ export default async function fetchCentersBySearchTerm(
         )
       GROUP BY g.id;
     `;
-    return rows; // Return filtered centers
+    return rows;
   } catch (error) {
     console.error("Error fetching centers:", error);
-    return []; // Return an empty array if there was an error
+    return [];
   }
 }
