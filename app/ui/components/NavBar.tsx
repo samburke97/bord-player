@@ -34,7 +34,7 @@ const NavBar = () => {
       setShowSearchInNav(window.scrollY > scrollThreshold);
     };
 
-    handleResize(); // Set initial screen size
+    handleResize();
     window.addEventListener("resize", handleResize);
     window.addEventListener("scroll", handleScroll);
 

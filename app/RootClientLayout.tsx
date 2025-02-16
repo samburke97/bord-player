@@ -17,7 +17,7 @@ export default function RootClientLayout({
       setIsLargeScreen(window.innerWidth >= 1023);
     };
 
-    handleResize(); // Set initial screen size
+    handleResize();
     window.addEventListener("resize", handleResize);
 
     return () => {
@@ -25,7 +25,6 @@ export default function RootClientLayout({
     };
   }, []);
 
-  // Hide NavBar if the pathname starts with '/search' and screen size is less than 1023px
   const shouldHideNavBar = pathname.startsWith("/search") && !isLargeScreen;
 
   return (

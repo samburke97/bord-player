@@ -19,9 +19,9 @@ SELECT
   g.longitude, 
   g.address, 
   g.is_active,
-  array_agg(t.name) AS facilities,  
+  array_agg(jsonb_build_object('id', t.id, 'name', t.name)) AS facilities,  
   array_agg(t2.name) AS tags,
-  array_agg(t3.name) AS sports
+  array_agg(jsonb_build_object('id', t3.id, 'name', t3.name)) AS sports
 FROM centers g
 LEFT JOIN center_images i ON g.id = i.center_id
 LEFT JOIN center_facilities f ON g.id = f.center_id
@@ -55,14 +55,12 @@ GROUP BY g.id;
     }));
   } catch (error: unknown) {
     if (error instanceof Error) {
-      // Log and re-throw with additional context
       console.error(
         "Error occurred while fetching centers data:",
         error.message
       );
       throw new Error(`Failed to fetch centers data: ${error.message}`);
     } else {
-      // Handle unexpected non-error objects
       console.error("An unknown error occurred:", error);
       throw new Error("Failed to fetch centers data: Unknown error");
     }

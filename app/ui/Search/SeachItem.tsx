@@ -42,7 +42,7 @@ const SearchItem: React.FC<{ centers: Center[]; activePin: string | null }> = ({
             </div>
             <div className={styles.infoContainer}>
               <div className={styles.sportsContainer}>
-                {Array.isArray(center.sports) && center.sports.length > 0 ? (
+                {center.sports.length > 0 ? (
                   center.sports.map((sport, index) => (
                     <span key={index} className={styles.sportPill}>
                       {sport.name}

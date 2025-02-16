@@ -9,32 +9,32 @@ export default async function fetchCenterBySlug(
 
   try {
     const data = await sql<Center>`
-      SELECT 
-        g.id, 
-        g.name, 
-        g.description, 
-        array_agg(i.image_url) AS images, 
-        g.last_edited, 
-        g.phone, 
-        g.email, 
-        g.latitude, 
-        g.longitude, 
-        g.address, 
-        g.is_active,
-        array_agg(jsonb_build_object('id', t.id, 'name', t.name)) AS facilities,  
-        array_agg(t2.name) AS tags,
-        array_agg(jsonb_build_object('id', t3.id, 'name', t3.name)) AS sports
-      FROM centers g
-      LEFT JOIN center_images i ON g.id = i.center_id
-      LEFT JOIN center_facilities f ON g.id = f.center_id
-      LEFT JOIN tags t ON f.tag_id = t.id 
-      LEFT JOIN center_tags ct ON g.id = ct.center_id
-      LEFT JOIN tags t2 ON ct.tag_id = t2.id 
-      LEFT JOIN center_sports cs ON g.id = cs.center_id   
-      LEFT JOIN sports t3 ON cs.sport_id = t3.id           
-      WHERE g.id = ${slug} AND g.is_active = true
-      GROUP BY g.id;
-    `;
+  SELECT 
+    g.id, 
+    g.name, 
+    g.description, 
+    array_agg(i.image_url) AS images, 
+    g.last_edited, 
+    g.phone, 
+    g.email, 
+    g.latitude, 
+    g.longitude, 
+    g.address, 
+    g.is_active,
+    array_agg(DISTINCT jsonb_build_object('id', t.id, 'name', t.name)) AS facilities,  
+    array_agg(DISTINCT t2.name) AS tags,
+    array_agg(DISTINCT jsonb_build_object('id', t3.id, 'name', t3.name)) AS sports
+  FROM centers g
+  LEFT JOIN center_images i ON g.id = i.center_id
+  LEFT JOIN center_facilities f ON g.id = f.center_id
+  LEFT JOIN tags t ON f.tag_id = t.id 
+  LEFT JOIN center_tags ct ON g.id = ct.center_id
+  LEFT JOIN tags t2 ON ct.tag_id = t2.id 
+  LEFT JOIN center_sports cs ON g.id = cs.center_id   
+  LEFT JOIN sports t3 ON cs.sport_id = t3.id           
+  WHERE g.id = ${slug} AND g.is_active = true
+  GROUP BY g.id;
+`;
 
     if (data.rows.length === 0) {
       console.log("No center found for slug:", slug);

@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import RootClientLayout from "./RootClientLayout";
-import { LocationProvider } from "@/store/use-location";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -19,9 +18,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} antialiased`}>
-        <LocationProvider>
-          <RootClientLayout>{children}</RootClientLayout>
-        </LocationProvider>
+        <RootClientLayout>{children}</RootClientLayout>
       </body>
     </html>
   );

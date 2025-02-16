@@ -120,9 +120,7 @@ const MyCarousel: React.FC<{ centers: Center[] }> = ({ centers }) => {
                             key={index}
                             className={styles.carousel__sportPill}
                           >
-                            {sport && typeof sport === "string"
-                              ? sport
-                              : "Unknown Facility"}
+                            {sport.name || "Unknown Facility"}
                           </span>
                         ))
                       ) : (

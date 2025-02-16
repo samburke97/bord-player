@@ -24,6 +24,18 @@
   z-index: 10;
 }
 
+.mapMarker {
+  width: 42px;
+  height: 55px;
+  background-size: cover;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.mapMarker:hover {
+  transform: scale(1.05);
+}
+
 .customControls {
   display: flex;
   flex-direction: column;
@@ -50,26 +62,55 @@
   }
 }
 
-.searchButton {
+.searchIndicator {
   display: inline-flex;
   height: 42px;
   padding: 12px 24px;
   justify-content: center;
   align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
   border-radius: 100px;
   border: 1px solid var(--Outline-Medium, #4c4d4c);
   background: var(--On-Surface-Base, #fff);
   color: var(--Surface-Surface-Base, #000);
   font-family: Inter;
   font-size: 12px;
-  font-style: normal;
   font-weight: 500;
-  line-height: 14px; /* 116.667% */
+  line-height: 14px;
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
 }
 
-.searchButton:disabled {
-  background: #e0e0e0;
-  color: #9e9e9e;
+/* Loading dots animation */
+.loadingDots {
+  display: inline-flex;
+  align-items: center;
+  height: 14px;
+}
+
+.loadingDots span {
+  animation: bounce 0.8s infinite;
+  display: inline-block;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.loadingDots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.loadingDots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
 }
