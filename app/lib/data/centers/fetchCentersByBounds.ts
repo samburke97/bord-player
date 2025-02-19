@@ -1,5 +1,5 @@
 import { sql } from "@vercel/postgres";
-import { Center } from "../../definitions";
+import { Center } from "../../../types/types";
 import { unstable_noStore as noStore } from "next/cache";
 
 export async function fetchCentersByBounds(

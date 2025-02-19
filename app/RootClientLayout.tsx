@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import NavBar from "./ui/components/NavBar";
 import { usePathname } from "next/navigation";
+import { Provider } from "react-redux";
+import { store } from "@/store/store";
 
 export default function RootClientLayout({
   children,
@@ -28,9 +30,9 @@ export default function RootClientLayout({
   const shouldHideNavBar = pathname.startsWith("/search") && !isLargeScreen;
 
   return (
-    <>
+    <Provider store={store}>
       {!shouldHideNavBar && <NavBar />}
       {children}
-    </>
+    </Provider>
   );
 }

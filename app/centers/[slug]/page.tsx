@@ -1,5 +1,5 @@
 import fetchCenterBySlug from "../../lib/data/centers/fetchCentersBySlug";
-import { Center } from "@/app/lib/definitions";
+import { Center } from "@/app/types/types";
 import ImageLayout from "@/app/ui/components/Carousels/ImageLayout";
 import MobileCenterCarousel from "@/app/ui/components/Carousels/MobileCenterCarousel";
 import Facilities from "@/app/ui/centers/Facilities";

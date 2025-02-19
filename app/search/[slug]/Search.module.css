@@ -1,10 +1,8 @@
 .container {
   display: flex;
-  position: relative;
   flex-direction: column;
-  height: calc(100vh - 85px);
-  margin: none;
-  padding: none;
+  height: calc(100vh - 86px);
+  overflow: hidden;
 }
 
 .navbarLeft {
@@ -25,61 +23,29 @@
   z-index: 1000;
 }
 
-.mapToggleButton {
-  background: none;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-}
-
-.searchBar {
-  padding-right: 8px;
-}
-
 .contentContainer {
   display: flex;
   flex: 1;
-  height: calc(100vh - 80px);
+  min-height: 0;
+  position: relative;
+  overflow: hidden; /* Ensure content is clipped within */
 }
 
 .leftPanel {
-  flex: 0 0 auto;
+  flex: 0 0 400px;
   overflow-y: auto;
-  padding-right: 8px;
-}
-
-@media screen and (max-width: 1023px) {
-  .container {
-    height: calc(100vh);
-  }
-  .leftPanel {
-    padding-right: 0;
-    width: 100%;
-  }
-  .leftPanel::-webkit-scrollbar {
-    display: none;
-  }
-}
-
-.leftPanel::-webkit-scrollbar {
-  width: 8px;
-}
-
-.leftPanel::-webkit-scrollbar-thumb {
-  background: var(--On-Surface-Medium, #7e807e);
-  border-radius: 4px;
-}
-
-.leftPanel::-webkit-scrollbar-track {
-  background: var(--Surface-Surface-Base, #000);
-  border-radius: 8px;
+  border-right: 1px solid var(--Outline-Low, #1f1f1f);
 }
 
 .rightPanel {
-  flex-grow: 1;
-  padding: 0;
-  overflow: hidden;
+  flex: 1; /* Take available space */
+  position: relative; /* Anchor for absolute children */
+  max-width: calc(100vw - 400px); /* Prevent overflow */
+  height: 100%;
+}
+
+.rightPanel > div {
+  height: 100%;
 }
 
 .icon {
@@ -98,15 +64,47 @@
   color: black;
 }
 
+.mapToggleButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.searchBar {
+  padding-right: 8px;
+}
+
+/* Media Queries */
+@media screen and (max-width: 1023px) {
+  .container {
+    height: 100vh;
+  }
+  .rightPanel {
+    max-width: 100%; /* Ensure it fits smaller screens */
+  }
+  .leftPanel {
+    padding-right: 0;
+    width: 100%;
+  }
+}
+
 @media (max-width: 1024px) {
   .navbarLeft,
   .navbarRight {
     display: flex;
+    height: 85px;
+  }
+
+  .contentContainer {
+    height: calc(100vh - 85px);
   }
 
   .leftPanel,
   .rightPanel {
     display: none;
+    width: 100%;
   }
 
   .hiddenOnSmallScreens {

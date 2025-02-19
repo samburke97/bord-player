@@ -1,211 +1,282 @@
-"use client";
-
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { motion } from "framer-motion";
 import mapboxgl from "mapbox-gl";
-import "mapbox-gl/dist/mapbox-gl.css";
 import styles from "./SearchMap.module.css";
 import MapCard from "./MapCard";
-import { Center } from "@/app/lib/definitions";
+import LoadingIndicator from "./LoadingIndicator";
+import { Center } from "@/app/types/types";
 import { Gps, Add, Minus } from "iconsax-react";
+import { RootState } from "@/store/store";
+import {
+  setActivePin,
+  setMapBounds,
+  setHoveredCenter,
+} from "@/store/features/searchSlice";
 
-mapboxgl.accessToken =
-  "pk.eyJ1Ijoic2FtaXNib3JkIiwiYSI6ImNtM211eDF1djA0aTAyaW9paTlzdjZxOGYifQ.JpqQGl5Lmyq-eH0HMDORXQ";
+mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "";
 
 interface SearchMapProps {
   centers: Center[];
-  setActivePin: (id: string | null) => void;
-  loading: boolean;
-  userLocation?: { latitude: number; longitude: number } | null;
-  onBoundsChange?:
-    | ((bounds: {
-        north: number;
-        south: number;
-        east: number;
-        west: number;
-      }) => void)
-    | null;
-  searchTerm: string;
+  userLocation: { latitude: number; longitude: number };
+  onBoundsChange?: (bounds: {
+    north: number;
+    south: number;
+    east: number;
+    west: number;
+  }) => void;
 }
 
 const SearchMap: React.FC<SearchMapProps> = ({
   centers,
-  setActivePin,
   userLocation,
-  loading,
   onBoundsChange,
-  searchTerm,
 }) => {
+  const dispatch = useDispatch();
+  const activePin = useSelector((state: RootState) => state.search.activePin);
+  const hoveredItem = useSelector(
+    (state: RootState) => state.search.hoveredItem
+  );
+
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
-  const [activePin, setActivePinState] = useState<string | null>(null);
+  const userMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const [cardPosition, setCardPosition] = useState<{
     top: number;
     left: number;
   } | null>(null);
   const [cardContent, setCardContent] = useState<Center | null>(null);
-  const markersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
-  const [mapLoading, setMapLoading] = useState(true);
+  const isLoading = useSelector((state: RootState) => state.search.isLoading);
+  const boundsChangeTimeoutRef = useRef<NodeJS.Timeout>();
 
-  // Fallback location if user location is not provided
-  const defaultLocation = {
-    latitude: 51.5074, // London coordinates
-    longitude: -0.1278,
-  };
+  const updateMarkers = useCallback(
+    (centers: Center[]) => {
+      // Clear existing markers from DOM
+      const existingMarkers = document.querySelectorAll(`.${styles.marker}`);
+      existingMarkers.forEach((marker) => marker.remove());
 
-  // Create markers function
-  const createMarkers = useCallback(() => {
-    // Ensure mapRef.current is not null
-    const map = mapRef.current;
-    if (!map) return;
+      centers.forEach((center) => {
+        if (!center.latitude || !center.longitude) return;
 
-    // Clear existing markers
-    markersRef.current.forEach((marker) => marker.remove());
-    markersRef.current.clear();
+        // Create the marker container div
+        const markerElement = document.createElement("div");
+        markerElement.className = `${styles.marker}`;
+        markerElement.setAttribute("data-center-id", center.id);
 
-    // Add new markers
-    centers.forEach((center) => {
-      const latitude = Number(center.latitude);
-      const longitude = Number(center.longitude);
+        // Create the image element
+        const markerImage = document.createElement("img");
+        markerImage.src =
+          activePin === center.id
+            ? "/images/map/active-pin.svg"
+            : "/images/map/base-pin.svg";
+        markerImage.alt = "Location Marker";
+        markerImage.className = styles.image;
 
-      if (isNaN(latitude) || isNaN(longitude)) return;
+        markerElement.appendChild(markerImage);
 
-      const markerElement = document.createElement("div");
-      markerElement.className = "custom-marker";
-      markerElement.style.backgroundImage = "url('/images/map/base-pin.svg')";
-      markerElement.style.width = "42px";
-      markerElement.style.height = "55px";
-      markerElement.style.backgroundSize = "cover";
-      markerElement.style.backgroundRepeat = "no-repeat";
-      markerElement.style.cursor = "pointer";
-      markerElement.style.position = "absolute";
-      markerElement.style.zIndex = "1000";
+        // Position the marker based on coordinates
+        const position = mapRef.current!.project([
+          Number(center.longitude),
+          Number(center.latitude),
+        ]);
 
-      const marker = new mapboxgl.Marker({
-        element: markerElement,
-        anchor: "bottom",
-      })
-        .setLngLat([longitude, latitude])
-        .addTo(map);
+        markerElement.style.left = `${position.x}px`;
+        markerElement.style.top = `${position.y}px`;
 
-      markersRef.current.set(center.id, marker);
-
-      markerElement.addEventListener("click", (e) => {
-        e.stopPropagation();
-
-        // Reset previous active pin
-        if (activePin) {
-          const prevMarker = markersRef.current.get(activePin);
-          if (prevMarker) {
-            prevMarker.getElement().style.backgroundImage =
-              "url('/images/map/base-pin.svg')";
-          }
+        // Apply hover state based on hoveredItem
+        if (hoveredItem === center.id && activePin !== center.id) {
+          markerElement.classList.add(styles.hoveredMarker);
         }
 
-        setActivePinState(center.id);
-        setActivePin(center.id);
-        markerElement.style.backgroundImage =
-          "url('/images/map/active-pin.svg')";
+        // Add mouseenter and mouseleave event listeners
+        markerElement.addEventListener("mouseenter", (e) => {
+          const currentTarget = e.currentTarget as HTMLDivElement;
+          const centerId = currentTarget.getAttribute("data-center-id");
 
-        const pinPosition = marker.getLngLat();
-        const pixelPosition = map.project(pinPosition);
-
-        const isTopHalf =
-          pixelPosition.y < mapContainer.current!.clientHeight / 2;
-        setCardPosition({
-          top: isTopHalf ? pixelPosition.y + 60 : pixelPosition.y - 380,
-          left: pixelPosition.x - 175,
+          if (centerId && activePin !== centerId) {
+            currentTarget.classList.add(styles.hoveredMarker);
+            dispatch(setHoveredCenter(centerId));
+          }
         });
 
-        setCardContent(center);
+        markerElement.addEventListener("mouseleave", (e) => {
+          const currentTarget = e.currentTarget as HTMLDivElement;
+          const centerId = currentTarget.getAttribute("data-center-id");
+
+          if (centerId && activePin !== centerId) {
+            currentTarget.classList.remove(styles.hoveredMarker);
+            dispatch(setHoveredCenter(null));
+          }
+        });
+
+        // Add click handler
+        markerElement.addEventListener("click", (e) => {
+          e.stopPropagation();
+          dispatch(setActivePin(center.id));
+
+          // Calculate card position based on center's coordinates
+          const positionAfterMove = mapRef.current!.project([
+            Number(center.longitude),
+            Number(center.latitude),
+          ]);
+
+          // Position card right next to the marker
+          const isTopHalf =
+            positionAfterMove.y < mapContainer.current!.clientHeight / 2;
+          const cardOffsetY = isTopHalf ? 10 : -380;
+
+          setCardPosition({
+            top: positionAfterMove.y + cardOffsetY,
+            left: positionAfterMove.x - 175,
+          });
+
+          setCardContent(center);
+        });
+
+        // Add marker to the map container
+        mapContainer.current?.appendChild(markerElement);
+
+        // Update marker position and scale on map move/zoom
+        mapRef.current?.on("move", () => {
+          const newPosition = mapRef.current!.project([
+            Number(center.longitude),
+            Number(center.latitude),
+          ]);
+          markerElement.style.left = `${newPosition.x}px`;
+          markerElement.style.top = `${newPosition.y}px`;
+
+          // Update hover state during map movement
+          if (hoveredItem === center.id && activePin !== center.id) {
+            markerElement.classList.add(styles.hoveredMarker);
+          } else {
+            markerElement.classList.remove(styles.hoveredMarker);
+          }
+
+          // If a pin is active, update its card position as the map moves
+          if (activePin === center.id) {
+            const updatedPosition = mapRef.current!.project([
+              Number(center.longitude),
+              Number(center.latitude),
+            ]);
+
+            const isTopHalf =
+              updatedPosition.y < mapContainer.current!.clientHeight / 2;
+            const cardOffsetY = isTopHalf ? 10 : -380;
+
+            setCardPosition({
+              top: updatedPosition.y + cardOffsetY,
+              left: updatedPosition.x - 175,
+            });
+          }
+        });
       });
-    });
-  }, [
-    centers,
-    activePin,
-    setActivePin,
-    setActivePinState,
-    setCardPosition,
-    setCardContent,
-  ]);
+    },
+    [dispatch, activePin, hoveredItem]
+  );
 
+  // Initialize map
   useEffect(() => {
-    const location = userLocation || defaultLocation;
-
-    if (!mapContainer.current) return;
-
-    // Prevent map reinitialization if already exists
-    if (mapRef.current) {
-      mapRef.current.setCenter([location.longitude, location.latitude]);
-      return;
-    }
+    if (!mapContainer.current || !userLocation) return;
 
     const map = new mapboxgl.Map({
       container: mapContainer.current,
       style: "mapbox://styles/samisbord/cm3h9lzqc002h01sq4zx18vbq",
       attributionControl: false,
-      zoom: 13,
-      center: [location.longitude, location.latitude],
+      center: [userLocation.longitude, userLocation.latitude],
+      zoom: 10,
+      projection: "mercator",
     });
 
     mapRef.current = map;
 
+    // Function to deactivate pin
+    const deactivatePin = () => {
+      dispatch(setActivePin(null));
+      setCardPosition(null);
+      setCardContent(null);
+    };
+
     map.on("load", () => {
-      const geolocateControl = new mapboxgl.GeolocateControl({
-        positionOptions: {
-          enableHighAccuracy: true,
-        },
-        trackUserLocation: true,
-        showUserLocation: true,
-      });
-      map.addControl(geolocateControl);
+      // Create user location marker
+      const userMarkerElement = document.createElement("div");
+      userMarkerElement.className = styles.userLocationMarker;
 
-      // Clear MapCard on map movement
-      map.on("movestart", () => {
-        setActivePinState(null);
-        setActivePin(null);
-        setCardContent(null);
-        setCardPosition(null);
+      const userMarkerImage = document.createElement("img");
+      userMarkerImage.src = "/images/map/user-location.svg";
+      userMarkerImage.alt = "User Location";
+      userMarkerImage.className = styles.userLocationImage;
+
+      userMarkerElement.appendChild(userMarkerImage);
+
+      // Position marker
+      const position = mapRef.current!.project([
+        userLocation.longitude,
+        userLocation.latitude,
+      ]);
+
+      userMarkerElement.style.left = `${position.x}px`;
+      userMarkerElement.style.top = `${position.y}px`;
+      userMarkerElement.style.transform = `translate(-50%, -50%)`;
+
+      // Add to map container
+      mapContainer.current?.appendChild(userMarkerElement);
+
+      // Update position on map move
+      mapRef.current?.on("move", () => {
+        const newPosition = mapRef.current!.project([
+          userLocation.longitude,
+          userLocation.latitude,
+        ]);
+        userMarkerElement.style.left = `${newPosition.x}px`;
+        userMarkerElement.style.top = `${newPosition.y}px`;
       });
 
-      // Handle bounds change
+      // Add event listeners to deactivate pin on map interaction
+      map.on("click", deactivatePin);
+      map.on("drag", deactivatePin);
+      map.on("zoom", deactivatePin);
+      map.on("rotate", deactivatePin);
+
+      // Handle map movement with bounds comparison
       map.on("moveend", () => {
-        if (onBoundsChange) {
-          const bounds = map.getBounds();
+        if (!onBoundsChange) return;
 
-          // Null check to satisfy TypeScript
-          if (bounds) {
-            onBoundsChange({
-              north: bounds.getNorth(),
-              south: bounds.getSouth(),
-              east: bounds.getEast(),
-              west: bounds.getWest(),
-            });
-          }
-        }
+        const currentBounds = map.getBounds();
+        if (!currentBounds) return;
+
+        const newBounds = {
+          north: currentBounds.getNorth(),
+          south: currentBounds.getSouth(),
+          east: currentBounds.getEast(),
+          west: currentBounds.getWest(),
+        };
+
+        dispatch(setMapBounds(newBounds));
+        onBoundsChange(newBounds);
       });
 
-      setMapLoading(false);
-
-      // Trigger marker creation after map load
-      if (centers.length > 0) {
-        createMarkers();
-      }
+      updateMarkers(centers);
     });
 
     return () => {
+      if (boundsChangeTimeoutRef.current) {
+        clearTimeout(boundsChangeTimeoutRef.current);
+      }
+      if (userMarkerRef.current) {
+        userMarkerRef.current.remove();
+      }
       if (mapRef.current) {
-        markersRef.current.forEach((marker) => marker.remove());
         mapRef.current.remove();
       }
     };
-  }, [userLocation, centers, createMarkers]);
+  }, [userLocation, dispatch]);
 
-  // Update markers whenever centers change
+  // Update markers when centers, activePin, or hoveredItem changes
   useEffect(() => {
-    if (!mapRef.current || mapLoading) return;
-
-    createMarkers();
-  }, [centers, mapLoading, createMarkers]);
+    if (mapRef.current && !isLoading) {
+      updateMarkers(centers);
+    }
+  }, [centers, activePin, hoveredItem, updateMarkers]);
 
   const handleZoomIn = () => {
     mapRef.current?.zoomIn();
@@ -216,10 +287,9 @@ const SearchMap: React.FC<SearchMapProps> = ({
   };
 
   const handleGeolocate = () => {
-    const location = userLocation || defaultLocation;
-    if (mapRef.current) {
+    if (mapRef.current && userLocation) {
       mapRef.current.flyTo({
-        center: [location.longitude, location.latitude],
+        center: [userLocation.longitude, userLocation.latitude],
         zoom: 12,
         speed: 0.5,
         curve: 1,
@@ -229,8 +299,7 @@ const SearchMap: React.FC<SearchMapProps> = ({
 
   return (
     <div className={styles.map}>
-      <div ref={mapContainer} className={styles.mapContainer}></div>
-
+      <div ref={mapContainer} className={styles.mapContainer} />
       {activePin && cardPosition && cardContent && (
         <div
           className={styles.cardWrapper}
@@ -251,25 +320,43 @@ const SearchMap: React.FC<SearchMapProps> = ({
       )}
 
       <div className={styles.customControls}>
-        <button onClick={handleGeolocate} className={styles.controlButton}>
+        <motion.button
+          onClick={handleGeolocate}
+          className={styles.controlButton}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+        >
           <Gps size={24} variant="Bold" />
-        </button>
-        <button onClick={handleZoomIn} className={styles.controlButton}>
-          <Add size={24} />
-        </button>
-        <button onClick={handleZoomOut} className={styles.controlButton}>
-          <Minus size={24} />
-        </button>
-      </div>
+        </motion.button>
 
-      {(loading || mapLoading) && (
-        <div className={styles.searchIndicator}>
-          <span className={styles.loadingDots}>
-            <span>.</span>
-            <span>.</span>
-            <span>.</span>
-          </span>
-        </div>
+        <motion.button
+          onClick={handleZoomIn}
+          className={styles.controlButton}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+        >
+          <Add size={24} />
+        </motion.button>
+
+        <motion.button
+          onClick={handleZoomOut}
+          className={styles.controlButton}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+        >
+          <Minus size={24} />
+        </motion.button>
+      </div>
+      {isLoading && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.5 }}
+          className={styles.loadingWrapper}
+        >
+          <LoadingIndicator />
+        </motion.div>
       )}
     </div>
   );

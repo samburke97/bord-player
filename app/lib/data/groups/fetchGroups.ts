@@ -1,7 +1,7 @@
 "use server";
 
 import { sql } from "@vercel/postgres";
-import { Group } from "./../../definitions";
+import { Group } from "../../../types/types";
 import { unstable_noStore as noStore } from "next/cache";
 
 export default async function fetchGroups() {

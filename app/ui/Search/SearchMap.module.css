@@ -1,8 +1,8 @@
 .map {
   position: relative;
-  height: 100%;
-  margin-left: 8px;
-  border-left: 1px solid var(--Outline-Medium, #4c4d4c);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 @media screen and (max-width: 1023px) {
@@ -13,9 +13,10 @@
 }
 
 .mapContainer {
-  height: 100%;
+  position: absolute;
+  inset: 0;
   width: 100%;
-  position: relative;
+  height: 100%;
 }
 
 .cardWrapper {
@@ -24,25 +25,37 @@
   z-index: 10;
 }
 
-.mapMarker {
+.marker {
   width: 42px;
   height: 55px;
-  background-size: cover;
-  cursor: pointer;
-  transition: transform 0.2s ease;
+  pointer-events: none;
+  position: absolute;
+  transform: translate(-50%, -100%);
+  z-index: 1;
+  transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55),
+    z-index 0.3s ease;
 }
 
-.mapMarker:hover {
-  transform: scale(1.05);
+.marker.hoveredMarker {
+  transform: translate(-50%, -100%) scale(1.15);
+  z-index: 10;
+}
+
+.image {
+  width: 42px;
+  height: 55px;
+  pointer-events: auto;
+  cursor: pointer;
 }
 
 .customControls {
   display: flex;
   flex-direction: column;
-  position: absolute;
+  position: fixed;
   bottom: 16px;
   right: 16px;
   gap: 8px;
+  z-index: 2;
 }
 
 .controlButton {
@@ -62,55 +75,17 @@
   }
 }
 
-.searchIndicator {
-  display: inline-flex;
-  height: 42px;
-  padding: 12px 24px;
-  justify-content: center;
-  align-items: center;
-  border-radius: 100px;
-  border: 1px solid var(--Outline-Medium, #4c4d4c);
-  background: var(--On-Surface-Base, #fff);
-  color: var(--Surface-Surface-Base, #000);
-  font-family: Inter;
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 14px;
+.userLocationMarker {
   position: absolute;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 20;
-}
-
-/* Loading dots animation */
-.loadingDots {
-  display: inline-flex;
-  align-items: center;
+  width: 14px;
   height: 14px;
+  transform-origin: center;
+  pointer-events: auto;
+  z-index: 2;
 }
 
-.loadingDots span {
-  animation: bounce 0.8s infinite;
-  display: inline-block;
-  font-size: 16px;
-  line-height: 1;
-}
-
-.loadingDots span:nth-child(2) {
-  animation-delay: 0.2s;
-}
-
-.loadingDots span:nth-child(3) {
-  animation-delay: 0.4s;
-}
-
-@keyframes bounce {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-3px);
-  }
+.userLocationImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }

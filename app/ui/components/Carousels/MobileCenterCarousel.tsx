@@ -6,7 +6,7 @@ import { useState } from "react";
 import "swiper/css";
 import "swiper/css/pagination";
 import styles from "./MobileCenterCarousel.module.css";
-import { Center } from "../../../lib/definitions";
+import { Center } from "../../../types/types";
 import { Pagination } from "swiper/modules";
 import { ChevronLeftIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
