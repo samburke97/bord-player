@@ -27,32 +27,23 @@ export const fetchCentersByBounds = createAsyncThunk(
   "search/fetchCentersByBounds",
   async ({ bounds, searchTerm }: { bounds: MapBounds; searchTerm: string }) => {
     try {
-      console.log("Fetching centers with bounds:", bounds);
-
       const url =
-        "/api/search/bounds?" + // Make sure this matches your API route
+        "/api/search/bounds?" +
         new URLSearchParams({
-          searchTerm: searchTerm,
+          searchTerm: encodeURIComponent(searchTerm),
           north: bounds.north.toString(),
           south: bounds.south.toString(),
           east: bounds.east.toString(),
           west: bounds.west.toString(),
         });
 
-      console.log("Fetching URL:", url);
-
       const response = await fetch(url);
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Response error:", response.status, errorText);
-        throw new Error(
-          `Failed to fetch centers: ${response.status} ${errorText}`
-        );
+        throw new Error(`Failed to fetch centers: ${response.status}`);
       }
 
       const data = await response.json();
-      console.log("Received centers:", data);
       return data;
     } catch (error) {
       console.error("Fetch error:", error);
@@ -60,6 +51,7 @@ export const fetchCentersByBounds = createAsyncThunk(
     }
   }
 );
+
 export const fetchCentersByLocation = createAsyncThunk(
   "search/fetchCentersByLocation",
   async ({

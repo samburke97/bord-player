@@ -40,7 +40,7 @@ const SearchMap: React.FC<SearchMapProps> = ({
 
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
-  const userMarkerRef = useRef<mapboxgl.Marker | null>(null);
+  const userMarkerElementRef = useRef<HTMLDivElement | null>(null);
   const [cardPosition, setCardPosition] = useState<{
     top: number;
     left: number;
@@ -197,9 +197,31 @@ const SearchMap: React.FC<SearchMapProps> = ({
     };
 
     map.on("load", () => {
+      // Emit initial bounds
+      if (onBoundsChange) {
+        const initialBounds = map.getBounds();
+        if (initialBounds) {
+          // Add null check
+          const newBounds = {
+            north: initialBounds.getNorth(),
+            south: initialBounds.getSouth(),
+            east: initialBounds.getEast(),
+            west: initialBounds.getWest(),
+          };
+          dispatch(setMapBounds(newBounds));
+          onBoundsChange(newBounds);
+        }
+      }
+
+      // Remove existing user marker if it exists
+      if (userMarkerElementRef.current) {
+        userMarkerElementRef.current.remove();
+      }
+
       // Create user location marker
       const userMarkerElement = document.createElement("div");
       userMarkerElement.className = styles.userLocationMarker;
+      userMarkerElementRef.current = userMarkerElement;
 
       const userMarkerImage = document.createElement("img");
       userMarkerImage.src = "/images/map/user-location.svg";
@@ -209,11 +231,10 @@ const SearchMap: React.FC<SearchMapProps> = ({
       userMarkerElement.appendChild(userMarkerImage);
 
       // Position marker
-      const position = mapRef.current!.project([
+      const position = map.project([
         userLocation.longitude,
         userLocation.latitude,
       ]);
-
       userMarkerElement.style.left = `${position.x}px`;
       userMarkerElement.style.top = `${position.y}px`;
       userMarkerElement.style.transform = `translate(-50%, -50%)`;
@@ -222,14 +243,17 @@ const SearchMap: React.FC<SearchMapProps> = ({
       mapContainer.current?.appendChild(userMarkerElement);
 
       // Update position on map move
-      mapRef.current?.on("move", () => {
-        const newPosition = mapRef.current!.project([
+      const updateUserMarkerPosition = () => {
+        if (!userMarkerElement) return;
+        const newPosition = map.project([
           userLocation.longitude,
           userLocation.latitude,
         ]);
         userMarkerElement.style.left = `${newPosition.x}px`;
         userMarkerElement.style.top = `${newPosition.y}px`;
-      });
+      };
+
+      map.on("move", updateUserMarkerPosition);
 
       // Add event listeners to deactivate pin on map interaction
       map.on("click", deactivatePin);
@@ -262,8 +286,8 @@ const SearchMap: React.FC<SearchMapProps> = ({
       if (boundsChangeTimeoutRef.current) {
         clearTimeout(boundsChangeTimeoutRef.current);
       }
-      if (userMarkerRef.current) {
-        userMarkerRef.current.remove();
+      if (userMarkerElementRef.current) {
+        userMarkerElementRef.current.remove();
       }
       if (mapRef.current) {
         mapRef.current.remove();

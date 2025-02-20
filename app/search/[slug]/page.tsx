@@ -26,8 +26,10 @@ export default function Search({ params }: { params: { slug: string } }) {
 
   const isLargeScreen = useMediaQuery("(min-width: 1024px)");
   const [isMapView, setIsMapView] = useState(false);
+  const [initialBoundsFetched, setInitialBoundsFetched] = useState(false);
   const searchTerm = decodeURIComponent(params.slug);
 
+  // Handle initial location and data fetch
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -37,28 +39,38 @@ export default function Search({ params }: { params: { slug: string } }) {
             longitude: position.coords.longitude,
           };
           dispatch(setUserLocation(location));
-          dispatch(
-            fetchCentersByLocation({
-              searchTerm,
-              ...location,
-              radius: 25,
-            })
-          );
+          // Only fetch by location if bounds haven't been fetched yet
+          if (!initialBoundsFetched) {
+            dispatch(
+              fetchCentersByLocation({
+                searchTerm,
+                ...location,
+                radius: 25,
+              })
+            );
+          }
         },
         (error) => {
           console.error("Geolocation error:", error);
-          dispatch(
-            fetchCentersByLocation({
-              searchTerm,
-              latitude: 51.5074,
-              longitude: -0.1278,
-              radius: 25,
-            })
-          );
+          const defaultLocation = {
+            latitude: 51.5074,
+            longitude: -0.1278,
+          };
+          dispatch(setUserLocation(defaultLocation));
+          // Only fetch by location if bounds haven't been fetched yet
+          if (!initialBoundsFetched) {
+            dispatch(
+              fetchCentersByLocation({
+                searchTerm,
+                ...defaultLocation,
+                radius: 25,
+              })
+            );
+          }
         }
       );
     }
-  }, [dispatch, searchTerm]);
+  }, [dispatch, searchTerm, initialBoundsFetched]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -81,6 +93,9 @@ export default function Search({ params }: { params: { slug: string } }) {
   );
 
   const handleBoundsChange = (bounds: MapBounds) => {
+    if (!initialBoundsFetched) {
+      setInitialBoundsFetched(true);
+    }
     debouncedBoundsChange(bounds);
   };
 
@@ -128,19 +143,13 @@ export default function Search({ params }: { params: { slug: string } }) {
             !isMapView && !isLargeScreen ? styles.hiddenOnSmallScreens : ""
           }`}
         >
-          <div
-            className={`${styles.rightPanel} ${
-              !isMapView && !isLargeScreen ? styles.hiddenOnSmallScreens : ""
-            }`}
-          >
-            {userLocation && (
-              <SearchMap
-                centers={centers}
-                userLocation={userLocation}
-                onBoundsChange={handleBoundsChange}
-              />
-            )}
-          </div>
+          {userLocation && (
+            <SearchMap
+              centers={centers}
+              userLocation={userLocation}
+              onBoundsChange={handleBoundsChange}
+            />
+          )}
         </div>
       </div>
     </div>
