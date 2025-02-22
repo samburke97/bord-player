@@ -11,7 +11,7 @@ const initialState: SearchState = {
   centers: [],
   activePin: null,
   hoveredPin: null,
-  hoveredItem: null, // Add this line
+  hoveredItem: null,
   userLocation: null,
   searchTerm: "",
   isLoading: false,

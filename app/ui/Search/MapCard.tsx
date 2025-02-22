@@ -1,3 +1,6 @@
+"use client";
+
+import Link from "next/link";
 import styles from "./MapCard.module.css";
 import { MapPinIcon } from "@heroicons/react/24/outline";
 
@@ -6,6 +9,7 @@ interface MapCardProps {
   centerAddress: string | null;
   centerSports: string[];
   centerImage: string[];
+  centerId: string;
 }
 
 const MapCard: React.FC<MapCardProps> = ({
@@ -13,11 +17,12 @@ const MapCard: React.FC<MapCardProps> = ({
   centerAddress,
   centerSports,
   centerImage,
+  centerId,
 }) => {
   return (
-    <div className={styles.card}>
-      <div>
-        <img src={centerImage[0]} alt={centerName} />
+    <Link href={`/centers/${centerId}`} className={styles.card}>
+      <div className={styles.imageContainer}>
+        <img src={centerImage[0]} alt={centerName} className={styles.image} />
       </div>
       <div className={styles.description}>
         <div className={styles.sportContainer}>
@@ -36,7 +41,7 @@ const MapCard: React.FC<MapCardProps> = ({
           </div>
         )}
       </div>
-    </div>
+    </Link>
   );
 };
 

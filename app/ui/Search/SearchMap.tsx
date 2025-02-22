@@ -197,22 +197,6 @@ const SearchMap: React.FC<SearchMapProps> = ({
     };
 
     map.on("load", () => {
-      // Emit initial bounds
-      if (onBoundsChange) {
-        const initialBounds = map.getBounds();
-        if (initialBounds) {
-          // Add null check
-          const newBounds = {
-            north: initialBounds.getNorth(),
-            south: initialBounds.getSouth(),
-            east: initialBounds.getEast(),
-            west: initialBounds.getWest(),
-          };
-          dispatch(setMapBounds(newBounds));
-          onBoundsChange(newBounds);
-        }
-      }
-
       // Remove existing user marker if it exists
       if (userMarkerElementRef.current) {
         userMarkerElementRef.current.remove();
@@ -339,6 +323,7 @@ const SearchMap: React.FC<SearchMapProps> = ({
             centerAddress={cardContent.address ?? null}
             centerSports={cardContent.sports?.map((sport) => sport.name) || []}
             centerImage={cardContent.images}
+            centerId={cardContent.id}
           />
         </div>
       )}

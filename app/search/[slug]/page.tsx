@@ -1,35 +1,33 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import debounce from "lodash/debounce";
 import styles from "./Search.module.css";
 import SearchItem from "@/app/ui/Search/SeachItem";
+import SearchItemSkeleton from "@/app/ui/Search/Skeletons/SearchItemSkeleton";
 import SearchMap from "@/app/ui/Search/SearchMap";
 import SearchBar from "@/app/ui/components/SearchBar/SearchBarClient";
 import { Map1, TextalignJustifyleft } from "iconsax-react";
 import { useMediaQuery } from "@/app/hooks/useMediaQuery";
 import {
   setUserLocation,
-  fetchCentersByLocation,
   fetchCentersByBounds,
 } from "@/store/features/searchSlice";
-import LoadingIndicator from "../../ui/Search/LoadingIndicator";
 import type { AppDispatch } from "@/store/store";
 import type { RootState, MapBounds } from "@/app/types/types";
 
 export default function Search({ params }: { params: { slug: string } }) {
   const dispatch = useDispatch<AppDispatch>();
-  const { centers, activePin, userLocation, isLoading, view } = useSelector(
+  const { centers, activePin, userLocation, isLoading } = useSelector(
     (state: RootState) => state.search
   );
 
   const isLargeScreen = useMediaQuery("(min-width: 1024px)");
   const [isMapView, setIsMapView] = useState(false);
-  const [initialBoundsFetched, setInitialBoundsFetched] = useState(false);
   const searchTerm = decodeURIComponent(params.slug);
 
-  // Handle initial location and data fetch
+  // Handle initial location only
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -39,38 +37,19 @@ export default function Search({ params }: { params: { slug: string } }) {
             longitude: position.coords.longitude,
           };
           dispatch(setUserLocation(location));
-          // Only fetch by location if bounds haven't been fetched yet
-          if (!initialBoundsFetched) {
-            dispatch(
-              fetchCentersByLocation({
-                searchTerm,
-                ...location,
-                radius: 25,
-              })
-            );
-          }
         },
         (error) => {
           console.error("Geolocation error:", error);
-          const defaultLocation = {
-            latitude: 51.5074,
-            longitude: -0.1278,
-          };
-          dispatch(setUserLocation(defaultLocation));
-          // Only fetch by location if bounds haven't been fetched yet
-          if (!initialBoundsFetched) {
-            dispatch(
-              fetchCentersByLocation({
-                searchTerm,
-                ...defaultLocation,
-                radius: 25,
-              })
-            );
-          }
+          dispatch(
+            setUserLocation({
+              latitude: 51.5074,
+              longitude: -0.1278,
+            })
+          );
         }
       );
     }
-  }, [dispatch, searchTerm, initialBoundsFetched]);
+  }, [dispatch]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -93,15 +72,8 @@ export default function Search({ params }: { params: { slug: string } }) {
   );
 
   const handleBoundsChange = (bounds: MapBounds) => {
-    if (!initialBoundsFetched) {
-      setInitialBoundsFetched(true);
-    }
     debouncedBoundsChange(bounds);
   };
-
-  if (!userLocation && isLoading) {
-    return <div>Getting your location...</div>;
-  }
 
   return (
     <div className={styles.container}>
@@ -135,7 +107,15 @@ export default function Search({ params }: { params: { slug: string } }) {
             isMapView && !isLargeScreen ? styles.hiddenOnSmallScreens : ""
           }`}
         >
-          <SearchItem centers={centers} activePin={activePin} />
+          <div className={styles.leftPanelInner}>
+            <Suspense fallback={<SearchItemSkeleton />}>
+              {!userLocation || isLoading ? (
+                <SearchItemSkeleton />
+              ) : (
+                <SearchItem centers={centers} activePin={activePin} />
+              )}
+            </Suspense>
+          </div>
         </div>
 
         <div
