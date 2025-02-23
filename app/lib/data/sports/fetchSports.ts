@@ -1,7 +1,7 @@
 "use server";
 
 import { sql } from "@vercel/postgres";
-import { Sport } from "../../../types/types";
+import { Sport } from "../../../types/index.ts";
 import { unstable_noStore as noStore } from "next/cache";
 
 export default async function fetchSports() {

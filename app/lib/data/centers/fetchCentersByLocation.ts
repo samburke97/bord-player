@@ -1,12 +1,12 @@
 import { sql } from "@vercel/postgres";
-import { Center } from "../../../types/types";
+import { Center } from "@/app/types/index";
 import { unstable_noStore as noStore } from "next/cache";
 
 export async function fetchCentersByLocation(
   searchTerm: string,
   latitude: number,
   longitude: number,
-  radius: number = 25 // default radius in kilometers
+  radius: number = 25
 ): Promise<Center[]> {
   noStore();
 

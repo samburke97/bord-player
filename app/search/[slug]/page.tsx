@@ -4,9 +4,9 @@ import { useState, useEffect, useCallback, Suspense } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import debounce from "lodash/debounce";
 import styles from "./Search.module.css";
-import SearchItem from "@/app/ui/Search/SeachItem";
-import SearchItemSkeleton from "@/app/ui/Search/Skeletons/SearchItemSkeleton";
-import SearchMap from "@/app/ui/Search/SearchMap";
+import SearchItem from "@/app/ui/search/SeachItem";
+import SearchItemSkeleton from "@/app/ui/search/Skeletons/SearchItemSkeleton";
+import { SearchMap } from "@/app/ui/search/SearchMap";
 import SearchBar from "@/app/ui/components/SearchBar/SearchBarClient";
 import { Map1, TextalignJustifyleft } from "iconsax-react";
 import { useMediaQuery } from "@/app/hooks/useMediaQuery";
@@ -15,7 +15,7 @@ import {
   fetchCentersByBounds,
 } from "@/store/features/searchSlice";
 import type { AppDispatch } from "@/store/store";
-import type { RootState, MapBounds } from "@/app/types/types";
+import type { RootState, MapBounds } from "@/app/types/index.ts";
 
 export default function Search({ params }: { params: { slug: string } }) {
   const dispatch = useDispatch<AppDispatch>();

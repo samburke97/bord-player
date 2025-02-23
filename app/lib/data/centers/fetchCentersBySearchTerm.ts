@@ -1,6 +1,6 @@
 // app/lib/data/centers/fetchCentersBySearchTerm.ts (Server Function)
 import { sql } from "@vercel/postgres";
-import { Center } from "@/app/types/types";
+import { Center } from "@/app/types/index.ts";
 
 export default async function fetchCentersBySearchTerm(
   searchTerm: string

@@ -6,7 +6,7 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import styles from "./Carousel.module.css";
-import { Center } from "../../types/types";
+import { Center } from "../../types/index.ts";
 import {
   MapPinIcon,
   ArrowRightIcon,

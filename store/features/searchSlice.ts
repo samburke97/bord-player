@@ -5,7 +5,7 @@ import type {
   MapBounds,
   UserLocation,
   SearchFilters,
-} from "@/app/types/types";
+} from "@/app/types/index.ts";
 
 const initialState: SearchState = {
   centers: [],

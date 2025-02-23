@@ -1,7 +1,7 @@
 "use server";
 
 import { sql } from "@vercel/postgres";
-import { Tags } from "../../../types/types";
+import { Tags } from "../../../types/index.ts";
 import { unstable_noStore as noStore } from "next/cache";
 
 export default async function fetchTags() {
