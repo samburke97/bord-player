@@ -9,7 +9,7 @@ import SearchHeader from "./SearchHeader";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
-import { Center } from "@/app/types/index.ts";
+import { Center } from "@/app/types";
 import { RootState } from "@/store/store";
 import styles from "./SearchItem.module.css";
 import {

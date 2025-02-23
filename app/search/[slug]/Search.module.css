@@ -1,8 +1,8 @@
 .container {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 86px);
-  overflow: hidden;
+  height: 100%;
+  position: relative;
 }
 
 .navbarLeft {
@@ -26,49 +26,48 @@
 .contentContainer {
   display: flex;
   flex: 1;
-  min-height: 0;
   position: relative;
-  overflow: hidden; /* Ensure content is clipped within */
+  height: calc(100vh - 86px);
 }
 
 .leftPanel {
-  flex: 0 0 400px;
-  overflow: hidden; /* Prevent direct scrolling */
+  width: 400px;
   border-right: 1px solid var(--Outline-Low, #1f1f1f);
+  flex-shrink: 0;
 }
 
 .leftPanelInner {
   height: 100%;
-  overflow-y: auto; /* Changed from scroll to auto */
-  overscroll-behavior: contain; /* Prevent scroll bounce */
-  /* Add these to ensure scroll works everywhere */
-  scroll-behavior: smooth;
-  touch-action: pan-y;
 }
 
 .rightPanel {
-  flex: 1;
-  position: relative;
-  max-width: calc(100vw - 400px); /* Prevent overflow */
-  height: 100%;
+  position: fixed;
+  left: 400px;
+  right: 0;
+  top: 80px;
+  height: calc(100vh - 85px);
+  bottom: 0;
+  overflow: hidden;
+  border-left: 1px solid var(--Outline-Low, #1f1f1f);
+  margin-left: -1px;
 }
 
 .rightPanel > div {
   height: 100%;
+  width: 100%;
 }
 
-/* Rest of the existing styles remain the same */
-
-/* Media Queries */
 @media screen and (max-width: 1023px) {
   .container {
     height: 100vh;
   }
+
   .rightPanel {
-    max-width: 100%; /* Ensure it fits smaller screens */
+    left: 0;
+    width: 100%;
   }
+
   .leftPanel {
-    padding-right: 0;
     width: 100%;
   }
 }
@@ -76,7 +75,8 @@
 @media (max-width: 1024px) {
   .navbarLeft,
   .navbarRight {
-    display: flex;
+    display: none;
+    padding: 16px;
     height: 85px;
   }
 

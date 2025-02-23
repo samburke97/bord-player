@@ -23,3 +23,5 @@ export interface SearchState {
   filters: SearchFilters;
   recentSearches: string[];
 }
+
+export type UserLocation = Location;

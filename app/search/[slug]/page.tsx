@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, useEffect, useCallback, Suspense } from "react";
+import { useState, useEffect, useCallback, Suspense, type FC } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import debounce from "lodash/debounce";
+import { Map1, TextalignJustifyleft } from "iconsax-react";
 import styles from "./Search.module.css";
 import SearchItem from "@/app/ui/search/SeachItem";
 import SearchItemSkeleton from "@/app/ui/search/Skeletons/SearchItemSkeleton";
 import { SearchMap } from "@/app/ui/search/SearchMap";
 import SearchBar from "@/app/ui/components/SearchBar/SearchBarClient";
-import { Map1, TextalignJustifyleft } from "iconsax-react";
 import { useMediaQuery } from "@/app/hooks/useMediaQuery";
 import {
   setUserLocation,
@@ -17,7 +17,13 @@ import {
 import type { AppDispatch } from "@/store/store";
 import type { RootState, MapBounds } from "@/app/types/index.ts";
 
-export default function Search({ params }: { params: { slug: string } }) {
+interface SearchProps {
+  params: {
+    slug: string;
+  };
+}
+
+const Search: FC<SearchProps> = ({ params }) => {
   const dispatch = useDispatch<AppDispatch>();
   const { centers, activePin, userLocation, isLoading } = useSelector(
     (state: RootState) => state.search
@@ -27,7 +33,6 @@ export default function Search({ params }: { params: { slug: string } }) {
   const [isMapView, setIsMapView] = useState(false);
   const searchTerm = decodeURIComponent(params.slug);
 
-  // Handle initial location only
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -101,6 +106,7 @@ export default function Search({ params }: { params: { slug: string } }) {
           </button>
         )}
       </div>
+
       <div className={styles.contentContainer}>
         <div
           className={`${styles.leftPanel} ${
@@ -134,4 +140,6 @@ export default function Search({ params }: { params: { slug: string } }) {
       </div>
     </div>
   );
-}
+};
+
+export default Search;
