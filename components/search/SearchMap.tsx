@@ -196,23 +196,22 @@ export default function SearchMap({
         onClick={handleMapClick}
       >
         {mapReady && (
-          <MapMarkers
-            centers={centers}
-            mapRef={mapRef}
-            mapContainer={mapContainer}
-            forceDisplayMarkers={true} // Add this prop to bypass bounds check
-          />
-        )}
+          <>
+            <MapMarkers
+              centers={centers}
+              mapRef={mapRef}
+              mapContainer={mapContainer}
+            />
 
-        {userLocation && mapReady && (
-          <UserLocationMarker mapRef={mapRef} userLocation={userLocation} />
-        )}
+            <UserLocationMarker mapRef={mapRef} />
 
-        <MapControls
-          onZoomIn={handleZoomIn}
-          onZoomOut={handleZoomOut}
-          onGeolocate={handleGeolocate}
-        />
+            <MapControls
+              onZoomIn={handleZoomIn}
+              onZoomOut={handleZoomOut}
+              onGeolocate={handleGeolocate}
+            />
+          </>
+        )}
 
         {isLoading && (
           <div className={styles.loadingWrapper}>

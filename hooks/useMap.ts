@@ -157,11 +157,16 @@ export function useMap({
       ? [initialCenter[1], initialCenter[0]] // [lng, lat] format for Mapbox
       : [userLocation.longitude, userLocation.latitude];
 
-    // Validate coordinates
     if (isNaN(startCenter[0]) || isNaN(startCenter[1])) {
       console.error("Invalid start center coordinates:", startCenter);
-      startCenter[0] = -0.1278; // London
-      startCenter[1] = 51.5074;
+      console.log(
+        "Deferring map initialization until valid coordinates available"
+      );
+      // Mark as not initializing to allow a retry when coordinates become available
+      if (registry) {
+        registry.isInitializing = false;
+      }
+      return;
     }
 
     const startZoom = initialZoom || 13;

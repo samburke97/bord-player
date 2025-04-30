@@ -25,7 +25,6 @@ export default function SearchClient() {
   // Hooks and State Management
   const dispatch = useDispatch();
   const searchParams = useSearchParams();
-  const pathname = usePathname();
   const { executeSearch } = useSearch();
   const { isLoading: isLoadingLocation } = useGeolocation();
   const isLargeScreen = useMediaQuery("(min-width: 1024px)");
@@ -167,6 +166,16 @@ export default function SearchClient() {
       };
     }
   }, [isMapView, isLargeScreen]);
+
+  const mapLocation = useMemo(() => {
+    // Only use userLocation if it's actually available
+    if (userLocation && userLocation.latitude && userLocation.longitude) {
+      return userLocation;
+    }
+
+    // Return null to indicate we're waiting for location
+    return null;
+  }, [userLocation]);
 
   // Render
   return (

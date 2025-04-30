@@ -2,7 +2,6 @@
 
 import { Provider } from "react-redux";
 import { store } from "@/store/store";
-import AuthProvider from "@/components/providers/AuthProvider";
 import { ThemeProvider } from "@/store/ThemeProvider";
 import Header from "@/components/layout/headers/Header";
 import Footer from "@/components/layout/Footer";
@@ -51,13 +50,11 @@ export default function RootClientLayout({
   return (
     <Provider store={store}>
       <LocationProvider>
-        <AuthProvider>
-          <ThemeProvider>
-            {isClientSide && !shouldHideNavBar && <Header />}
-            {children}
-            {!shouldHideFooter && <Footer />}
-          </ThemeProvider>
-        </AuthProvider>
+        <ThemeProvider>
+          {isClientSide && !shouldHideNavBar && <Header />}
+          {children}
+          {!shouldHideFooter && <Footer />}
+        </ThemeProvider>
       </LocationProvider>
     </Provider>
   );

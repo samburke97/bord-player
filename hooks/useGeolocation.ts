@@ -1,7 +1,9 @@
-// /app/hooks/useGeolocation.ts
+"use client";
+
 import { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { setUserLocation } from "@/store/features/searchSlice";
+import { getLocation } from "@/app/actions/geolocation/getLocation";
 
 interface GeolocationOptions {
   enableHighAccuracy?: boolean;
@@ -14,13 +16,10 @@ interface UseGeolocationResult {
   longitude: number | null;
   error: string | null;
   isLoading: boolean;
+  locationSource: "browser" | "ip" | null;
+  city: string | null;
+  country: string | null;
 }
-
-// Default location (London) if geolocation fails
-const DEFAULT_LOCATION = {
-  latitude: 51.5074,
-  longitude: -0.1278,
-};
 
 export function useGeolocation(
   options: GeolocationOptions = {},
@@ -31,23 +30,68 @@ export function useGeolocation(
     longitude: null,
     error: null,
     isLoading: true,
+    locationSource: null,
+    city: null,
+    country: null,
   });
 
   const dispatch = useDispatch();
 
   useEffect(() => {
-    if (!navigator.geolocation) {
-      setState({
-        latitude: DEFAULT_LOCATION.latitude,
-        longitude: DEFAULT_LOCATION.longitude,
-        error: "Geolocation is not supported by your browser",
-        isLoading: false,
-      });
+    let isMounted = true;
 
-      if (saveToRedux) {
-        dispatch(setUserLocation(DEFAULT_LOCATION));
+    // Helper function to fetch location from IP using server action
+    const getLocationFromIP = async () => {
+      try {
+        console.log("Getting IP-based location");
+
+        // Call the server action to get location
+        const data = await getLocation();
+
+        console.log("IP geolocation response:", data);
+
+        if (!data.latitude || !data.longitude) {
+          throw new Error("Invalid location data");
+        }
+
+        if (isMounted) {
+          const userLocation = {
+            latitude: data.latitude,
+            longitude: data.longitude,
+            source: "ip",
+          };
+
+          console.log("Using IP-based location:", userLocation);
+          setState({
+            latitude: data.latitude,
+            longitude: data.longitude,
+            error: "Using approximate location based on your network",
+            isLoading: false,
+            locationSource: "ip",
+            city: data.city,
+            country: data.country,
+          });
+
+          if (saveToRedux) {
+            dispatch(setUserLocation(userLocation));
+          }
+        }
+      } catch (error) {
+        console.error("IP Geolocation error:", error);
+        if (isMounted) {
+          setState((prev) => ({
+            ...prev,
+            error: "Unable to determine your location",
+            isLoading: false,
+          }));
+        }
       }
+    };
 
+    // First try browser geolocation
+    if (!navigator.geolocation) {
+      console.log("Browser geolocation not supported, using IP");
+      getLocationFromIP();
       return;
     }
 
@@ -58,16 +102,23 @@ export function useGeolocation(
     };
 
     const onSuccess = (position: GeolocationPosition) => {
+      if (!isMounted) return;
+
       const userLocation = {
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
+        source: "browser",
       };
 
+      console.log("Using browser geolocation:", userLocation);
       setState({
         latitude: userLocation.latitude,
         longitude: userLocation.longitude,
         error: null,
         isLoading: false,
+        locationSource: "browser",
+        city: null,
+        country: null,
       });
 
       if (saveToRedux) {
@@ -76,21 +127,16 @@ export function useGeolocation(
     };
 
     const onError = (error: GeolocationPositionError) => {
-      console.error("Geolocation error:", error);
-
-      setState({
-        latitude: DEFAULT_LOCATION.latitude,
-        longitude: DEFAULT_LOCATION.longitude,
-        error: error.message,
-        isLoading: false,
-      });
-
-      if (saveToRedux) {
-        dispatch(setUserLocation(DEFAULT_LOCATION));
-      }
+      console.log("Browser geolocation error:", error.message);
+      getLocationFromIP();
     };
 
+    console.log("Trying browser geolocation first");
     navigator.geolocation.getCurrentPosition(onSuccess, onError, geoOptions);
+
+    return () => {
+      isMounted = false;
+    };
   }, [
     dispatch,
     options.enableHighAccuracy,

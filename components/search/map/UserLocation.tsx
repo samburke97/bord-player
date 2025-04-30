@@ -1,29 +1,33 @@
 import { useEffect, useRef } from "react";
 import mapboxgl from "mapbox-gl";
+import { useLocation } from "@/store/use-location";
 import styles from "../SearchMap.module.css";
 
 interface UserLocationMarkerProps {
   mapRef: React.MutableRefObject<mapboxgl.Map | null>;
-  userLocation: { latitude: number; longitude: number } | null;
 }
 
-const UserLocationMarker: React.FC<UserLocationMarkerProps> = ({
-  mapRef,
-  userLocation,
-}) => {
+const UserLocationMarker: React.FC<UserLocationMarkerProps> = ({ mapRef }) => {
+  // Use your original LocationProvider - only has location when browser permission is granted
+  const { location } = useLocation();
   const markerElementRef = useRef<HTMLDivElement | null>(null);
   const markerRef = useRef<mapboxgl.Marker | null>(null);
 
   // Create and update user location marker
   useEffect(() => {
-    if (!mapRef.current || !userLocation) return;
+    // Only show marker if we have location from explicit browser permission
+    if (!mapRef.current || !location) {
+      // Remove marker if it exists but shouldn't be shown
+      if (markerRef.current) {
+        markerRef.current.remove();
+        markerRef.current = null;
+      }
+      return;
+    }
 
     // If we already have a marker, just update its position
     if (markerRef.current) {
-      markerRef.current.setLngLat([
-        userLocation.longitude,
-        userLocation.latitude,
-      ]);
+      markerRef.current.setLngLat([location.longitude, location.latitude]);
       return;
     }
 
@@ -44,7 +48,7 @@ const UserLocationMarker: React.FC<UserLocationMarkerProps> = ({
       element: el,
       anchor: "center",
     })
-      .setLngLat([userLocation.longitude, userLocation.latitude])
+      .setLngLat([location.longitude, location.latitude])
       .addTo(mapRef.current);
 
     markerRef.current = marker;
@@ -56,18 +60,15 @@ const UserLocationMarker: React.FC<UserLocationMarkerProps> = ({
         markerRef.current = null;
       }
     };
-  }, [mapRef, userLocation]);
+  }, [mapRef, location]);
 
   // Update marker position when map moves
   useEffect(() => {
-    if (!mapRef.current || !markerRef.current || !userLocation) return;
+    if (!mapRef.current || !markerRef.current || !location) return;
 
     const handleMove = () => {
-      if (markerRef.current && userLocation) {
-        markerRef.current.setLngLat([
-          userLocation.longitude,
-          userLocation.latitude,
-        ]);
+      if (markerRef.current && location) {
+        markerRef.current.setLngLat([location.longitude, location.latitude]);
       }
     };
 
@@ -78,7 +79,7 @@ const UserLocationMarker: React.FC<UserLocationMarkerProps> = ({
         mapRef.current.off("move", handleMove);
       }
     };
-  }, [mapRef, userLocation]);
+  }, [mapRef, location]);
 
   return null;
 };
