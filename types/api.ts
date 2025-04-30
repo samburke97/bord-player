@@ -28,5 +28,3 @@ export interface SearchParams {
   sports?: string; // Comma-separated list of sport IDs (e.g., "1,2,3")
   facilities?: string; // Comma-separated list of facility IDs (e.g., "4,5")
 }
-
-// test
