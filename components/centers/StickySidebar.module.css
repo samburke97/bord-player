@@ -1,0 +1,98 @@
+.sidebar {
+  position: sticky;
+  top: 104px;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+
+  z-index: 10;
+}
+
+.centerInfo {
+  animation: fadeIn 0.3s ease-in-out;
+  padding: 24px;
+  padding-bottom: 0;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.centerName {
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  color: var(--foreground);
+}
+
+.centerMeta {
+  font-size: 14px;
+  color: var(--grey-500);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.statusOpen {
+  color: var(--primary-300);
+}
+
+.statusClosed {
+  color: var(--red-wine-300);
+}
+
+.visitBtnContainer {
+  padding: 24px;
+  border-bottom: 1px solid var(--Outline-Light, #f3f5f5);
+}
+
+.visitButton {
+  display: block;
+  width: 100%;
+  padding: 14px 20px;
+  background-color: var(--primary-200);
+  color: black;
+  text-align: center;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.visitButton:hover {
+  background-color: var(--primary-300);
+}
+
+.noticeContainer {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 24px;
+  border-radius: 8px;
+}
+
+.noticeIcon {
+  flex-shrink: 0;
+  color: var(--grey-600);
+}
+
+.noticeText {
+  margin: 0;
+  font-size: 14px;
+  color: var(--grey-600);
+  line-height: 1.5;
+}

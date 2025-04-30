@@ -1,0 +1,52 @@
+.section {
+  margin-bottom: var(--spacing-lg);
+  padding-bottom: var(--spacing-lg);
+  border-bottom: 1px solid var(--grey-300);
+}
+
+.activitiesWrapper {
+  cursor: pointer;
+}
+
+/* Make activity cards clickable */
+.activitiesWrapper :global(.emblaSlide) {
+  cursor: pointer;
+  position: relative;
+}
+
+.activitiesWrapper :global(.activityCard) {
+  cursor: pointer;
+  position: relative;
+}
+
+.activitiesWrapper :global(.emblaSlide)::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+}
+
+.activitiesWrapper :global(.activityCard)::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+}
+
+.activityCardWrapper {
+  cursor: pointer;
+  position: relative;
+}
+
+@media (min-width: 768px) {
+  .section {
+    margin-bottom: var(--spacing-xl);
+    padding-bottom: var(--spacing-xl);
+  }
+}

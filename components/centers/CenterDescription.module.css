@@ -1,0 +1,39 @@
+.container {
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--Outline-Light, #f5f5f5);
+}
+
+.description {
+  margin-bottom: 16px;
+  line-height: 1.6;
+  color: var(--grey-600);
+}
+
+.description p {
+  font-size: 16px;
+  margin: 0;
+}
+
+.websiteButton {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  background-color: var(--primary-300);
+  color: white;
+  text-align: center;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 500;
+  margin-bottom: 16px;
+}
+
+.websiteButton:hover {
+  background-color: var(--primary-400);
+}
+
+/* Only show Visit Website button on tablet and mobile */
+@media (min-width: 1024px) {
+  .websiteButton {
+    display: none;
+  }
+}

@@ -1,0 +1,224 @@
+.carouselSection {
+  width: 100%;
+  margin: 1rem auto;
+  padding: 0;
+  position: relative;
+}
+
+.carouselHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding: 0;
+}
+
+.navigationButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.navButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background-color: var(--grey-200);
+  color: var(--grey-800);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.navButton:hover {
+  background-color: var(--grey-300);
+}
+
+.navButtonDisabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.navButtonDisabled:hover {
+  background-color: var(--grey-200);
+}
+
+.navIcon {
+  width: 20px;
+  height: 20px;
+}
+
+/* Embla Carousel */
+.emblaWrapper {
+  overflow: hidden;
+  width: 100%;
+  position: relative;
+}
+
+.embla {
+  overflow: hidden;
+}
+
+.emblaContainer {
+  display: flex;
+  gap: 24px;
+}
+
+.emblaSlide {
+  flex: 0 0 auto;
+  width: calc((100% - 72px) / 4); /* 4 slides per view with 24px gap */
+  min-width: 240px;
+  height: auto;
+}
+
+/* Activity Card Styles */
+.activityCard {
+  display: flex;
+  width: 230.667px;
+  height: 234px;
+  flex-direction: column;
+  align-items: flex-start;
+  border-radius: 12px;
+  border: 1px solid var(--Outline-Light, #f5f5f5);
+  box-shadow: 0px 0px 8px 0px rgba(0, 0, 0, 0.02);
+  overflow: hidden;
+  transition: transform 0.2s ease;
+  will-change: transform;
+  cursor: pointer;
+  position: relative;
+}
+
+.activityCard:hover {
+  transform: translateY(-2px);
+}
+
+.imageContainer {
+  width: 100%;
+  height: 172px;
+  position: relative;
+  overflow: hidden;
+}
+
+.activityImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+  display: block;
+}
+
+.activityCard:hover .activityImage {
+  transform: scale(1.08);
+}
+
+/* Card Content */
+.cardContent {
+  display: flex;
+  padding: 12px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  align-self: stretch;
+}
+
+.activityTitle {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--foreground);
+  line-height: 1.3;
+}
+
+.activityDetails {
+  font-size: 14px;
+  color: var(--grey-500);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+
+.duration,
+.price,
+.separator {
+  display: inline-block;
+}
+
+.separator {
+  margin: 0 2px;
+}
+
+/* No Results */
+.noResults {
+  text-align: center;
+  padding: 40px 0;
+  color: var(--grey-500);
+  font-size: 16px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1028px) {
+  /* Fresha-style mobile styling */
+  .carouselSection {
+    position: relative;
+  }
+
+  /* Remove wrapper overflow to allow the carousel to bleed */
+  .emblaWrapper {
+    margin: 0 -24px;
+    width: auto;
+  }
+
+  /* Hide overflow on Embla, but create proper inset to match container padding */
+  .embla {
+    overflow: visible;
+    padding-left: 24px;
+  }
+
+  /* Let the slide maintain its fixed width on mobile */
+  .emblaSlide {
+    min-width: 230.667px;
+    max-width: 230.667px;
+  }
+
+  .emblaEndSpacer {
+    flex: 0 0 24px;
+    min-width: 24px;
+    height: 1px;
+  }
+
+  .emblaContainer {
+    gap: 16px;
+    padding-right: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .carouselTitle {
+    font-size: var(--font-size-xl);
+  }
+
+  .navigationButtons {
+    display: none;
+  }
+
+  /* Maintain the card dimensions on smaller screens */
+  .emblaSlide {
+    min-width: 230.667px;
+    max-width: 230.667px;
+  }
+}
+
+@media (max-width: 480px) {
+  .carouselSection {
+    margin-bottom: var(--spacing-md);
+  }
+
+  /* Still maintain the card dimensions even on very small screens */
+  .emblaSlide {
+    min-width: 230.667px;
+    max-width: 230.667px;
+  }
+}

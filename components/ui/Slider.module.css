@@ -1,0 +1,10 @@
+.slider {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 10px;
+  cursor: ew-resize;
+  background-color: #ccc;
+  z-index: 1;
+}

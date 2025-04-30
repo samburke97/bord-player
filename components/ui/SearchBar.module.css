@@ -1,0 +1,237 @@
+.searchContainer {
+  position: relative;
+  width: 100%;
+}
+
+.inputContainer {
+  display: flex;
+  padding: 12px 24px;
+  align-items: center;
+  gap: 12px;
+  align-self: stretch;
+  border-radius: 12px 12px 0 0;
+  border: 1px solid var(--out-medium, #d9dbdb);
+  background: var(--con-lightest, #fff);
+  transition: border-radius 0.2s ease;
+  z-index: 50;
+  position: relative;
+}
+
+.inputContainerClosed {
+  border-radius: 12px;
+}
+
+.searchInput {
+  flex-grow: 1;
+  margin-left: 12px;
+  font-size: 16px;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--foreground, #374151);
+}
+
+.searchInput::placeholder {
+  color: var(--grey-500, #9ca3af);
+}
+
+.clearIcon {
+  cursor: pointer;
+}
+
+.dropdown {
+  position: fixed; /* Changed from absolute to fixed */
+  width: 100%;
+  max-width: inherit; /* Inherit the max-width from parent */
+  left: 0; /* Will be calculated by JS */
+  right: 0; /* Will be calculated by JS */
+  top: auto; /* Will be calculated by JS */
+  background-color: var(--con-lightest, #fff);
+  border-radius: 0 0 12px 12px;
+  border: 1px solid var(--out-medium, #d9dbdb);
+  border-top: none;
+  z-index: 9999; /* Keep the high z-index */
+  max-height: 320px;
+  display: flex;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06); /* Add shadow for depth */
+}
+
+.optionsContainer {
+  flex-grow: 1;
+  overflow-y: auto;
+  max-height: 480px;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  background-color: var(--con-lightest, #fff);
+  border-radius: 0 0 12px 12px;
+}
+
+/* Custom scrollbar styling */
+.optionsContainer::-webkit-scrollbar {
+  width: 4px;
+}
+
+.optionsContainer::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.optionsContainer::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+}
+
+.optionRow {
+  display: flex;
+  align-items: center;
+  padding: 12px 24px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.optionRow:hover {
+  background-color: var(--con-light, #f9fafb);
+}
+
+.optionRow:last-child {
+  border-radius: 0 0 12px 12px;
+}
+
+.optionRow span {
+  margin-left: 16px;
+  font-size: 16px;
+  color: var(--for-darkest, #374151);
+}
+
+.iconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background-color: var(--con-light, #f3f4f6);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.centerImage {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.spacer {
+  flex-grow: 1;
+}
+
+/* Loading State */
+.loadingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--grey-400, #e5e7eb);
+  border-top-color: var(--primary-500, #3b82f6);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-right: 12px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* No Results */
+.noResults {
+  padding: 12px 24px;
+  color: var(--grey-600, #6b7280);
+}
+
+/* Mobile Styles */
+.mobileContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--background, #ffffff);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.mobileSearch {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--grey-400, #e5e7eb);
+  background-color: transparent;
+}
+
+.backIcon {
+  cursor: pointer;
+  margin-right: 16px;
+}
+
+/* Mobile dropdown styles */
+.mobileContainer .dropdown {
+  position: relative;
+  top: 0;
+  box-shadow: none;
+  border: none;
+  max-height: calc(100vh - 80px);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Dark mode adjustments */
+:root[data-theme="dark"] .inputContainer,
+.dark-mode .inputContainer {
+  background-color: var(--grey-100, #1a1a1a);
+  border-color: var(--grey-300, #333333);
+}
+
+:root[data-theme="dark"] .dropdown,
+.dark-mode .dropdown {
+  background-color: var(--grey-100, #1a1a1a);
+  border-color: var(--grey-300, #333333);
+}
+
+:root[data-theme="dark"] .optionRow:hover,
+.dark-mode .optionRow:hover {
+  background-color: var(--grey-200, #2a2a2a);
+}
+
+:root[data-theme="dark"] .iconWrapper,
+.dark-mode .iconWrapper {
+  background-color: var(--grey-200, #2a2a2a);
+}
+
+/* Add media query to hide mobile view above 1023px */
+@media (min-width: 1024px) {
+  .mobileContainer {
+    display: none;
+  }
+}

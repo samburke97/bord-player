@@ -1,0 +1,22 @@
+.quickInfo {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.featureTag {
+  padding: 8px 16px;
+  background-color: var(--grey-200);
+  border-radius: 4px;
+  font-size: 14px;
+  color: var(--grey-600);
+  font-weight: 500;
+}
+
+@media (max-width: 640px) {
+  .featureTag {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+}

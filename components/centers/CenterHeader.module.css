@@ -1,0 +1,92 @@
+.centerHeader {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 0;
+  position: relative;
+}
+
+.logoContainer {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.centerLogo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.centerLogoPlaceholder {
+  width: 100%;
+  height: 100%;
+  background-color: var(--grey-300);
+  border-radius: 50%;
+}
+
+.centerInfo {
+  flex: 1;
+}
+
+.centerInfoNoLogo {
+  padding-left: 0;
+}
+
+.centerName {
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.centerMeta {
+  font-size: 14px;
+  color: var(--grey-500);
+  margin-top: 4px;
+}
+
+.statusTag {
+  color: var(--primary-300);
+}
+
+.statusClosed {
+  color: var(--red-wine-300);
+}
+
+.actionButtons {
+  display: flex;
+  gap: 12px;
+}
+
+.actionButton {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--grey-300);
+  background-color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--grey-600);
+}
+
+/* Responsive styles */
+@media (max-width: 640px) {
+  .logoContainer {
+    width: 56px;
+    height: 56px;
+  }
+
+  .centerName {
+    font-size: 20px;
+  }
+
+  .actionButton {
+    width: 36px;
+    height: 36px;
+  }
+}

@@ -1,0 +1,77 @@
+.section {
+  margin-bottom: var(--spacing-lg);
+  padding-bottom: var(--spacing-lg);
+  border-bottom: 1px solid var(--grey-300);
+}
+
+.title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  margin: 0 0 var(--spacing-md) 0;
+  color: var(--foreground);
+}
+
+.address {
+  margin: 0 0 var(--spacing-md) 0;
+  color: var(--grey-600);
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-normal);
+}
+
+.mapContainer {
+  width: 100%;
+  height: 240px;
+  background-color: var(--grey-200);
+  border-radius: 8px;
+  border: 1px solid var(--grey-400);
+  position: relative;
+  overflow: hidden;
+}
+
+.fallbackContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  background-color: var(--grey-200);
+}
+
+.mapMarker {
+  width: 24px;
+  height: 24px;
+  background-color: black;
+  border-radius: 50%;
+  border: 3px solid #e0e2e0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.customMapMarker {
+  width: 24px;
+  height: 24px;
+  background-color: black;
+  border-radius: 50%;
+  border: 3px solid #e0e2e0;
+}
+
+.fallbackText {
+  margin-top: var(--spacing-sm);
+  color: var(--grey-500);
+  font-size: var(--font-size-sm);
+}
+
+@media (min-width: 768px) {
+  .mapContainer {
+    height: 280px;
+  }
+
+  .title {
+    font-size: var(--font-size-xl);
+  }
+}
+
+@media (min-width: 1024px) {
+  .mapContainer {
+    height: 320px;
+  }
+}

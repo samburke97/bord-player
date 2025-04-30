@@ -1,0 +1,184 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  position: relative;
+}
+
+.mapViewActive {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.navbarList,
+.navbarMap {
+  display: flex;
+  width: 100%;
+  position: relative;
+  padding: 16px;
+  z-index: 1000;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.navbarMap {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: transparent;
+}
+
+.searchBar {
+  flex: 1;
+  margin-right: 12px;
+}
+
+.mapToggleButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--Surface-Surface-Base, #0d0d0d);
+  border: 1px solid var(--Outline-Low, #1f1f1f);
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  cursor: pointer;
+  flex-shrink: 0;
+  z-index: 1001;
+  opacity: 1;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.iconImg {
+  width: 20px;
+  height: 20px;
+  color: white;
+}
+
+.contentContainer {
+  display: flex;
+  flex: 1;
+  position: relative;
+  height: calc(100vh - 86px);
+}
+
+.leftPanel {
+  width: 400px;
+  flex-shrink: 0;
+}
+
+.leftPanelInner {
+  height: 100%;
+  overflow-y: auto;
+}
+
+.rightPanel {
+  position: fixed;
+  left: 400px;
+  right: 0;
+  top: 80px;
+  height: calc(100vh - 85px);
+  bottom: 0;
+  overflow: hidden;
+  border-left: 1px solid var(--Outline-Low, #1f1f1f);
+}
+
+.rightPanel > div {
+  height: 100%;
+  width: 100%;
+}
+
+@media screen and (max-width: 1023px) {
+  .container {
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+  }
+
+  .navbarList {
+    position: sticky;
+    top: 0;
+    background: var(--Surface-Surface-Base, #0d0d0d);
+    border-bottom: 1px solid var(--Outline-Low, #1f1f1f);
+    z-index: 1000;
+    display: flex;
+  }
+
+  .navbarMap {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1002;
+  }
+
+  .contentContainer {
+    position: relative;
+    width: 100%;
+    height: calc(100vh - 80px);
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .rightPanel {
+    position: fixed;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 10;
+  }
+
+  .rightPanel > div {
+    height: 100vh;
+    width: 100vw;
+  }
+
+  .leftPanel {
+    width: 100%;
+    height: 100%;
+    z-index: 20;
+    position: relative;
+    overflow: hidden; /* Hide scrollbar on panel itself */
+  }
+
+  .leftPanelInner {
+    height: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .hiddenOnSmallScreens {
+    display: none !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .navbarList,
+  .navbarMap {
+    display: none;
+  }
+
+  .leftPanelInner {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .leftPanelInner::-webkit-scrollbar {
+    display: none;
+  }
+}

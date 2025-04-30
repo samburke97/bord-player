@@ -1,0 +1,143 @@
+/* Mobile Menu - For screens below 768px */
+.mobileMenu {
+  display: none;
+  position: fixed;
+  top: 80px;
+  left: 0;
+  width: 100%;
+  height: calc(100vh - 80px);
+  padding: 0.8rem 0;
+  background-color: #f5f5f5;
+  z-index: 99; /* Just below header */
+  overflow-y: auto;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  transform: translateY(-10px);
+  opacity: 0;
+}
+
+.mobileMenuOpen {
+  display: block;
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.mobileMenuContent {
+  padding: 1rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: calc(100vh - 120px); /* Allow scrolling within menu content */
+  overflow-y: auto;
+}
+
+.mobileMenuCard {
+  display: flex;
+  padding: 0.8rem 1rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  align-self: stretch;
+  border-radius: 12px;
+  background: #fff;
+}
+
+/* Mobile Menu Items */
+.mobileMenuItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 0;
+  text-decoration: none;
+  color: var(--text-primary, #1a1a1a);
+  font-size: 1rem;
+  border-bottom: 1px solid transparent;
+}
+
+.mobileMenuItemContent {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mobileMenuIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobileMenuChevron {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* For screens below 768px */
+@media (max-width: 767px) {
+  /* Add specific styling for mobile view */
+  .mobileMenu {
+    height: calc(100vh - 80px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch; /* Better scrolling on iOS */
+  }
+
+  /* Ensure the content doesn't extend beyond visible area */
+  .mobileMenuContent {
+    min-height: calc(100% - 2rem);
+  }
+}
+
+/* Desktop Dropdown Styles - For screens 768px and above */
+@media (min-width: 768px) {
+  .desktopDropdown {
+    position: absolute;
+    top: calc(100% + 8px); /* Position it 8px below the parent */
+    right: 16px;
+    left: auto;
+    width: 260px;
+    height: auto;
+    max-height: none;
+    background-color: white;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: visible;
+    padding: 0;
+  }
+
+  .menuContainer {
+    padding: 0;
+    width: 100%;
+  }
+
+  .mobileMenuContent {
+    padding: 8px;
+    gap: 16px;
+  }
+
+  .mobileMenuCard {
+    background-color: transparent;
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .mobileMenuCard:last-child {
+    border-bottom: none;
+  }
+
+  .mobileMenuItem {
+    padding: 16px;
+    border-radius: 0;
+  }
+
+  .mobileMenuItem:hover {
+    background-color: #f5f5f5;
+  }
+}
+
+@media (min-width: 1024px) {
+  .mobileMenuButton {
+    display: none;
+  }
+}

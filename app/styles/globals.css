@@ -1,0 +1,187 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import "./variables/colors.css";
+@import "./variables/typography.css";
+@import "./variables/spacing.css";
+@import "./variables/animations.css";
+
+:root,
+:root[data-theme="light"],
+.light-mode {
+  --background: #ffffff;
+  --foreground: #171717;
+
+  /* Primary Colors */
+  --primary-100: #000000;
+  --primary-200: #76fb91;
+  --primary-300: #59d472;
+  --primary-400: #0b4316;
+  --primary-500: #39b252;
+
+  /* Surface */
+
+  /* Grey Colors */
+  --grey-100: #ffffff;
+  --grey-200: #f6f8f6;
+  --grey-300: #f2f5f3;
+  --grey-400: #e0e2e0;
+  --grey-500: #7e807e;
+  --grey-600: #4c4d4c;
+
+  /* Red Colors */
+  --red-100: #f7e7e7;
+  --red-200: #edc3c3;
+  --red-300: #962828;
+  --red-400: #7c0000;
+
+  /* Green Colors */
+  --green-100: #eef7e7;
+  --green-200: #d4edc3;
+  --green-300: #569628;
+  --green-400: #347c00;
+
+  /* Blue Colors */
+  --blue-100: #e7eff7;
+  --blue-200: #c3d8ed;
+  --blue-300: #285f96;
+  --blue-400: #003e7c;
+
+  /* Yellow Colors */
+  --yellow-100: #f7f2e7;
+  --yellow-200: #eddfc3;
+  --yellow-300: #c28c21;
+  --yellow-400: #b27600;
+}
+
+/* Light mode (default) */
+:root,
+:root[data-theme="light"],
+.light-mode {
+  --background: #ffffff;
+  --foreground: #171717;
+  /* Other light mode variables... */
+}
+
+/* Dark mode when explicitly set */
+:root[data-theme="dark"],
+.dark-mode {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --grey-100: #1a1a1a;
+  --grey-200: #2a2a2a;
+  --grey-300: #333333;
+  --grey-400: #444444;
+  --grey-500: #888888;
+  --grey-600: #bbbbbb;
+}
+
+/* Dark mode based on system preference (only applied if no explicit theme is set) */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]):not(.light-mode) {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+    --grey-100: #1a1a1a;
+    --grey-200: #2a2a2a;
+    --grey-300: #333333;
+    --grey-400: #444444;
+    --grey-500: #888888;
+    --grey-600: #bbbbbb;
+  }
+}
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Typography */
+
+h1 {
+  color: var(--foreground);
+  font-size: 2rem;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 125%;
+}
+
+@media (min-width: 768px) {
+  h1 {
+    font-size: 2.5rem;
+    width: 50%;
+  }
+}
+
+@media (min-width: 1024px) {
+  h1 {
+    font-size: 3rem;
+  }
+}
+
+h2 {
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+@media (min-width: 768px) {
+  h2 {
+    font-size: 24px;
+  }
+}
+
+/* Scrollbar styles */
+
+/* For all elements (Firefox) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(155, 155, 155, 0.5) transparent;
+}
+
+/* For Webkit browsers (Chrome, Safari, newer Edge) */
+::-webkit-scrollbar {
+  width: 6px; /* Slightly thinner for a modern look */
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 20px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(155, 155, 155, 0.5);
+  border-radius: 20px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* For horizontal scrollbars */
+::-webkit-scrollbar:horizontal {
+  height: 6px;
+}
+
+/* For hover state - slightly darker when hovered */
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(155, 155, 155, 0.7);
+}
+
+/* For active state - slightly darker when being clicked */
+::-webkit-scrollbar-thumb:active {
+  background-color: rgba(155, 155, 155, 0.8);
+}
