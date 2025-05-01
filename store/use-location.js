@@ -2,8 +2,12 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 
-const LocationContext = createContext();
+// Define the shape of the context
+const LocationContext = createContext(undefined);
 
+/**
+ * Provider component to fetch and provide user geolocation.
+ */
 export function LocationProvider({ children }) {
   const [location, setLocation] = useState(null);
   const [error, setError] = useState(null);
@@ -51,6 +55,20 @@ export function LocationProvider({ children }) {
   );
 }
 
+/**
+ * Custom hook to access location context.
+ * Returns a default safe fallback if the provider is not in the tree.
+ */
 export function useLocation() {
-  return useContext(LocationContext);
+  const context = useContext(LocationContext);
+
+  if (context === undefined) {
+    return {
+      location: null,
+      error: "LocationProvider is missing in the component tree.",
+      requestLocation: () => {},
+    };
+  }
+
+  return context;
 }

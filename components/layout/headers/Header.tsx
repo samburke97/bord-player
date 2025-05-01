@@ -136,7 +136,7 @@ export default function Header() {
     if (isLargeScreen) {
       return (
         <MobileNav
-          isOpen={mobileMenuOpen && showSearchInNav}
+          isOpen={mobileMenuOpen && (showSearchInNav || isSearchPage)}
           navItems={fullNavItems}
           parentElementId="menu-button-container"
         />
@@ -206,7 +206,7 @@ export default function Header() {
           {/* Mobile Menu Button - conditionally visible based on screen size and nav state */}
           <div className={styles.mobileControls} id="menu-button-container">
             {/* Only show menu button when desktop nav is not visible */}
-            {(showSearchInNav || !isLargeScreen) && (
+            {(showSearchInNav || isSearchPage || !isLargeScreen) && (
               <IconButton
                 id="menu-button"
                 icon={

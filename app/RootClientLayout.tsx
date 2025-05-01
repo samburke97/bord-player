@@ -35,15 +35,12 @@ export default function RootClientLayout({
     };
   }, []);
 
-  // Check if it's a center detail page (matches pattern /centers/{id})
   const isCenterDetailPage = /^\/centers\/[a-zA-Z0-9-]+$/.test(pathname);
 
-  // For center detail pages, use mediumScreen breakpoint (768px)
   const shouldHideNavBar =
     (pathname.startsWith("/search") && !isLargeScreen) ||
     (isCenterDetailPage && !isMediumScreen);
 
-  // Hide footer on search pages
   const shouldHideFooter = pathname.startsWith("/search");
 
   return (
