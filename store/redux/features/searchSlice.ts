@@ -5,11 +5,13 @@ import type { MapView } from "@/types/index";
 interface SearchState {
   isLoading: boolean;
   centers: Center[];
-  filteredCenters: Center[]; // Centers that are within the current map view
+  filteredCenters: Center[];
   activePin: string | null;
   hoveredItem: string | null;
   userLocation: { latitude: number; longitude: number } | null;
   mapView: MapView | null;
+  searchTerm: string;
+  error: string | null;
 }
 
 const initialState: SearchState = {
@@ -20,6 +22,8 @@ const initialState: SearchState = {
   hoveredItem: null,
   userLocation: null,
   mapView: null,
+  searchTerm: "",
+  error: null,
 };
 
 export const searchSlice = createSlice({
@@ -31,8 +35,6 @@ export const searchSlice = createSlice({
     },
     setCenters: (state, action: PayloadAction<Center[]>) => {
       state.centers = action.payload;
-      // By default, filtered centers are the same as all centers
-      // This will be updated by setFilteredCenters when map bounds change
       state.filteredCenters = action.payload;
     },
     setFilteredCenters: (state, action: PayloadAction<Center[]>) => {
@@ -53,6 +55,12 @@ export const searchSlice = createSlice({
     setMapView: (state, action: PayloadAction<MapView>) => {
       state.mapView = action.payload;
     },
+    setSearchTerm: (state, action: PayloadAction<string>) => {
+      state.searchTerm = action.payload;
+    },
+    setError: (state, action: PayloadAction<string | null>) => {
+      state.error = action.payload;
+    },
     resetActiveStates: (state) => {
       state.activePin = null;
       state.hoveredItem = null;
@@ -68,6 +76,8 @@ export const {
   setHoveredCenter,
   setUserLocation,
   setMapView,
+  setSearchTerm,
+  setError,
   resetActiveStates,
 } = searchSlice.actions;
 

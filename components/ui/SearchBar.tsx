@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { debounce } from "lodash";
 import { fetchSearchResults } from "@/app/actions/search/fetchSearchResults";
-import { useSearch } from "@/store/context/search-context";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { setSearchTerm } from "@/store/redux/features/searchSlice";
 import styles from "./SearchBar.module.css";
 import { useSearchParams } from "next/navigation";
 import { createSearchUrl } from "@/lib/utils/urlUtils";
@@ -33,12 +34,13 @@ export default function SearchBar({
   placeholder = "Search for sports & activities",
 }: SearchBarProps) {
   const router = useRouter();
-  const { searchTerm, setSearchTerm } = useSearch();
+  const dispatch = useAppDispatch();
+  const searchTerm = useAppSelector((state) => state.search.searchTerm);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const searchParams = useSearchParams(); // Add this line
   const isUserEditingRef = useRef(false);
+  const mapView = useAppSelector((state) => state.search.mapView);
 
   // Consolidated state
   const [state, setState] = useState({
@@ -294,6 +296,8 @@ export default function SearchBar({
 
   const handleOptionSelect = (option: string) => {
     // First check if the option is a center name from results
+    dispatch(setSearchTerm(option));
+
     const exactCenterMatch = results?.centers?.find(
       (center: any) => center.name.toLowerCase() === option.toLowerCase()
     );
@@ -303,7 +307,6 @@ export default function SearchBar({
       router.push(`/centers/${exactCenterMatch.id}`);
     } else {
       // Otherwise, navigate to the search page with the query
-      setSearchTerm(option);
       router.push(`/search?q=${encodeURIComponent(option)}`);
     }
 
@@ -321,11 +324,11 @@ export default function SearchBar({
       (center: any) => center.name.toLowerCase() === inputValue.toLowerCase()
     );
 
+    dispatch(setSearchTerm(inputValue));
+
     if (exactCenterMatch) {
       router.push(`/centers/${exactCenterMatch.id}`);
     } else {
-      setSearchTerm(inputValue);
-
       // Get current map view if available
       let center: [number, number] | undefined;
       let distance: number | undefined;

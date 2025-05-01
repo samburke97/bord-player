@@ -20,4 +20,8 @@ export interface MapView {
     longitude: number;
   };
   distance: number;
+  north?: number;
+  south?: number;
+  east?: number;
+  west?: number;
 }

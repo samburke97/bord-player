@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { setUserLocation } from "@/store/features/searchSlice";
+import { setUserLocation } from "@/store/redux/features/searchSlice";
 import { getLocation } from "@/app/actions/geolocation/getLocation";
 
 interface GeolocationOptions {

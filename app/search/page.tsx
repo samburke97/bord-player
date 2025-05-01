@@ -1,8 +1,7 @@
 "use server";
 
 import { Suspense } from "react";
-import { SearchProvider } from "@/store/context/search-context";
-import SearchClient from "./searchClient";
+import SearchClient from "./SearchClient";
 
 export default async function SearchPage({
   searchParams,
@@ -10,12 +9,10 @@ export default async function SearchPage({
   searchParams: { [key: string]: string | string[] | undefined };
 }) {
   return (
-    <SearchProvider>
-      <main>
-        <Suspense>
-          <SearchClient />
-        </Suspense>
-      </main>
-    </SearchProvider>
+    <main>
+      <Suspense>
+        <SearchClient />
+      </Suspense>
+    </main>
   );
 }

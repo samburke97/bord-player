@@ -3,7 +3,10 @@ import { useRef, useEffect, useCallback } from "react";
 import mapboxgl from "mapbox-gl";
 import { useDispatch } from "react-redux";
 import { debounce } from "lodash";
-import { setMapView, resetActiveStates } from "@/store/features/searchSlice";
+import {
+  setMapView,
+  resetActiveStates,
+} from "@/store/redux/features/searchSlice";
 import type { Location } from "@/types";
 import styles from "@/components/search/SearchMap.module.css";
 import "mapbox-gl/dist/mapbox-gl.css";

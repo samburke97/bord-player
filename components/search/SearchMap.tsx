@@ -7,11 +7,13 @@ import React, {
   useEffect,
   useState,
 } from "react";
-import { useDispatch } from "react-redux";
+import { useAppDispatch, useAppSelector } from "@/store/hooks"; // Add useAppSelector
 import { debounce } from "lodash";
 import type { Center } from "@/types";
 import { useMap } from "@/hooks/useMap";
-import { resetActiveStates } from "@/store/features/searchSlice";
+import { resetActiveStates } from "@/store/redux/features/searchSlice";
+import { setMapView } from "@/store/redux/features/searchSlice";
+import { executeSearch } from "@/store/redux/features/searchThunk";
 import { convertMapboxBoundsToBounds } from "@/lib/api";
 import MapMarkers from "./map/MapMarkers";
 import UserLocationMarker from "./map/UserLocation";
@@ -24,7 +26,6 @@ interface SearchMapProps {
   centers: Center[];
   userLocation: { latitude: number; longitude: number } | null;
   isLoading?: boolean;
-  onBoundsChange?: (bounds: any) => void;
   initialCenter?: [number, number];
   initialDistance?: number;
 }
@@ -33,13 +34,18 @@ export default function SearchMap({
   centers,
   userLocation,
   isLoading = false,
-  onBoundsChange,
   initialCenter,
   initialDistance,
 }: SearchMapProps) {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const mapContainer = useRef<HTMLDivElement>(null);
   const [mapReady, setMapReady] = useState(false);
+
+  // Get mapView from Redux store
+  const mapView = useAppSelector((state) => state.search.mapView);
+
+  console.log("Centers passed to SearchMap:", centers);
+  console.log("Map view being used:", mapView);
 
   // Calculate initial zoom from distance
   const initialZoom = useMemo(
@@ -67,23 +73,21 @@ export default function SearchMap({
       setMapReady(true);
 
       // Always trigger initial search when map loads
-      if (onBoundsChange && map.loaded()) {
+      if (map.loaded()) {
         const bounds = map.getBounds();
         if (bounds) {
           const boundsObj = convertMapboxBoundsToBounds(bounds);
           console.log("Initial bounds:", boundsObj);
-          debouncedBoundsChange?.(boundsObj);
+          handleBoundsChange(boundsObj);
         }
       }
     },
   });
 
-  // Create a stable debounced function that will trigger search
-  const debouncedBoundsChange = useMemo(() => {
-    if (!onBoundsChange) return undefined;
-
-    return debounce((bounds: any) => {
-      // Validate bounds before passing to callback
+  // Handle bounds change and search
+  const handleBoundsChange = useCallback(
+    (bounds: any) => {
+      // Validate bounds before processing
       if (
         !bounds ||
         !bounds.center ||
@@ -93,11 +97,31 @@ export default function SearchMap({
         return;
       }
 
-      console.log("Triggering search with bounds:", bounds);
-      // Always trigger search
-      onBoundsChange(bounds);
-    }, 300);
-  }, [onBoundsChange]);
+      // Update map view in Redux store with full bounds information
+      dispatch(
+        setMapView({
+          center: {
+            latitude: bounds.center.latitude,
+            longitude: bounds.center.longitude,
+          },
+          distance: bounds.distance,
+          north: bounds.north,
+          south: bounds.south,
+          east: bounds.east,
+          west: bounds.west,
+        })
+      );
+
+      // Trigger search
+      dispatch(executeSearch());
+    },
+    [dispatch]
+  );
+
+  // Debounced bounds change
+  const debouncedBoundsChange = useMemo(() => {
+    return debounce(handleBoundsChange, 300);
+  }, [handleBoundsChange]);
 
   // Handler for map click to reset active states
   const handleMapClick = useCallback(
@@ -143,18 +167,9 @@ export default function SearchMap({
     }
   }, [mapRef, userLocation, dispatch]);
 
-  // Handle cleanup of debounce function
-  useEffect(() => {
-    return () => {
-      if (debouncedBoundsChange) {
-        debouncedBoundsChange.cancel();
-      }
-    };
-  }, [debouncedBoundsChange]);
-
   // Set up map move event handler
   useEffect(() => {
-    if (!mapRef.current || !debouncedBoundsChange) return;
+    if (!mapRef.current) return;
 
     const handleMoveEnd = () => {
       if (mapRef.current) {
@@ -173,6 +188,8 @@ export default function SearchMap({
       if (mapRef.current) {
         mapRef.current.off("moveend", handleMoveEnd);
       }
+      // Cancel any pending debounced calls
+      debouncedBoundsChange.cancel();
     };
   }, [mapRef, debouncedBoundsChange]);
 

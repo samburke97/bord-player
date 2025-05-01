@@ -2,7 +2,10 @@ import { useCallback, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { Center } from "@/types";
 import type { RootState } from "@/store/store";
-import { setActivePin, setHoveredCenter } from "@/store/features/searchSlice";
+import {
+  setActivePin,
+  setHoveredCenter,
+} from "@/store/redux/features/searchSlice";
 import styles from "./MapMarkers.module.css";
 import mapboxgl from "mapbox-gl";
 
@@ -30,10 +33,8 @@ const MapMarkers: React.FC<MapMarkersProps> = ({
 
   // In MapMarkers.tsx, update the updateMarkers function
   const updateMarkers = useCallback(() => {
-    // Add debugging
     console.log("Centers data:", centers);
 
-    // Early return if map is null or moving
     if (!mapRef.current || isMovingRef.current) {
       console.log("Early return - map not ready or moving");
       return;
@@ -53,7 +54,6 @@ const MapMarkers: React.FC<MapMarkersProps> = ({
 
     console.log("Valid centers with coordinates:", validCenters.length);
 
-    // Safely get bounds, with fallback
     const bounds = mapRef.current?.getBounds() ?? null;
     console.log("Map bounds:", bounds);
 
@@ -61,19 +61,6 @@ const MapMarkers: React.FC<MapMarkersProps> = ({
 
     validCenters.forEach((center) => {
       try {
-        // IMPORTANT: This check might be the issue
-        // Remove the bounds check temporarily to see if markers appear
-        /*
-      if (
-        !bounds ||
-        !bounds.contains([Number(center.longitude), Number(center.latitude)])
-      ) {
-        console.log(`Center ${center.id} outside bounds`);
-        return;
-      }
-      */
-
-        // Create marker regardless of bounds for testing
         const pinElement = document.createElement("div");
         pinElement.className = `${styles.marker}`;
         pinElement.setAttribute("data-center-id", center.id);
@@ -106,7 +93,7 @@ const MapMarkers: React.FC<MapMarkersProps> = ({
         markerElementsRef.current.push(marker);
         markersInBounds++;
 
-        // Rest of your event listener code...
+        // Add any further event listeners here as needed
       } catch (error) {
         console.error(`Error creating marker for center ${center.id}:`, error);
       }
@@ -252,22 +239,18 @@ const MapMarkers: React.FC<MapMarkersProps> = ({
       const pinElement = marker.getElement();
       const centerId = pinElement.getAttribute("data-center-id");
 
-      // Ensure active pin is always hovered
       if (activePin === centerId) {
         pinElement.classList.add(styles.activeMarker);
         pinElement.classList.add(styles.hoveredMarker);
       } else {
-        // Reset states for other pins
         pinElement.classList.remove(styles.activeMarker);
         pinElement.classList.remove(styles.hoveredMarker);
 
-        // Add hover only for non-active, hovered item
         if (hoveredItem === centerId) {
           pinElement.classList.add(styles.hoveredMarker);
         }
       }
 
-      // Update pin image
       const markerImage = pinElement.querySelector("img");
       if (markerImage) {
         markerImage.src =

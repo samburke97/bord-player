@@ -1,14 +1,17 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { Map1, TextalignJustifyleft } from "iconsax-react";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useGeolocation } from "@/hooks/useGeolocation";
-import { useSearch } from "@/store/context/search-context";
 import { useSearchParams, usePathname } from "next/navigation";
 import { RootState } from "@/store/store";
-import { setMapView, resetActiveStates } from "@/store/features/searchSlice";
+import {
+  setMapView,
+  resetActiveStates,
+} from "@/store/redux/features/searchSlice";
+import { executeSearch } from "@/store/redux/features/searchThunk";
 import type { MapView } from "@/types";
 import type { Center } from "@prisma/client";
 
@@ -23,9 +26,8 @@ import styles from "./Search.module.css";
 
 export default function SearchClient() {
   // Hooks and State Management
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const searchParams = useSearchParams();
-  const { executeSearch } = useSearch();
   const { isLoading: isLoadingLocation } = useGeolocation();
   const isLargeScreen = useMediaQuery("(min-width: 1024px)");
 
@@ -36,7 +38,7 @@ export default function SearchClient() {
     userLocation,
     isLoading: isFetching,
     mapView,
-  } = useSelector((state: RootState) => state.search);
+  } = useAppSelector((state: RootState) => state.search);
 
   // Local Component State
   const [isMapView, setIsMapView] = useState(false);
@@ -93,7 +95,7 @@ export default function SearchClient() {
         dispatch(setMapView(initialMapView));
 
         // Execute initial search
-        await executeSearch({ forceUpdate: true });
+        await dispatch(executeSearch({ forceUpdate: true }));
 
         // Mark initial load as complete
         setIsInitialLoadComplete(true);
@@ -265,8 +267,8 @@ export default function SearchClient() {
                   })
                 );
 
-                // Execute search with new bounds
-                executeSearch();
+                // Execute search with new bounds using thunk
+                dispatch(executeSearch());
               }}
             />
           )}

@@ -7,7 +7,7 @@ import Header from "@/components/layout/headers/Header";
 import Footer from "@/components/layout/Footer";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { LocationProvider } from "@/store/use-location";
+import SearchInitializer from "@/components/search/SearchInit";
 
 export default function RootClientLayout({
   children,
@@ -49,13 +49,12 @@ export default function RootClientLayout({
 
   return (
     <Provider store={store}>
-      <LocationProvider>
-        <ThemeProvider>
-          {isClientSide && !shouldHideNavBar && <Header />}
-          {children}
-          {!shouldHideFooter && <Footer />}
-        </ThemeProvider>
-      </LocationProvider>
+      <ThemeProvider>
+        <SearchInitializer />
+        {isClientSide && !shouldHideNavBar && <Header />}
+        {children}
+        {!shouldHideFooter && <Footer />}
+      </ThemeProvider>
     </Provider>
   );
 }
