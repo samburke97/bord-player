@@ -31,11 +31,11 @@ const LocationSection: React.FC<LocationSectionProps> = ({
     // Create map instance
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: "mapbox://styles/mapbox/light-v11", // Light style that matches the clean aesthetic
+      style: "mapbox://styles/mapbox/light-v11",
       center: [longitude, latitude],
       zoom: 14,
-      interactive: false, // Disable zooming and panning
-      attributionControl: false, // Remove attribution control
+      interactive: false,
+      attributionControl: false,
     });
 
     // Add marker

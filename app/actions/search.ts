@@ -8,111 +8,97 @@ interface Bounds {
   south: number;
   east: number;
   west: number;
-  center: {
-    latitude: number;
-    longitude: number;
-  };
-  distance: number;
 }
 
 interface SearchParams {
   searchTerm?: string;
   bounds: Bounds;
+  sportIds?: string[];
+  facilityIds?: string[];
   limit?: number;
 }
 
 export async function searchCenters({
-  searchTerm,
+  searchTerm = "",
   bounds,
+  sportIds = [],
+  facilityIds = [],
   limit = 100,
 }: SearchParams) {
   noStore();
 
-  console.log("Searching centers with bounds:", JSON.stringify(bounds));
-  console.log("Search term:", searchTerm);
+  console.log("🔍 Server action searchCenters called with:", {
+    searchTerm: searchTerm || "[EMPTY]",
+    bounds,
+    sportIds,
+    facilityIds,
+  });
 
   try {
-    // Build base query conditions
-    const baseConditions = {
+    // Build the where conditions based on search term and bounds
+    const whereConditions: any = {
       isActive: true,
       isDeleted: false,
-      // We'll filter by coordinates later to avoid type conversion issues
       latitude: { not: null },
       longitude: { not: null },
+      latitude: {
+        gte: bounds.south,
+        lte: bounds.north,
+      },
+      longitude: {
+        gte: bounds.west,
+        lte: bounds.east,
+      },
     };
 
-    // Add search term condition if provided
-    const searchConditions = searchTerm
-      ? {
-          OR: [
-            {
-              name: {
-                contains: searchTerm,
-                mode: "insensitive",
-              },
-            },
-            {
-              sportCenters: {
-                some: {
-                  sport: {
-                    name: {
-                      contains: searchTerm,
-                      mode: "insensitive",
-                    },
-                  },
+    if (searchTerm && searchTerm.trim() !== "") {
+      whereConditions.OR = [
+        {
+          name: {
+            contains: searchTerm,
+            mode: "insensitive",
+          },
+        },
+        {
+          sportCenters: {
+            some: {
+              sport: {
+                name: {
+                  contains: searchTerm,
+                  mode: "insensitive",
                 },
               },
             },
-            {
-              tags: {
-                some: {
-                  tag: {
-                    name: {
-                      contains: searchTerm,
-                      mode: "insensitive",
-                    },
-                  },
+          },
+        },
+        {
+          tags: {
+            some: {
+              tag: {
+                name: {
+                  contains: searchTerm,
+                  mode: "insensitive",
                 },
               },
             },
-          ],
-        }
-      : {};
+          },
+        },
+      ];
+    }
 
-    // Combine all conditions
-    const whereConditions = {
-      ...baseConditions,
-      ...searchConditions,
-    };
-
-    // Execute the query with explicit selection of fields we need
+    // Fetch centers based on the filters, directly from the database
     const centers = await prisma.center.findMany({
       where: whereConditions,
-      select: {
-        id: true,
-        name: true,
-        address: true,
-        latitude: true,
-        longitude: true,
-        logoUrl: true,
+      include: {
         images: {
-          select: {
-            imageUrl: true,
-            order: true,
-          },
           orderBy: {
             order: "asc",
           },
           take: 5,
         },
         sportCenters: {
-          select: {
-            sport: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
+          include: {
+            sport: true,
           },
           take: 5,
         },
@@ -120,43 +106,26 @@ export async function searchCenters({
       take: limit,
     });
 
-    console.log(`Found ${centers.length} centers matching search criteria`);
+    console.log(`📋 Found ${centers.length} centers`);
 
-    // Filter by bounds in JavaScript to avoid Decimal conversion issues
-    const filteredCenters = centers.filter((center) => {
-      if (!center.latitude || !center.longitude) return false;
+    // Format for frontend
+    const formattedCenters = centers.map((center) => ({
+      id: center.id,
+      name: center.name,
+      address: center.address,
+      latitude: parseFloat(center.latitude.toString()),
+      longitude: parseFloat(center.longitude.toString()),
+      logoUrl: center.logoUrl || "/images/default-center.svg",
+      images: center.images.map((img) => img.imageUrl),
+      sports: center.sportCenters.map((sc) => ({
+        id: sc.sport.id,
+        name: sc.sport.name,
+      })),
+    }));
 
-      const lat = parseFloat(center.latitude.toString());
-      const lng = parseFloat(center.longitude.toString());
-
-      return (
-        lat >= parseFloat(bounds.south.toString()) &&
-        lat <= parseFloat(bounds.north.toString()) &&
-        lng >= parseFloat(bounds.west.toString()) &&
-        lng <= parseFloat(bounds.east.toString())
-      );
-    });
-
-    console.log(`Filtered to ${filteredCenters.length} centers within bounds`);
-
-    // Format data for frontend
-    return filteredCenters.map((center) => {
-      return {
-        id: center.id,
-        name: center.name,
-        address: center.address || "",
-        latitude: parseFloat(center.latitude.toString()),
-        longitude: parseFloat(center.longitude.toString()),
-        logoUrl: center.logoUrl || "/images/default-center.svg",
-        images: center.images.map((img) => img.imageUrl),
-        sports: center.sportCenters.map((sc) => ({
-          id: sc.sport.id,
-          name: sc.sport.name,
-        })),
-      };
-    });
+    return formattedCenters;
   } catch (error) {
-    console.error("Error searching centers by bounds:", error);
-    throw new Error("Failed to search centers by location");
+    console.error("❌ Error in searchCenters server action:", error);
+    return [];
   }
 }

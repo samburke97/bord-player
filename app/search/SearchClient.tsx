@@ -5,15 +5,15 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { Map1, TextalignJustifyleft } from "iconsax-react";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useGeolocation } from "@/hooks/useGeolocation";
-import { useSearchParams, usePathname } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { RootState } from "@/store/store";
 import {
   setMapView,
   resetActiveStates,
+  setSearchTerm,
 } from "@/store/redux/features/searchSlice";
 import { executeSearch } from "@/store/redux/features/searchThunk";
 import type { MapView } from "@/types";
-import type { Center } from "@prisma/client";
 
 // UI Components
 import SearchBar from "@/components/ui/SearchBar";
@@ -38,6 +38,7 @@ export default function SearchClient() {
     userLocation,
     isLoading: isFetching,
     mapView,
+    searchTerm,
   } = useAppSelector((state: RootState) => state.search);
 
   // Local Component State
@@ -50,6 +51,38 @@ export default function SearchClient() {
     () => searchParams.has("center") && searchParams.has("distance"),
     [searchParams]
   );
+
+  useEffect(() => {
+    const queryParam = searchParams.get("q");
+
+    // Only update if it's different to avoid loops
+    if (queryParam !== null && queryParam !== searchTerm) {
+      console.log(`📝 Setting search term from URL: "${queryParam}"`);
+      dispatch(setSearchTerm(queryParam));
+    }
+  }, [searchParams, dispatch, searchTerm]);
+
+  // Execute search when searchTerm changes
+  useEffect(() => {
+    // Skip the initial render
+    if (isInitialLoadComplete && mapView) {
+      console.log(
+        `🔄 Search term changed to "${searchTerm}" - executing new search`
+      );
+      dispatch(executeSearch());
+    }
+  }, [searchTerm, isInitialLoadComplete, mapView, dispatch]);
+
+  // Get search term from URL
+  useEffect(() => {
+    const queryParam = searchParams.get("q");
+
+    // Only update if it's different to avoid loops
+    if (queryParam !== null && queryParam !== searchTerm) {
+      console.log(`📝 Setting search term from URL: "${queryParam}"`);
+      dispatch(setSearchTerm(queryParam));
+    }
+  }, [searchParams, dispatch, searchTerm]);
 
   // Perform initial search
   const performInitialSearch = useCallback(async () => {
@@ -91,8 +124,13 @@ export default function SearchClient() {
     // If we have a valid map view, proceed with search
     if (initialMapView) {
       try {
+        console.log("🚀 Initializing search with map view:", initialMapView);
+
         // Dispatch map view to store
         dispatch(setMapView(initialMapView));
+
+        // Log current search term
+        console.log("🔍 Current search term:", searchTerm || "[NONE]");
 
         // Execute initial search
         await dispatch(executeSearch({ forceUpdate: true }));
@@ -100,7 +138,7 @@ export default function SearchClient() {
         // Mark initial load as complete
         setIsInitialLoadComplete(true);
       } catch (error) {
-        console.error("Initial search failed", error);
+        console.error("❌ Initial search failed:", error);
         setIsInitialLoadComplete(true);
       }
     }
@@ -111,6 +149,7 @@ export default function SearchClient() {
     isInitialLoadComplete,
     searchParams,
     userLocation,
+    searchTerm,
   ]);
 
   // Toggle map/list view on mobile
@@ -179,6 +218,11 @@ export default function SearchClient() {
     return null;
   }, [userLocation]);
 
+  // Log whenever centers change
+  useEffect(() => {
+    console.log(`📋 Centers array updated. Count: ${centers.length}`);
+  }, [centers]);
+
   // Render
   return (
     <div
@@ -197,6 +241,7 @@ export default function SearchClient() {
         <SearchBar
           className={styles.searchBar}
           onDropdownChange={handleSearchDropdownChange}
+          initialSearchTerm={searchTerm || ""}
         />
 
         {/* Mobile View Toggle */}
@@ -256,7 +301,8 @@ export default function SearchClient() {
               ]}
               initialDistance={mapView.distance}
               onBoundsChange={(bounds) => {
-                // Update map view in store when bounds change
+                dispatch(resetActiveStates());
+
                 dispatch(
                   setMapView({
                     center: {
@@ -267,7 +313,6 @@ export default function SearchClient() {
                   })
                 );
 
-                // Execute search with new bounds using thunk
                 dispatch(executeSearch());
               }}
             />

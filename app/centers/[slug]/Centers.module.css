@@ -2,7 +2,6 @@
   width: 100%;
 }
 
-/* Hero section - contains both mobile and desktop headers */
 .heroSection {
   position: relative;
   width: 100%;
@@ -82,12 +81,10 @@
   display: none;
 }
 
-/* Desktop styles that should be hidden on mobile */
 .desktopOnly {
   display: none;
 }
 
-/* Mobile fixed bottom button container */
 .mobileVisitButtonContainer {
   position: fixed;
   bottom: 0;

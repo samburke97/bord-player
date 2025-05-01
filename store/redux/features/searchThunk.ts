@@ -1,20 +1,48 @@
-// redux/features/searchThunk.ts
+// store/redux/features/searchThunk.ts
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { setLoading, setCenters, setError } from "./searchSlice";
+import { searchCenters } from "@/app/actions/search"; // Import the server action directly
 import type { RootState } from "@/store/store";
 import type { Center } from "@/types/entities";
 
-// Update the thunk to accept parameters
+// Simple adapter to convert server response to Center type
+function adaptToCenterType(serverCenter: any): Center {
+  return {
+    id: serverCenter.id,
+    name: serverCenter.name,
+    address: serverCenter.address || null,
+    description: null, // Add missing properties with defaults
+    latitude: serverCenter.latitude,
+    longitude: serverCenter.longitude,
+    logoUrl: serverCenter.logoUrl || null,
+    phone: null,
+    email: null,
+    isActive: true,
+    isOpenNow: false,
+    type: null,
+    distance: 0,
+    images: serverCenter.images || [],
+    facilities: [],
+    tags: [],
+    sports: serverCenter.sports || [],
+    openingHours: [],
+    socials: [],
+    links: [],
+    activities: [],
+    establishment: [],
+  };
+}
+
 export const executeSearch = createAsyncThunk<
-  Center[], // Return type
-  { forceUpdate?: boolean } | undefined, // Accept the parameter that's being passed
-  { state: RootState } // Access to Redux state
+  Center[],
+  { forceUpdate?: boolean } | undefined,
+  { state: RootState }
 >("search/executeSearch", async (params, { getState, dispatch }) => {
   dispatch(setLoading(true));
 
   try {
     const state = getState();
-    const { mapView } = state.search;
+    const { mapView, searchTerm } = state.search;
 
     if (!mapView) {
       console.error("No map view available for search");
@@ -22,51 +50,51 @@ export const executeSearch = createAsyncThunk<
       return [];
     }
 
-    console.log("Executing search with mapView:", mapView);
+    console.log("🔍 Executing search with:", {
+      mapView,
+      searchTerm: searchTerm || "[NONE]",
+      forceUpdate: params?.forceUpdate,
+    });
 
-    // Construct query parameters based on the structure of your mapView
-    const query = new URLSearchParams();
+    // Calculate bounds from mapView's center and distance if not explicitly provided
+    const bounds = {
+      north: mapView.north || mapView.center.latitude + mapView.distance / 111,
+      south: mapView.south || mapView.center.latitude - mapView.distance / 111,
+      east:
+        mapView.east ||
+        mapView.center.longitude +
+          mapView.distance /
+            (111 * Math.cos((mapView.center.latitude * Math.PI) / 180)),
+      west:
+        mapView.west ||
+        mapView.center.longitude -
+          mapView.distance /
+            (111 * Math.cos((mapView.center.latitude * Math.PI) / 180)),
+    };
 
-    // Include center coordinates
-    if (mapView.center) {
-      query.set("lat", mapView.center.latitude.toString());
-      query.set("lng", mapView.center.longitude.toString());
+    console.log("🗺️ Search bounds:", bounds);
+
+    // Directly call the server action with searchTerm
+    const serverCenters = await searchCenters({
+      searchTerm: searchTerm || "", // Ensure we pass searchTerm, even if empty
+      bounds,
+    });
+
+    console.log(`✅ Search returned ${serverCenters.length} centers`);
+
+    if (serverCenters.length > 0) {
+      console.log("📍 First center:", serverCenters[0]);
+    } else {
+      console.log("⚠️ No centers found matching criteria");
     }
 
-    // Include distance/radius
-    if (mapView.distance) {
-      query.set("distance", mapView.distance.toString());
-    }
+    // Convert server response to expected Center type
+    const centers: Center[] = serverCenters.map(adaptToCenterType);
 
-    // Include bounds if available
-    if (mapView.north !== undefined) {
-      query.set("north", mapView.north.toString());
-      query.set("south", mapView.south.toString());
-      query.set("east", mapView.east.toString());
-      query.set("west", mapView.west.toString());
-    }
-
-    // Include forceUpdate parameter if provided
-    if (params?.forceUpdate) {
-      query.set("force", "true");
-    }
-
-    // Log the API request for debugging
-    console.log(`Making API request to: /api/search?${query.toString()}`);
-
-    const res = await fetch(`/actions/search?${query.toString()}`);
-
-    if (!res.ok) {
-      throw new Error(`Search API returned ${res.status}: ${res.statusText}`);
-    }
-
-    const data = await res.json();
-    console.log("Search API response:", data);
-
-    dispatch(setCenters(data)); // Set the centers in the Redux store
-    return data;
+    dispatch(setCenters(centers));
+    return centers;
   } catch (err) {
-    console.error("Search failed", err);
+    console.error("❌ Search failed:", err);
     dispatch(setError(err instanceof Error ? err.message : "Search failed"));
     return [];
   } finally {

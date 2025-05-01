@@ -7,7 +7,7 @@ import React, {
   useEffect,
   useState,
 } from "react";
-import { useAppDispatch, useAppSelector } from "@/store/hooks"; // Add useAppSelector
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { debounce } from "lodash";
 import type { Center } from "@/types";
 import { useMap } from "@/hooks/useMap";
@@ -28,6 +28,7 @@ interface SearchMapProps {
   isLoading?: boolean;
   initialCenter?: [number, number];
   initialDistance?: number;
+  onBoundsChange?: (bounds: any) => void;
 }
 
 export default function SearchMap({
@@ -44,19 +45,16 @@ export default function SearchMap({
   // Get mapView from Redux store
   const mapView = useAppSelector((state) => state.search.mapView);
 
-  console.log("Centers passed to SearchMap:", centers);
-  console.log("Map view being used:", mapView);
+  // Check if userLocation is different from the default location
+  const isUserLocationSet =
+    userLocation &&
+    (userLocation.latitude !== 51.5074 || userLocation.longitude !== -0.1278);
 
   // Calculate initial zoom from distance
   const initialZoom = useMemo(
     () => (initialDistance ? 13 - Math.log2(initialDistance / 5) : undefined),
     [initialDistance]
   );
-
-  // Log centers data for debugging
-  useEffect(() => {
-    console.log("Centers data in SearchMap:", centers);
-  }, [centers]);
 
   // Initialize map with user location - uses our single registry
   const mapRef = useMap({
@@ -77,7 +75,6 @@ export default function SearchMap({
         const bounds = map.getBounds();
         if (bounds) {
           const boundsObj = convertMapboxBoundsToBounds(bounds);
-          console.log("Initial bounds:", boundsObj);
           handleBoundsChange(boundsObj);
         }
       }
@@ -112,7 +109,6 @@ export default function SearchMap({
         })
       );
 
-      // Trigger search
       dispatch(executeSearch());
     },
     [dispatch]
@@ -129,6 +125,8 @@ export default function SearchMap({
       // Check if we clicked on a marker or card
       if (
         (e.target as HTMLElement).closest(`.${styles.marker}`) ||
+        (e.target as HTMLElement).closest(`.${styles.dotMarker}`) ||
+        (e.target as HTMLElement).closest(`.${styles.clusterMarker}`) ||
         (e.target as HTMLElement).closest(`.${styles.cardWrapper}`)
       ) {
         return;
@@ -161,13 +159,13 @@ export default function SearchMap({
       mapRef.current.flyTo({
         center: [userLocation.longitude, userLocation.latitude],
         zoom: 12,
-        speed: 0.5,
-        curve: 1,
+        speed: 1.2,
+        curve: 1.42,
       });
     }
   }, [mapRef, userLocation, dispatch]);
 
-  // Set up map move event handler
+  // Set up map move and zoom event handlers
   useEffect(() => {
     if (!mapRef.current) return;
 
@@ -176,17 +174,18 @@ export default function SearchMap({
         const bounds = mapRef.current.getBounds();
         if (bounds) {
           const boundsObj = convertMapboxBoundsToBounds(bounds);
-          console.log("Map moved, new bounds:", boundsObj);
           debouncedBoundsChange(boundsObj);
         }
       }
     };
 
     mapRef.current.on("moveend", handleMoveEnd);
+    mapRef.current.on("zoomend", handleZoomEnd);
 
     return () => {
       if (mapRef.current) {
         mapRef.current.off("moveend", handleMoveEnd);
+        mapRef.current.off("zoomend", handleZoomEnd);
       }
       // Cancel any pending debounced calls
       debouncedBoundsChange.cancel();
@@ -220,7 +219,7 @@ export default function SearchMap({
               mapContainer={mapContainer}
             />
 
-            <UserLocationMarker mapRef={mapRef} />
+            {isUserLocationSet && <UserLocationMarker mapRef={mapRef} />}
 
             <MapControls
               onZoomIn={handleZoomIn}

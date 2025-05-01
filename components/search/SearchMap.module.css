@@ -8,6 +8,14 @@
   cursor: grab;
 }
 
+.mapMarker {
+  width: 20px;
+  height: 20px;
+  background-color: black;
+  border-radius: 50%;
+  border: 2px solid #e0e2e0;
+}
+
 @media screen and (max-width: 1023px) {
   .map {
     margin-left: 0;

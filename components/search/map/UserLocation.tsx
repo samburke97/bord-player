@@ -29,14 +29,8 @@ const UserLocationMarker: React.FC<UserLocationMarkerProps> = ({ mapRef }) => {
     }
 
     const el = document.createElement("div");
-    el.className = styles.userLocationMarker;
+    el.className = styles.mapMarker;
     markerElementRef.current = el;
-
-    const img = document.createElement("img");
-    img.src = "/images/map/user-location.svg";
-    img.alt = "Your Location";
-    img.className = styles.userLocationImage;
-    el.appendChild(img);
 
     const marker = new mapboxgl.Marker({
       element: el,

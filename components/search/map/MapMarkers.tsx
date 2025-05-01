@@ -1,13 +1,17 @@
-import { useCallback, useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { createRoot } from "react-dom/client";
 import { useDispatch, useSelector } from "react-redux";
 import type { Center } from "@/types";
 import type { RootState } from "@/store/store";
+import styles from "./MapMarkers.module.css";
 import {
   setActivePin,
-  setHoveredCenter,
+  resetActiveStates,
 } from "@/store/redux/features/searchSlice";
-import styles from "./MapMarkers.module.css";
 import mapboxgl from "mapbox-gl";
+
+// Import the MapCard component
+import MapCard from "./MapCard";
 
 interface MapMarkersProps {
   centers: Center[];
@@ -15,11 +19,7 @@ interface MapMarkersProps {
   mapContainer: React.RefObject<HTMLDivElement>;
 }
 
-const MapMarkers: React.FC<MapMarkersProps> = ({
-  centers,
-  mapRef,
-  mapContainer,
-}) => {
+const MapMarkers: React.FC<MapMarkersProps> = ({ centers, mapRef }) => {
   const dispatch = useDispatch();
   const activePin = useSelector((state: RootState) => state.search.activePin);
   const hoveredItem = useSelector(
@@ -27,186 +27,242 @@ const MapMarkers: React.FC<MapMarkersProps> = ({
   );
 
   const isMovingRef = useRef(false);
-
   const markerElementsRef = useRef<mapboxgl.Marker[]>([]);
   const activeCardMarkerRef = useRef<mapboxgl.Marker | null>(null);
 
-  // In MapMarkers.tsx, update the updateMarkers function
+  // Current zoom level state
+  const [currentZoom, setCurrentZoom] = useState(12);
+  const ZOOM_THRESHOLD_FULL = 12;
+  const ZOOM_THRESHOLD_MEDIUM = 9;
+
+  // Update markers function
   const updateMarkers = useCallback(() => {
-    console.log("Centers data:", centers);
+    if (!mapRef.current || isMovingRef.current) return;
 
-    if (!mapRef.current || isMovingRef.current) {
-      console.log("Early return - map not ready or moving");
-      return;
-    }
+    // Get current zoom level
+    const zoom = mapRef.current.getZoom();
+    setCurrentZoom(zoom);
 
+    // Remove existing markers
     markerElementsRef.current.forEach((marker) => marker.remove());
     markerElementsRef.current = [];
-
-    if (activeCardMarkerRef.current) {
-      activeCardMarkerRef.current.remove();
-      activeCardMarkerRef.current = null;
-    }
 
     const validCenters = centers.filter(
       (center) => center.latitude && center.longitude
     );
 
-    console.log("Valid centers with coordinates:", validCenters.length);
+    // Determine which centers to show as full markers vs dots based on zoom level and ratings
+    const fullMarkerCenters = validCenters.filter((center) => {
+      // Show full markers for: active pins, hovered pins, high-rated centers when zoomed out, or all centers when zoomed in
+      return (
+        activePin === center.id ||
+        hoveredItem === center.id ||
+        zoom >= ZOOM_THRESHOLD_FULL ||
+        (zoom >= ZOOM_THRESHOLD_MEDIUM && center.rating && center.rating >= 4.8)
+      );
+    });
 
-    const bounds = mapRef.current?.getBounds() ?? null;
-    console.log("Map bounds:", bounds);
+    const dotMarkerCenters = validCenters.filter(
+      (center) => !fullMarkerCenters.some((c) => c.id === center.id)
+    );
 
-    let markersInBounds = 0;
+    // Create full markers
+    fullMarkerCenters.forEach((center) => {
+      const pinElement = document.createElement("div");
+      pinElement.className = `${styles.marker}`;
+      pinElement.setAttribute("data-center-id", center.id);
 
-    validCenters.forEach((center) => {
-      try {
-        const pinElement = document.createElement("div");
-        pinElement.className = `${styles.marker}`;
-        pinElement.setAttribute("data-center-id", center.id);
+      const markerImage = document.createElement("img");
+      markerImage.src =
+        activePin === center.id
+          ? "/images/map/active-pin.svg"
+          : "/images/map/base-pin.svg";
+      markerImage.alt = "Location Marker";
+      markerImage.className = styles.pinImage;
+      markerImage.draggable = false;
+      pinElement.appendChild(markerImage);
+
+      // Add rating if available
+      if (center.rating) {
+        const ratingElement = document.createElement("div");
+        ratingElement.className = styles.ratingBadge;
+        ratingElement.textContent = center.rating.toFixed(1);
+        pinElement.appendChild(ratingElement);
+      }
+
+      // Add hover and active states
+      if (activePin === center.id) {
+        pinElement.classList.add(styles.activeMarker, styles.hoveredMarker);
+      } else if (hoveredItem === center.id) {
+        pinElement.classList.add(styles.hoveredMarker);
+      }
+
+      // Add click event to show card and set active pin
+      pinElement.addEventListener("click", (e) => {
+        e.stopPropagation(); // Prevent map click event
+        dispatch(setActivePin(center.id));
+      });
+
+      // Create marker
+      const marker = new mapboxgl.Marker({
+        element: pinElement,
+        anchor: "bottom",
+      })
+        .setLngLat([Number(center.longitude), Number(center.latitude)])
+        .addTo(mapRef.current);
+
+      markerElementsRef.current.push(marker);
+    });
+
+    // Create dot markers for others
+    dotMarkerCenters.forEach((center) => {
+      const dotElement = document.createElement("div");
+      dotElement.className = styles.dotMarker;
+      dotElement.setAttribute("data-center-id", center.id);
+
+      dotElement.addEventListener("mouseenter", () => {
+        dotElement.innerHTML = "";
+        dotElement.className = `${styles.marker} ${styles.popupPin}`; // Add animated class
 
         const markerImage = document.createElement("img");
-        markerImage.src =
-          activePin === center.id
-            ? "/images/map/active-pin.svg"
-            : "/images/map/base-pin.svg";
+        markerImage.src = "/images/map/base-pin.svg";
         markerImage.alt = "Location Marker";
         markerImage.className = styles.pinImage;
         markerImage.draggable = false;
-        pinElement.appendChild(markerImage);
 
-        if (activePin === center.id) {
-          pinElement.classList.add(styles.activeMarker, styles.hoveredMarker);
-        } else if (hoveredItem === center.id) {
-          pinElement.classList.add(styles.hoveredMarker);
+        dotElement.appendChild(markerImage);
+
+        if (center.rating) {
+          const ratingElement = document.createElement("div");
+          ratingElement.className = styles.ratingBadge;
+          ratingElement.textContent = center.rating.toFixed(1);
+          dotElement.appendChild(ratingElement);
         }
+      });
 
-        if (!mapRef.current) return;
+      dotElement.addEventListener("mouseleave", () => {
+        if (activePin !== center.id) {
+          dotElement.innerHTML = "";
+          dotElement.className = styles.dotMarker; // Revert to small dot
+        }
+      });
 
-        const marker = new mapboxgl.Marker({
-          element: pinElement,
-          anchor: "bottom",
-        })
-          .setLngLat([Number(center.longitude), Number(center.latitude)])
-          .addTo(mapRef.current);
+      // Add click event to show card and set active pin
+      dotElement.addEventListener("click", (e) => {
+        e.stopPropagation(); // Prevent map click event
+        dispatch(setActivePin(center.id));
+      });
 
-        markerElementsRef.current.push(marker);
-        markersInBounds++;
+      // Create marker
+      const marker = new mapboxgl.Marker({
+        element: dotElement,
+        anchor: "center",
+      })
+        .setLngLat([Number(center.longitude), Number(center.latitude)])
+        .addTo(mapRef.current);
 
-        // Add any further event listeners here as needed
-      } catch (error) {
-        console.error(`Error creating marker for center ${center.id}:`, error);
-      }
+      markerElementsRef.current.push(marker);
     });
-
-    console.log(
-      `Created ${markersInBounds} markers out of ${validCenters.length} valid centers`
-    );
   }, [centers, mapRef, activePin, hoveredItem, dispatch]);
 
-  const createCard = (center: Center) => {
-    if (!mapRef.current || !mapContainer.current) return;
+  // Create card for active center
+  const createCard = useCallback(
+    (center: Center) => {
+      // Remove existing card marker
+      if (activeCardMarkerRef.current) {
+        activeCardMarkerRef.current.remove();
+        activeCardMarkerRef.current = null;
+      }
 
-    if (activeCardMarkerRef.current) {
-      activeCardMarkerRef.current.remove();
-      activeCardMarkerRef.current = null;
-    }
+      // Create a container for the React component
+      const container = document.createElement("div");
+      container.style.position = "absolute";
+      container.style.zIndex = "1000";
+      container.style.pointerEvents = "none";
 
-    const cardElement = document.createElement("div");
-    cardElement.className = styles.cardWrapper;
-    cardElement.setAttribute("data-for-center", center.id);
-
-    const position = mapRef.current.project([
-      Number(center.longitude),
-      Number(center.latitude),
-    ]);
-
-    const mapHeight = mapContainer.current.clientHeight;
-    const isTopHalf = position.y < mapHeight / 2;
-
-    cardElement.classList.add(
-      isTopHalf ? styles.placementBottom : styles.placementTop
-    );
-
-    cardElement.innerHTML = `
-      <div class="${styles.card}">
-        <div class="${styles.imageContainer}">
-          ${
-            center.images && center.images.length > 0
-              ? `<img src="${center.images[0]}" alt="${center.name}" class="${styles.image}" />`
-              : `<div class="${styles.placeholderImage}"></div>`
-          }
+      // Create a React root and render the MapCard
+      const root = createRoot(container);
+      root.render(
+        <div
+          style={{
+            pointerEvents: "auto",
+            cursor: "pointer",
+          }}
+          onMouseDown={(e) => {
+            e.stopPropagation();
+          }}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            window.location.href = `/centers/${center.id}`;
+          }}
+        >
+          <MapCard
+            center={center}
+            onCardClick={() => {
+              window.location.href = `/centers/${center.id}`;
+            }}
+          />
         </div>
-        <div class="${styles.description}">
-        ${
-          center.sports && center.sports.length > 0
-            ? `<div class="${styles.sportContainer}">
-                ${center.sports
-                  .slice(0, 3)
-                  .map(
-                    (sport) =>
-                      `<span class="${styles.sportPill}">${sport}</span>`
-                  )
-                  .join("")}
-              </div>`
-            : ""
-        }
-          <h2>${center.name}</h2>
-          ${
-            center.address
-              ? `<div class="${styles.carousel__location}">
-                <span class="${styles.carousel__icon}">
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M6 1C4.07 1 2.5 2.57 2.5 4.5C2.5 7.25 6 11 6 11C6 11 9.5 7.25 9.5 4.5C9.5 2.57 7.93 1 6 1ZM6 5.75C5.31 5.75 4.75 5.19 4.75 4.5C4.75 3.81 5.31 3.25 6 3.25C6.69 3.25 7.25 3.81 7.25 4.5C7.25 5.19 6.69 5.75 6 5.75Z" fill="#7E807E"/>
-                  </svg>
-                </span>
-                <span class="${styles.carousel__address}">${center.address}</span>
-              </div>`
-              : ""
-          }
-        </div>
-      </div>
-    `;
+      );
 
-    cardElement.addEventListener("click", (e) => {
-      e.stopPropagation();
-      window.location.href = `/centers/${center.id}`;
-    });
+      // Create a custom marker to position the card
+      const cardMarker = new mapboxgl.Marker({
+        element: container,
+        anchor: "center",
+        offset: [0, 0],
+      })
+        .setLngLat([Number(center.longitude), Number(center.latitude)])
+        .addTo(mapRef.current!);
 
-    const cardMarker = new mapboxgl.Marker({
-      element: cardElement,
-      anchor: "center",
-      offset: [0, isTopHalf ? 125 : -285],
-    })
-      .setLngLat([Number(center.longitude), Number(center.latitude)])
-      .addTo(mapRef.current);
+      activeCardMarkerRef.current = cardMarker;
+    },
+    [mapRef]
+  );
 
-    activeCardMarkerRef.current = cardMarker;
-  };
-
+  // Add map movement and zoom listeners
   useEffect(() => {
-    if (mapRef.current) {
-      const handleMoveStart = () => {
-        isMovingRef.current = true;
-      };
+    if (!mapRef.current) return;
 
-      const handleMoveEnd = () => {
-        isMovingRef.current = false;
+    const handleMove = () => {
+      // Re-add markers to ensure they move with the map
+      markerElementsRef.current.forEach((marker) => {
+        marker.remove().addTo(mapRef.current!);
+      });
+    };
+
+    const handleZoom = () => {
+      if (!mapRef.current) return;
+
+      const zoom = mapRef.current.getZoom();
+      // Only update markers if crossing a zoom threshold
+      if (
+        (currentZoom < ZOOM_THRESHOLD_MEDIUM &&
+          zoom >= ZOOM_THRESHOLD_MEDIUM) ||
+        (currentZoom >= ZOOM_THRESHOLD_MEDIUM &&
+          zoom < ZOOM_THRESHOLD_MEDIUM) ||
+        (currentZoom < ZOOM_THRESHOLD_FULL && zoom >= ZOOM_THRESHOLD_FULL) ||
+        (currentZoom >= ZOOM_THRESHOLD_FULL && zoom < ZOOM_THRESHOLD_FULL)
+      ) {
         updateMarkers();
-      };
+      }
+      setCurrentZoom(zoom);
+    };
 
-      mapRef.current.on("movestart", handleMoveStart);
-      mapRef.current.on("moveend", handleMoveEnd);
+    mapRef.current.on("move", handleMove);
+    mapRef.current.on("zoom", handleZoom);
+    mapRef.current.on("zoomend", updateMarkers);
 
-      return () => {
-        if (mapRef.current) {
-          mapRef.current.off("movestart", handleMoveStart);
-          mapRef.current.off("moveend", handleMoveEnd);
-        }
-      };
-    }
-  }, [mapRef, updateMarkers]);
+    return () => {
+      if (mapRef.current) {
+        mapRef.current.off("move", handleMove);
+        mapRef.current.off("zoom", handleZoom);
+        mapRef.current.off("zoomend", updateMarkers);
+      }
+    };
+  }, [mapRef, currentZoom, updateMarkers]);
 
+  // Handle active pin and card creation
   useEffect(() => {
     if (activePin && mapRef.current) {
       const center = centers.find((c) => c.id === activePin);
@@ -217,8 +273,9 @@ const MapMarkers: React.FC<MapMarkersProps> = ({
       activeCardMarkerRef.current.remove();
       activeCardMarkerRef.current = null;
     }
-  }, [activePin, centers, mapRef]);
+  }, [activePin, centers, mapRef, createCard]);
 
+  // Map load and markers initialization
   useEffect(() => {
     if (mapRef.current && mapRef.current.loaded()) {
       updateMarkers();
@@ -233,33 +290,6 @@ const MapMarkers: React.FC<MapMarkersProps> = ({
       }
     };
   }, [centers, updateMarkers, mapRef]);
-
-  useEffect(() => {
-    markerElementsRef.current.forEach((marker) => {
-      const pinElement = marker.getElement();
-      const centerId = pinElement.getAttribute("data-center-id");
-
-      if (activePin === centerId) {
-        pinElement.classList.add(styles.activeMarker);
-        pinElement.classList.add(styles.hoveredMarker);
-      } else {
-        pinElement.classList.remove(styles.activeMarker);
-        pinElement.classList.remove(styles.hoveredMarker);
-
-        if (hoveredItem === centerId) {
-          pinElement.classList.add(styles.hoveredMarker);
-        }
-      }
-
-      const markerImage = pinElement.querySelector("img");
-      if (markerImage) {
-        markerImage.src =
-          activePin === centerId
-            ? "/images/map/active-pin.svg"
-            : "/images/map/base-pin.svg";
-      }
-    });
-  }, [hoveredItem, activePin]);
 
   return null;
 };

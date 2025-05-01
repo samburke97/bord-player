@@ -46,14 +46,6 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-.customMapMarker {
-  width: 24px;
-  height: 24px;
-  background-color: black;
-  border-radius: 50%;
-  border: 3px solid #e0e2e0;
-}
-
 .fallbackText {
   margin-top: var(--spacing-sm);
   color: var(--grey-500);
