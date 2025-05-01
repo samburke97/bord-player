@@ -32,11 +32,10 @@
 }
 
 .imageContainer:hover .image {
-  transform: scale(1.05); /* Slightly increased zoom */
-  opacity: 0.95; /* Adds a slight fade effect */
+  transform: scale(1.05);
+  opacity: 0.95;
 }
 
-/* Swiper container styles */
 .swiperContainer {
   width: 100%;
   height: 100%;
@@ -58,7 +57,6 @@
   overflow: hidden;
 }
 
-/* Pagination styles */
 .swiperContainer :global(.swiper-pagination) {
   position: absolute !important;
   bottom: 12px !important;
@@ -86,7 +84,6 @@
   opacity: 1 !important;
 }
 
-/* Navigation arrows */
 .carouselArrow {
   position: absolute;
   top: 50%;
@@ -140,44 +137,51 @@
   border-radius: 10px;
 }
 
-.sportsContainer {
+.infoContainer {
   display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.sportPill {
-  padding: 4px 8px;
-  border-radius: 100px;
-  border: 1px solid var(--Outline-Low, #2a2a2a);
-  background: var(--Primary-Conatiner, #0b4316);
-  color: #59d472;
-  font-size: 10px;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .name {
-  font-size: 1.2rem;
-  font-weight: bold;
-  padding: 0.5rem 0;
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.2;
 }
 
-.location {
+/* Styling for the status line (Open Now • Climbing Gym • 4 km) */
+.centerMeta {
+  font-size: 14px;
+  color: #7e807e;
+  margin-top: 4px;
   display: flex;
-  align-items: flex-start;
+  flex-wrap: wrap;
+  align-items: center;
 }
 
-.icon {
-  width: 12px;
-  height: 12px;
-  margin-right: 5px;
+.statusTag {
+  color: #39b252; /* Green color for "Open Now" */
 }
 
-.address {
-  text-overflow: ellipsis;
-  font-size: 10px;
-  color: var(--On-Surface-Medium, #7e807e);
-  white-space: nowrap;
-  overflow: hidden;
+.statusClosed {
+  color: #e74c3c; /* Red color for closed status */
+}
+
+/* Tags container for the facility highlights */
+.tagsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.tag {
+  padding: 4px 12px;
+  border-radius: 100px;
+  background-color: #2a2a2a;
+  font-size: 12px;
+  color: #ffffff;
 }
 
 /* New No Results View Styles */
@@ -190,14 +194,6 @@
   padding: 16px;
   text-align: center;
   margin-top: 8px; /* Minimal top spacing */
-}
-
-.noResultsContent {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  max-width: 400px;
-  background: transparent; /* No background */
 }
 
 .iconWrapper {
@@ -281,5 +277,13 @@
   .searchIcon {
     width: 28px;
     height: 28px;
+  }
+
+  .name {
+    font-size: 18px;
+  }
+
+  .centerMeta {
+    font-size: 13px;
   }
 }

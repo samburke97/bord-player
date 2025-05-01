@@ -1,17 +1,13 @@
 import { useEffect, useRef } from "react";
 import mapboxgl from "mapbox-gl";
 import { useAppSelector } from "@/store/hooks";
-import styles from "../SearchMap.module.css";
 
 interface UserLocationMarkerProps {
   mapRef: React.MutableRefObject<mapboxgl.Map | null>;
 }
 
 const UserLocationMarker: React.FC<UserLocationMarkerProps> = ({ mapRef }) => {
-  // Get user location from Redux
   const location = useAppSelector((state) => state.search.userLocation);
-
-  const markerElementRef = useRef<HTMLDivElement | null>(null);
   const markerRef = useRef<mapboxgl.Marker | null>(null);
 
   useEffect(() => {
@@ -23,46 +19,29 @@ const UserLocationMarker: React.FC<UserLocationMarkerProps> = ({ mapRef }) => {
       return;
     }
 
-    if (markerRef.current) {
+    // Create or update the static green dot marker
+    if (!markerRef.current) {
+      const el = document.createElement("div");
+      el.style.width = "18px";
+      el.style.height = "18px";
+      el.style.borderRadius = "50%";
+      el.style.backgroundColor = "#39b252";
+      el.style.border = "2px solid white";
+      el.style.boxShadow = "0 0 0 1px rgba(0,0,0,0.2)";
+      el.style.cursor = "default";
+      el.style.zIndex = "100";
+
+      markerRef.current = new mapboxgl.Marker({ element: el, anchor: "center" })
+        .setLngLat([location.longitude, location.latitude])
+        .addTo(mapRef.current);
+    } else {
       markerRef.current.setLngLat([location.longitude, location.latitude]);
-      return;
     }
-
-    const el = document.createElement("div");
-    el.className = styles.mapMarker;
-    markerElementRef.current = el;
-
-    const marker = new mapboxgl.Marker({
-      element: el,
-      anchor: "center",
-    })
-      .setLngLat([location.longitude, location.latitude])
-      .addTo(mapRef.current);
-
-    markerRef.current = marker;
 
     return () => {
       if (markerRef.current) {
         markerRef.current.remove();
         markerRef.current = null;
-      }
-    };
-  }, [mapRef, location]);
-
-  useEffect(() => {
-    if (!mapRef.current || !markerRef.current || !location) return;
-
-    const handleMove = () => {
-      if (markerRef.current && location) {
-        markerRef.current.setLngLat([location.longitude, location.latitude]);
-      }
-    };
-
-    mapRef.current.on("move", handleMove);
-
-    return () => {
-      if (mapRef.current) {
-        mapRef.current.off("move", handleMove);
       }
     };
   }, [mapRef, location]);

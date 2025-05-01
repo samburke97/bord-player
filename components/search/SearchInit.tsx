@@ -1,36 +1,39 @@
-// components/SearchInitializer.tsx
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import { setUserLocation } from "@/store/redux/features/searchSlice";
-
-const DEFAULT_LOCATION = { latitude: 51.5074, longitude: -0.1278 };
+import { AnimatePresence } from "framer-motion";
+import { useGeolocation } from "@/hooks/useGeolocation";
+import LocationPrompt from "@/components/ui/LocationPrompt";
 
 export default function SearchInitializer() {
   const dispatch = useDispatch();
+  const {
+    latitude,
+    longitude,
+    error,
+    isLoading,
+    isLocationPromptVisible,
+    retryBrowserLocation,
+  } = useGeolocation();
+
+  // Location is handled by the useGeolocation hook now
+  // No default to London needed - the hook will try browser location,
+  // then IP location, and show a prompt if both fail
 
   useEffect(() => {
-    if (!navigator.geolocation) {
-      dispatch(setUserLocation(DEFAULT_LOCATION));
-      return;
+    if (error) {
+      console.log("Location error:", error);
     }
+  }, [error]);
 
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        dispatch(
-          setUserLocation({
-            latitude: pos.coords.latitude,
-            longitude: pos.coords.longitude,
-          })
-        );
-      },
-      () => {
-        dispatch(setUserLocation(DEFAULT_LOCATION));
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
-    );
-  }, [dispatch]);
-
-  return null;
+  return (
+    <>
+      <AnimatePresence>
+        {isLocationPromptVisible && (
+          <LocationPrompt onEnableLocation={retryBrowserLocation} />
+        )}
+      </AnimatePresence>
+    </>
+  );
 }

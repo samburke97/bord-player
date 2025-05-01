@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { Map1, TextalignJustifyleft } from "iconsax-react";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
@@ -14,6 +14,7 @@ import {
 } from "@/store/redux/features/searchSlice";
 import { executeSearch } from "@/store/redux/features/searchThunk";
 import type { MapView } from "@/types";
+import { debounce } from "lodash";
 
 // UI Components
 import SearchBar from "@/components/ui/SearchBar";
@@ -30,6 +31,7 @@ export default function SearchClient() {
   const searchParams = useSearchParams();
   const { isLoading: isLoadingLocation } = useGeolocation();
   const isLargeScreen = useMediaQuery("(min-width: 1024px)");
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Redux State
   const {
@@ -46,12 +48,18 @@ export default function SearchClient() {
   const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false);
   const [isInitialLoadComplete, setIsInitialLoadComplete] = useState(false);
 
+  // Store last search time to avoid excessive searches
+  const lastSearchTimeRef = useRef(0);
+  // Track if component is mounted
+  const isMountedRef = useRef(false);
+
   // Check if map parameters exist in URL
   const hasMapParams = useMemo(
     () => searchParams.has("center") && searchParams.has("distance"),
     [searchParams]
   );
 
+  // Initialize search term from URL
   useEffect(() => {
     const queryParam = searchParams.get("q");
 
@@ -61,30 +69,48 @@ export default function SearchClient() {
       dispatch(setSearchTerm(queryParam));
     }
   }, [searchParams, dispatch, searchTerm]);
+
+  // Create debounced search function - only execute after 500ms of no changes
+  const debouncedSearch = useMemo(
+    () =>
+      debounce(() => {
+        if (!mapView || !isMountedRef.current) return;
+
+        const now = Date.now();
+        // Limit search frequency to at most once every 1 second
+        if (now - lastSearchTimeRef.current < 1000) {
+          return;
+        }
+
+        console.log(`🔄 Executing search (debounced)`);
+        lastSearchTimeRef.current = now;
+        dispatch(executeSearch());
+      }, 500),
+    [dispatch, mapView]
+  );
 
   // Execute search when searchTerm changes
   useEffect(() => {
-    // Skip the initial render
+    // Skip the initial render and ensure we have mapView
     if (isInitialLoadComplete && mapView) {
       console.log(
-        `🔄 Search term changed to "${searchTerm}" - executing new search`
+        `🔄 Search term changed to "${searchTerm}" - triggering debounced search`
       );
-      dispatch(executeSearch());
+      debouncedSearch();
     }
-  }, [searchTerm, isInitialLoadComplete, mapView, dispatch]);
+  }, [searchTerm, isInitialLoadComplete, mapView, debouncedSearch]);
 
-  // Get search term from URL
+  // Clean up debounced function on unmount
   useEffect(() => {
-    const queryParam = searchParams.get("q");
+    isMountedRef.current = true;
 
-    // Only update if it's different to avoid loops
-    if (queryParam !== null && queryParam !== searchTerm) {
-      console.log(`📝 Setting search term from URL: "${queryParam}"`);
-      dispatch(setSearchTerm(queryParam));
-    }
-  }, [searchParams, dispatch, searchTerm]);
+    return () => {
+      isMountedRef.current = false;
+      debouncedSearch.cancel();
+    };
+  }, [debouncedSearch]);
 
-  // Perform initial search
+  // Perform initial search once
   const performInitialSearch = useCallback(async () => {
     // Prevent multiple initial searches
     if (isInitialLoadComplete) return;
@@ -135,6 +161,9 @@ export default function SearchClient() {
         // Execute initial search
         await dispatch(executeSearch({ forceUpdate: true }));
 
+        // Record time of search
+        lastSearchTimeRef.current = Date.now();
+
         // Mark initial load as complete
         setIsInitialLoadComplete(true);
       } catch (error) {
@@ -163,6 +192,39 @@ export default function SearchClient() {
   const handleSearchDropdownChange = useCallback((isOpen: boolean) => {
     setIsSearchDropdownOpen(isOpen);
   }, []);
+
+  // Create debounced map bounds change handler
+  const handleBoundsChange = useMemo(
+    () =>
+      debounce((bounds: any) => {
+        dispatch(resetActiveStates());
+
+        dispatch(
+          setMapView({
+            center: {
+              latitude: bounds.center.latitude,
+              longitude: bounds.center.longitude,
+            },
+            distance: bounds.distance,
+          })
+        );
+
+        // Execute search with small delay
+        setTimeout(() => {
+          if (isMountedRef.current) {
+            const now = Date.now();
+            // Don't search if we just did
+            if (now - lastSearchTimeRef.current < 800) {
+              return;
+            }
+
+            lastSearchTimeRef.current = now;
+            dispatch(executeSearch());
+          }
+        }, 100);
+      }, 800),
+    [dispatch]
+  );
 
   // Trigger initial search on component mount
   useEffect(() => {
@@ -218,14 +280,19 @@ export default function SearchClient() {
     return null;
   }, [userLocation]);
 
-  // Log whenever centers change
+  // Ensure map is properly sized after initial render
   useEffect(() => {
-    console.log(`📋 Centers array updated. Count: ${centers.length}`);
-  }, [centers]);
+    if (isInitialLoadComplete) {
+      requestAnimationFrame(() => {
+        window.dispatchEvent(new Event("resize"));
+      });
+    }
+  }, [isInitialLoadComplete]);
 
   // Render
   return (
     <div
+      ref={containerRef}
       className={`
         ${styles.container} 
         ${isMapView && !isLargeScreen ? styles.mapViewActive : ""}
@@ -250,6 +317,7 @@ export default function SearchClient() {
             className={styles.mapToggleButton}
             onClick={handleToggleView}
             type="button"
+            aria-label={isMapView ? "Show list view" : "Show map view"}
           >
             <div className={styles.icon}>
               {isMapView ? (
@@ -300,21 +368,7 @@ export default function SearchClient() {
                 mapView.center.longitude,
               ]}
               initialDistance={mapView.distance}
-              onBoundsChange={(bounds) => {
-                dispatch(resetActiveStates());
-
-                dispatch(
-                  setMapView({
-                    center: {
-                      latitude: bounds.center.latitude,
-                      longitude: bounds.center.longitude,
-                    },
-                    distance: bounds.distance,
-                  })
-                );
-
-                dispatch(executeSearch());
-              }}
+              onBoundsChange={handleBoundsChange}
             />
           )}
         </div>

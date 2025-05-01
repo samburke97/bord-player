@@ -67,28 +67,27 @@
   display: flex;
   flex: 1;
   position: relative;
-  height: calc(100vh - 86px);
+  min-height: calc(100vh - 86px);
 }
 
 .leftPanel {
   width: 400px;
   flex-shrink: 0;
+  overflow-y: auto;
+  max-height: calc(100vh - 86px);
 }
 
 .leftPanelInner {
   height: 100%;
-  overflow-y: auto;
 }
 
 .rightPanel {
-  position: fixed;
-  left: 400px;
-  right: 0;
-  top: 80px;
-  height: calc(100vh - 85px);
-  bottom: 0;
-  overflow: hidden;
+  /* Change from fixed to relative positioning */
+  position: relative;
+  flex: 1;
+  min-height: calc(100vh - 86px);
   border-left: 1px solid var(--Outline-Low, #1f1f1f);
+  overflow: hidden;
 }
 
 .rightPanel > div {
@@ -133,6 +132,7 @@
   }
 
   .rightPanel {
+    /* For mobile view, keep it fixed */
     position: fixed;
     left: 0;
     top: 0;
@@ -173,6 +173,19 @@
     display: none;
   }
 
+  /* Add sticky behavior for desktop view */
+  .leftPanel,
+  .rightPanel {
+    position: sticky;
+    top: 0;
+    height: calc(100vh - 86px);
+    overflow-y: auto;
+  }
+
+  .rightPanel {
+    overflow: hidden; /* Keep map controls from being scrollable */
+  }
+
   .leftPanelInner {
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -180,5 +193,12 @@
 
   .leftPanelInner::-webkit-scrollbar {
     display: none;
+  }
+
+  /* Make the container properly flex for desktop */
+  .contentContainer {
+    height: calc(100vh - 86px);
+    display: flex;
+    flex-direction: row;
   }
 }

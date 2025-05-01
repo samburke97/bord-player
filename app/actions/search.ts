@@ -35,7 +35,6 @@ export async function searchCenters({
   });
 
   try {
-    // Build the where conditions based on search term and bounds
     const whereConditions: any = {
       isActive: true,
       isDeleted: false,

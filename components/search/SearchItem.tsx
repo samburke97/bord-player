@@ -143,22 +143,27 @@ function SearchItem({ centers, activePin }: SearchItemProps) {
         )}
       </div>
       <div className={styles.infoContainer}>
-        <div className={styles.sportsContainer}>
-          {center.sports && center.sports.length > 0 ? (
-            center.sports.map((sport, index) => (
-              <span key={index} className={styles.sportPill}>
-                {sport.name}
+        <h2 className={styles.name}>{center.name}</h2>
+        <div className={styles.centerMeta}>
+          <span
+            className={
+              center.isOpenNow ? styles.statusTag : styles.statusClosed
+            }
+          >
+            {center.type}
+          </span>
+          {center.type && <span> • {center.type}</span>}
+          {center.distance && <span> • {center.distance} km</span>}
+        </div>
+        {center.facilities && center.facilities.length > 0 && (
+          <div className={styles.tagsContainer}>
+            {center.facilities.map((item, index) => (
+              <span key={index} className={styles.tag}>
+                {item}
               </span>
-            ))
-          ) : (
-            <span className={styles.sportPill}>No sports available</span>
-          )}
-        </div>
-        <div className={styles.name}>{center.name}</div>
-        <div className={styles.location}>
-          <MapPinIcon className={styles.icon} />
-          <span className={styles.address}>{center.address}</span>
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </Link>
   );
