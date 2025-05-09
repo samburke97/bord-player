@@ -65,7 +65,6 @@ export default function SearchClient() {
 
     // Only update if it's different to avoid loops
     if (queryParam !== null && queryParam !== searchTerm) {
-      console.log(`📝 Setting search term from URL: "${queryParam}"`);
       dispatch(setSearchTerm(queryParam));
     }
   }, [searchParams, dispatch, searchTerm]);
@@ -82,7 +81,6 @@ export default function SearchClient() {
           return;
         }
 
-        console.log(`🔄 Executing search (debounced)`);
         lastSearchTimeRef.current = now;
         dispatch(executeSearch());
       }, 500),
@@ -93,9 +91,6 @@ export default function SearchClient() {
   useEffect(() => {
     // Skip the initial render and ensure we have mapView
     if (isInitialLoadComplete && mapView) {
-      console.log(
-        `🔄 Search term changed to "${searchTerm}" - triggering debounced search`
-      );
       debouncedSearch();
     }
   }, [searchTerm, isInitialLoadComplete, mapView, debouncedSearch]);
@@ -150,13 +145,8 @@ export default function SearchClient() {
     // If we have a valid map view, proceed with search
     if (initialMapView) {
       try {
-        console.log("🚀 Initializing search with map view:", initialMapView);
-
         // Dispatch map view to store
         dispatch(setMapView(initialMapView));
-
-        // Log current search term
-        console.log("🔍 Current search term:", searchTerm || "[NONE]");
 
         // Execute initial search
         await dispatch(executeSearch({ forceUpdate: true }));
@@ -167,7 +157,6 @@ export default function SearchClient() {
         // Mark initial load as complete
         setIsInitialLoadComplete(true);
       } catch (error) {
-        console.error("❌ Initial search failed:", error);
         setIsInitialLoadComplete(true);
       }
     }

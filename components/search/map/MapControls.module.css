@@ -1,0 +1,35 @@
+.customControls {
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  gap: 8px;
+  z-index: 2;
+}
+
+.controlButton {
+  border-radius: 8px;
+  border: 1px solid var(--Outline-Medium, #d9dbdb);
+  background: var(--Conatiner-Lightest, #fff);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--for-darkest);
+}
+
+.controlButton:hover {
+  background: var(--grey-300);
+}
+
+.controlButtonDisabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.controlButtonDisabled:hover {
+  background: var(--grey-300);
+}

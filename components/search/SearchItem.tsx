@@ -13,11 +13,11 @@ import type { RootState } from "@/store/store";
 import { setHoveredCenter } from "@/store/redux/features/searchSlice";
 import styles from "./SearchItem.module.css";
 import {
-  MapPinIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
+import FavoriteButton from "../ui/FavoriteButton";
 
 interface SearchItemProps {
   centers: Center[];
@@ -41,132 +41,141 @@ function SearchItem({ centers, activePin }: SearchItemProps) {
     </div>
   );
 
-  const renderCenterCard = (center: Center) => (
-    <Link
-      key={center.id}
-      href={`/centers/${center.id}`}
-      className={`${styles.card} ${
-        activePin === center.id || hoveredPin === center.id
-          ? styles.activeCard
-          : ""
-      }`}
-      onMouseEnter={() => dispatch(setHoveredCenter(center.id))}
-      onMouseLeave={() => dispatch(setHoveredCenter(null))}
-    >
-      <div
-        className={styles.imageContainer}
-        onMouseEnter={() => setHoveredImageId(center.id)}
-        onMouseLeave={() => setHoveredImageId(null)}
+  const renderCenterCard = (center: Center) => {
+    return (
+      <Link
+        key={center.id}
+        href={`/centers/${center.id}`}
+        className={`${styles.card} ${
+          activePin === center.id || hoveredPin === center.id
+            ? styles.activeCard
+            : ""
+        }`}
+        onMouseEnter={() => dispatch(setHoveredCenter(center.id))}
+        onMouseLeave={() => dispatch(setHoveredCenter(null))}
       >
-        {center.images && center.images.length > 0 ? (
-          <div className={styles.swiperContainer}>
-            <Swiper
-              modules={[Navigation, Pagination]}
-              spaceBetween={0}
-              slidesPerView={1}
-              loop={false}
-              onSlideChange={(swiper) => {
-                const prevButton = document.querySelector(
-                  `.prev-arrow-${center.id}`
-                ) as HTMLElement | null;
-                const nextButton = document.querySelector(
-                  `.next-arrow-${center.id}`
-                ) as HTMLElement | null;
+        <div
+          className={styles.imageContainer}
+          onMouseEnter={() => setHoveredImageId(center.id)}
+          onMouseLeave={() => setHoveredImageId(null)}
+        >
+          {center.images && center.images.length > 0 ? (
+            <div className={styles.swiperContainer}>
+              <div className={styles.favoriteButtonWrapper}>
+                <FavoriteButton centerId={center.id} />
+              </div>
+              <Swiper
+                modules={[Navigation, Pagination]}
+                spaceBetween={0}
+                slidesPerView={1}
+                loop={false}
+                onSlideChange={(swiper) => {
+                  const prevButton = document.querySelector(
+                    `.prev-arrow-${center.id}`
+                  ) as HTMLElement | null;
+                  const nextButton = document.querySelector(
+                    `.next-arrow-${center.id}`
+                  ) as HTMLElement | null;
 
-                if (prevButton) {
-                  prevButton.style.display = swiper.isBeginning
-                    ? "none"
-                    : "flex";
-                }
-                if (nextButton) {
-                  nextButton.style.display = swiper.isEnd ? "none" : "flex";
-                }
-              }}
-              onInit={(swiper) => {
-                const prevButton = document.querySelector(
-                  `.prev-arrow-${center.id}`
-                ) as HTMLElement | null;
-                if (prevButton) {
-                  prevButton.style.display = "none";
-                }
-              }}
-              pagination={
-                center.images.length > 1
-                  ? {
-                      clickable: true,
-                      enabled: true,
-                      type: "bullets",
-                      renderBullet: (_, className) => {
-                        return `<span class="${className}"></span>`;
-                      },
-                    }
-                  : false
-              }
-              navigation={
-                center.images.length > 1
-                  ? {
-                      prevEl: `.prev-arrow-${center.id}`,
-                      nextEl: `.next-arrow-${center.id}`,
-                      enabled: hoveredImageId === center.id,
-                    }
-                  : false
+                  if (prevButton) {
+                    prevButton.style.display = swiper.isBeginning
+                      ? "none"
+                      : "flex";
+                  }
+                  if (nextButton) {
+                    nextButton.style.display = swiper.isEnd ? "none" : "flex";
+                  }
+                }}
+                onInit={(swiper) => {
+                  const prevButton = document.querySelector(
+                    `.prev-arrow-${center.id}`
+                  ) as HTMLElement | null;
+                  if (prevButton) {
+                    prevButton.style.display = "none";
+                  }
+                }}
+                pagination={{
+                  clickable: true,
+                  enabled: true,
+                  type: "bullets",
+                  renderBullet: (_, className) => {
+                    return `<span class="${className}"></span>`;
+                  },
+                }}
+                navigation={{
+                  prevEl: `.prev-arrow-${center.id}`,
+                  nextEl: `.next-arrow-${center.id}`,
+                  enabled: hoveredImageId === center.id,
+                }}
+              >
+                {center.images.map((image, index) => (
+                  <SwiperSlide key={index} className={styles.slideContainer}>
+                    <img
+                      src={image}
+                      alt={`${center.name} image ${index + 1}`}
+                      className={styles.image}
+                      loading="lazy"
+                    />
+                  </SwiperSlide>
+                ))}
+                {center.images.length > 1 && (
+                  <>
+                    <button
+                      className={`prev-arrow-${center.id} ${styles.carouselArrow} ${styles.carouselArrowPrev}`}
+                    >
+                      <ChevronLeftIcon className={styles.arrowIcon} />
+                    </button>
+                    <button
+                      className={`next-arrow-${center.id} ${styles.carouselArrow} ${styles.carouselArrowNext}`}
+                    >
+                      <ChevronRightIcon className={styles.arrowIcon} />
+                    </button>
+                  </>
+                )}
+              </Swiper>
+            </div>
+          ) : (
+            <div className={styles.imagePlaceholder}>Image not available</div>
+          )}
+        </div>
+
+        <div className={styles.cardContent}>
+          <h2 className={styles.centerTitle}>{center.name}</h2>
+
+          <div className={styles.statusRow}>
+            <span
+              className={
+                center.isOpenNow ? styles.openStatus : styles.closedStatus
               }
             >
-              {center.images.map((image, index) => (
-                <SwiperSlide key={index} className={styles.slideContainer}>
-                  <img
-                    src={image}
-                    alt={`${center.name} image ${index + 1}`}
-                    className={styles.image}
-                    loading="lazy"
-                  />
-                </SwiperSlide>
+              {center.isOpenNow ? "Open Now" : "Closed"}
+            </span>
+            {center.type && (
+              <>
+                <span className={styles.separator}>•</span>
+                <span className={styles.type}>{center.type}</span>
+              </>
+            )}
+            {center.distance !== null && (
+              <>
+                <span className={styles.separator}>•</span>
+                <span className={styles.distance}>{center.distance} km</span>
+              </>
+            )}
+          </div>
+
+          <div className={styles.tagsRow}>
+            {center.facilities &&
+              center.facilities.slice(0, 3).map((facility) => (
+                <span key={facility.id} className={styles.facilityTag}>
+                  {facility.name}
+                </span>
               ))}
-              {center.images.length > 1 && (
-                <>
-                  <button
-                    className={`prev-arrow-${center.id} ${styles.carouselArrow} ${styles.carouselArrowPrev}`}
-                  >
-                    <ChevronLeftIcon className={styles.arrowIcon} />
-                  </button>
-                  <button
-                    className={`next-arrow-${center.id} ${styles.carouselArrow} ${styles.carouselArrowNext}`}
-                  >
-                    <ChevronRightIcon className={styles.arrowIcon} />
-                  </button>
-                </>
-              )}
-            </Swiper>
           </div>
-        ) : (
-          <div className={styles.imagePlaceholder}>Image not available</div>
-        )}
-      </div>
-      <div className={styles.infoContainer}>
-        <h2 className={styles.name}>{center.name}</h2>
-        <div className={styles.centerMeta}>
-          <span
-            className={
-              center.isOpenNow ? styles.statusTag : styles.statusClosed
-            }
-          >
-            {center.type}
-          </span>
-          {center.type && <span> • {center.type}</span>}
-          {center.distance && <span> • {center.distance} km</span>}
         </div>
-        {center.facilities && center.facilities.length > 0 && (
-          <div className={styles.tagsContainer}>
-            {center.facilities.map((item, index) => (
-              <span key={index} className={styles.tag}>
-                {item}
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
-    </Link>
-  );
+      </Link>
+    );
+  };
 
   return (
     <div className={styles.listContainer}>

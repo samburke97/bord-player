@@ -83,24 +83,75 @@ const MapMarkers: React.FC<MapMarkersProps> = ({ centers, mapRef }) => {
     });
   }, [centers, mapRef, activePin, hoveredItem, createMarkerElement, dispatch]);
 
-  // Create card for active center
   const createCard = useCallback(
     (center: Center) => {
       if (!mapRef.current) return;
 
-      // Remove existing card marker
+      // Remove any existing card marker
       if (activeCardMarkerRef.current) {
+        const el = activeCardMarkerRef.current.getElement();
+        if (el && el.parentNode === document.body) {
+          document.body.removeChild(el);
+        }
         activeCardMarkerRef.current.remove();
         activeCardMarkerRef.current = null;
       }
 
-      // Create a container for the React component
       const container = document.createElement("div");
-      container.style.position = "absolute";
-      container.style.zIndex = "1000";
-      container.style.pointerEvents = "none";
+      const isMobile = window.innerWidth < 768;
 
-      // Create a React root and render the MapCard
+      if (isMobile) {
+        // MOBILE: render card fixed at bottom of screen
+        container.style.position = "fixed";
+        container.style.bottom = "16px";
+        container.style.left = "50%";
+        container.style.transform = "translateX(-50%)";
+        container.style.zIndex = "9999";
+        container.style.width = "90vw";
+        container.style.maxWidth = "390px";
+        container.style.pointerEvents = "auto";
+
+        const root = createRoot(container);
+        root.render(
+          <MapCard
+            center={center}
+            onCardClick={() => {
+              window.location.href = `/centers/${center.id}`;
+            }}
+          />
+        );
+
+        document.body.appendChild(container);
+
+        // Store a dummy marker just to track and clean up later
+        const dummyMarker = {
+          getElement: () => container,
+          remove: () => {
+            if (container.parentNode === document.body) {
+              document.body.removeChild(container);
+            }
+          },
+        } as unknown as mapboxgl.Marker;
+
+        activeCardMarkerRef.current = dummyMarker;
+        return;
+      }
+
+      // DESKTOP: show card above or below pin
+      const CARD_HEIGHT = 244;
+      const PIN_HEIGHT = 18;
+      const map = mapRef.current;
+      const screenPoint = map.project([
+        Number(center.longitude),
+        Number(center.latitude),
+      ]);
+      const spaceBelow = window.innerHeight - screenPoint.y;
+      const shouldShowBelow = spaceBelow >= CARD_HEIGHT + PIN_HEIGHT + 20;
+
+      container.style.width = "390px";
+      container.style.pointerEvents = "none";
+      container.style.zIndex = "9999";
+
       const root = createRoot(container);
       root.render(
         <div
@@ -123,14 +174,13 @@ const MapMarkers: React.FC<MapMarkersProps> = ({ centers, mapRef }) => {
         </div>
       );
 
-      // Create a custom marker to position the card
       const cardMarker = new mapboxgl.Marker({
         element: container,
-        anchor: "center",
-        offset: [0, 0],
+        anchor: shouldShowBelow ? "top" : "bottom",
+        offset: [0, shouldShowBelow ? PIN_HEIGHT + 10 : -(PIN_HEIGHT + 10)],
       })
         .setLngLat([Number(center.longitude), Number(center.latitude)])
-        .addTo(mapRef.current);
+        .addTo(map);
 
       activeCardMarkerRef.current = cardMarker;
     },

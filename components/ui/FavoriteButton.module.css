@@ -1,0 +1,19 @@
+.favoriteButton {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+  background-color: transparent;
+  border: none;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.favoriteButton:hover {
+  transform: scale(1.1);
+}
