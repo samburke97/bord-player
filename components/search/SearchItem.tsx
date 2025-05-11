@@ -3,19 +3,14 @@
 
 import Link from "next/link";
 import { useState, useCallback, memo } from "react";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/store/store";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import type { Center } from "@/types";
-<<<<<<< HEAD
-import { setHoveredCenter } from "@/store/redux/features/searchSlice";
-=======
-import type { RootState } from "@/store/store";
-import { setHoveredCenter } from "@/store/features/searchSlice";
->>>>>>> test-map
+import { setHoveredItem } from "@/store/features/searchSlice";
 import styles from "./SearchItem.module.css";
 import {
   MapPinIcon,
@@ -199,13 +194,13 @@ function SearchItem({
 
   const handleMouseEnter = useCallback(
     (centerId: string) => {
-      dispatch(setHoveredCenter(centerId));
+      dispatch(setHoveredItem(centerId));
     },
     [dispatch]
   );
 
   const handleMouseLeave = useCallback(() => {
-    dispatch(setHoveredCenter(null));
+    dispatch(setHoveredItem(null));
   }, [dispatch]);
 
   if (centers.length === 0) {

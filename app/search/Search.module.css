@@ -9,28 +9,26 @@
 
 .content {
   display: flex;
-  flex: 1;
-  width: 100%;
-  overflow: hidden;
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
-.leftPanel {
-  width: 40%;
-  height: 100%;
+.leftPanel,
+.rightPanel {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: visible;
   display: flex;
   flex-direction: column;
-  border-right: 1px solid #eee;
-  background-color: white;
-  z-index: 5;
-  overflow: hidden;
 }
 
-.rightPanel {
-  flex: 1;
-  height: 100%;
-  position: relative;
+.resultsList {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: visible;
 }
-
 /* Search bar styles */
 .desktopSearchContainer {
   padding: 16px;
@@ -101,4 +99,10 @@
   .leftPanel {
     width: 350px;
   }
+}
+
+.resultsList {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
 }

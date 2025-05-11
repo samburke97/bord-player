@@ -1,4 +1,4 @@
-// store/features/searchSlice.ts
+// store/features/searchSlice.ts (fixed error handling)
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import type { Center } from "@/types/entities";
 import type { MapView } from "@/types/map";
@@ -52,20 +52,25 @@ export const searchSlice = createSlice({
   reducers: {
     // Data actions
     setCenters: (state, action: PayloadAction<Center[]>) => {
+      if (!state) return initialState; // Safety check
       state.centers = action.payload;
     },
 
     // UI State actions
     setActivePin: (state, action: PayloadAction<string | null>) => {
+      if (!state) return initialState; // Safety check
       state.activePin = action.payload;
     },
     setHoveredItem: (state, action: PayloadAction<string | null>) => {
+      if (!state) return initialState; // Safety check
       state.hoveredItem = action.payload;
     },
     setLoading: (state, action: PayloadAction<boolean>) => {
+      if (!state) return initialState; // Safety check
       state.isLoading = action.payload;
     },
     setError: (state, action: PayloadAction<string | null>) => {
+      if (!state) return initialState; // Safety check
       state.error = action.payload;
     },
 
@@ -74,43 +79,32 @@ export const searchSlice = createSlice({
       state,
       action: PayloadAction<{ latitude: number; longitude: number } | null>
     ) => {
+      if (!state) return initialState; // Safety check
       state.userLocation = action.payload;
     },
 
     // Map actions
     setMapView: (state, action: PayloadAction<MapView>) => {
+      if (!state) return initialState; // Safety check
       state.mapView = action.payload;
     },
 
     // Search actions
     setSearchTerm: (state, action: PayloadAction<string>) => {
+      if (!state) return initialState; // Safety check
       state.searchTerm = action.payload;
-
-      // Add to recent searches if not empty and not already at the top
-      if (action.payload && state.recentSearches[0] !== action.payload) {
-        // Remove duplicate if exists
-        state.recentSearches = state.recentSearches.filter(
-          (term) => term !== action.payload
-        );
-
-        // Add to front of array
-        state.recentSearches.unshift(action.payload);
-
-        // Limit to 5 recent searches
-        if (state.recentSearches.length > 5) {
-          state.recentSearches.pop();
-        }
-      }
     },
 
     // Reset actions
     resetActiveStates: (state) => {
+      if (!state) return initialState; // Safety check
       state.activePin = null;
       state.hoveredItem = null;
     },
 
     // Complete reset
     resetSearch: (state) => {
+      if (!state) return initialState; // Safety check
       state.centers = [];
       state.activePin = null;
       state.hoveredItem = null;

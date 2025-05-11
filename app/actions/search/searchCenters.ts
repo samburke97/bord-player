@@ -1,4 +1,4 @@
-// app/actions/searchCenters.ts
+// app/actions/search/searchCenters.ts
 "use server";
 
 import { prisma } from "@/lib/prisma";
@@ -11,30 +11,30 @@ interface SearchParams {
   sportIds?: string[];
   facilityIds?: string[];
 }
-
 export async function searchCenters({
   bounds,
   searchTerm = "",
   sportIds = [],
   facilityIds = [],
 }: SearchParams) {
-  noStore(); // Disable caching for this dynamic data
+  noStore();
+
+  console.log(`🔍 Server search with term: "${searchTerm}"`);
+
+  // Validate bounds
+  if (
+    !bounds ||
+    !bounds.north ||
+    !bounds.south ||
+    !bounds.east ||
+    !bounds.west
+  ) {
+    throw new Error("Invalid map bounds");
+  }
 
   try {
-    // Validate bounds
-    if (
-      !bounds ||
-      !bounds.north ||
-      !bounds.south ||
-      !bounds.east ||
-      !bounds.west
-    ) {
-      throw new Error("Invalid map bounds");
-    }
-
-    // Build prisma query
-    const whereClause: any = {
-      // Location filters using map bounds
+    // Create base conditions
+    let whereClause: any = {
       AND: [
         {
           latitude: {
@@ -48,65 +48,87 @@ export async function searchCenters({
             gte: bounds.west,
           },
         },
+        { isActive: true },
+        { isDeleted: false },
       ],
-      // Only show active and non-deleted centers
-      isActive: true,
-      isDeleted: false,
     };
 
-    // Add search term filter if provided
-    if (searchTerm) {
-      whereClause.OR = [
-        {
-          name: {
-            contains: searchTerm,
-            mode: "insensitive",
+    // If search term is provided, add it as a separate AND condition
+    if (searchTerm && searchTerm.trim()) {
+      const trimmedTerm = searchTerm.trim();
+      whereClause.AND.push({
+        OR: [
+          { name: { contains: trimmedTerm, mode: "insensitive" } },
+          { description: { contains: trimmedTerm, mode: "insensitive" } },
+          {
+            sportCenters: {
+              some: {
+                sport: {
+                  name: { contains: trimmedTerm, mode: "insensitive" },
+                },
+              },
+            },
           },
-        },
-        {
-          description: {
-            contains: searchTerm,
-            mode: "insensitive",
+          {
+            facilities: {
+              some: {
+                tag: {
+                  name: { contains: trimmedTerm, mode: "insensitive" },
+                },
+              },
+            },
           },
-        },
-      ];
+        ],
+      });
     }
 
-    // Add sports filter if provided
+    // Add sport filters if provided
     if (sportIds.length > 0) {
-      whereClause.sportCenters = {
-        some: {
-          sportId: {
-            in: sportIds,
+      whereClause.AND.push({
+        sportCenters: {
+          some: {
+            sportId: { in: sportIds },
           },
         },
-      };
+      });
     }
 
-    // Add facilities filter if provided
+    // Add facility filters if provided
     if (facilityIds.length > 0) {
-      whereClause.facilities = {
-        some: {
-          tagId: {
-            in: facilityIds,
+      whereClause.AND.push({
+        facilities: {
+          some: {
+            tagId: { in: facilityIds },
           },
         },
-      };
+      });
     }
 
-    // Execute the query
+    console.log(`Query conditions: ${JSON.stringify(whereClause, null, 2)}`);
+
+    // Run the query
     const centers = await prisma.center.findMany({
       where: whereClause,
       include: {
-        tags: {
+        images: {
           select: {
-            tag: {
+            imageUrl: true,
+          },
+          orderBy: {
+            order: "asc",
+          },
+          take: 5,
+        },
+        sportCenters: {
+          select: {
+            sport: {
               select: {
                 id: true,
                 name: true,
               },
             },
           },
+          take: 10,
         },
         facilities: {
           select: {
@@ -118,39 +140,19 @@ export async function searchCenters({
             },
           },
         },
-        sportCenters: {
-          select: {
-            sport: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
-        images: {
-          select: {
-            imageUrl: true,
-            order: true,
-          },
-          orderBy: {
-            order: "asc",
-          },
-          take: 5, // Limit to 5 images for performance
-        },
       },
     });
 
-    // Transform the result into the expected format
-    const transformedCenters = centers.map((center) => ({
+    console.log(`Found ${centers.length} centers for term "${searchTerm}"`);
+
+    // Transform centers to match the expected format
+    const formattedCenters = centers.map((center) => ({
       id: center.id,
       name: center.name,
-      address: center.address,
-      latitude: center.latitude ? Number(center.latitude) : null,
-      longitude: center.longitude ? Number(center.longitude) : null,
-      logoUrl: center.logoUrl,
-      description: center.description,
-      // Format relations into the expected structure
+      address: center.address || "",
+      latitude: parseFloat(center.latitude?.toString() || "0"),
+      longitude: parseFloat(center.longitude?.toString() || "0"),
+      logoUrl: center.logoUrl || "/images/default-center.svg",
       images: center.images.map((img) => img.imageUrl),
       sports: center.sportCenters.map((sc) => ({
         id: sc.sport.id,
@@ -160,21 +162,9 @@ export async function searchCenters({
         id: f.tag.id,
         name: f.tag.name,
       })),
-      tags: center.tags.map((t) => ({
-        id: t.tag.id,
-        name: t.tag.name,
-      })),
-
-      // Default values for other properties
-      isActive: center.isActive,
-      isOpenNow: true, // This would need a calculation with opening hours
-      phone: center.phone,
-      email: center.email,
-      type: null,
-      distance: null, // This would be calculated based on user location
     }));
 
-    return transformedCenters;
+    return formattedCenters;
   } catch (error) {
     console.error("Search centers error:", error);
     throw error;
