@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { debounce } from "lodash";
 import { fetchSearchResults } from "@/app/actions/search/fetchSearchResults";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { setSearchTerm } from "@/store/redux/features/searchSlice";
+import { useAppDispatch, useAppSelector } from "@/store/store";
+import { setSearchTerm } from "@/store/features/searchSlice";
 import styles from "./SearchBar.module.css";
 import { createSearchUrl } from "@/lib/utils/urlUtils";
 

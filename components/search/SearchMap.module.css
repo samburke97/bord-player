@@ -1,133 +1,23 @@
-.map {
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
+/* components/search/SearchMap.module.css */
+.mapContainer {
   width: 100%;
   height: 100%;
-  cursor: grab;
-}
-
-.mapMarker {
-  width: 20px;
-  height: 20px;
-  background-color: var(--primary-500, #39b252);
-  border-radius: 50%;
-  border: 2px solid var(--grey-100, #ffffff);
-  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.15);
-}
-
-.userLocationMarker {
-  width: 16px;
-  height: 16px;
-  background-color: var(--primary-500, #39b252);
-  border-radius: 50%;
-  border: 2px solid white;
-  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.2);
   position: relative;
 }
 
-.userLocationMarker::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 35px;
-  height: 35px;
-  background-color: rgba(57, 178, 82, 0.2);
-  border-radius: 50%;
-  z-index: -1;
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0% {
-    transform: translate(-50%, -50%) scale(0.8);
-    opacity: 0.8;
-  }
-  70% {
-    transform: translate(-50%, -50%) scale(2);
-    opacity: 0;
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(0.8);
-    opacity: 0;
-  }
-}
-
-@media screen and (max-width: 1023px) {
-  .map {
-    margin-left: 0;
-    border-left: none;
-    position: absolute;
-    inset: 0;
-    width: 100vw;
-    height: 100vh;
-  }
-}
-
-.mapContainer {
+.map {
+  width: 100%;
+  height: 100%;
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
   cursor: grab;
 }
 
-.mapContainer:active {
+.map:active {
   cursor: grabbing;
 }
 
-.loadingWrapper {
-  position: absolute;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 20;
-}
-
-@media screen and (max-width: 1023px) {
-  .loadingWrapper {
-    bottom: 100px;
-  }
-}
-
-.customControls {
-  display: flex;
-  flex-direction: column;
-  position: fixed;
-  bottom: 16px;
-  right: 16px;
-  gap: 8px;
-  z-index: 2;
-}
-
-.controlButton {
-  border-radius: 8px;
-  border: 1px solid var(--Outline-Medium, #4c4d4c);
-  background: var(--Surface-Surface-Base, #000);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.controlButton:hover {
-  background: var(--grey-800, #1f1f1f);
-}
-
-.controlButtonDisabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.controlButtonDisabled:hover {
-  background: var(--Surface-Surface-Base, #000);
-}
-
+/* Marker styles */
 .marker {
   position: absolute;
   cursor: pointer;
@@ -135,210 +25,139 @@
   pointer-events: auto;
   touch-action: none;
   user-select: none;
-  will-change: transform;
-  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .pinImage {
   width: 40px;
-  height: auto;
+  height: 40px;
   pointer-events: none;
-  user-drag: none;
   -webkit-user-drag: none;
   user-select: none;
   -webkit-user-select: none;
-  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.marker:hover .pinImage,
-.hoveredMarker .pinImage {
-  transform: scale(1.2);
-}
-
-.hoveredMarker {
-  z-index: 3;
-}
-
-.activeMarker {
-  z-index: 20;
-}
-
-.card {
-  width: 350px;
-  height: 220px;
-  border-radius: 12px;
-  border: 1px solid var(--Outline-Medium, #4c4d4c);
-  background-color: var(--Surface-Surface-Low, #161616);
-  cursor: pointer;
-  text-decoration: none;
-  color: inherit;
-  display: block;
-}
-
-.imageContainer {
-  width: 100%;
-  position: relative;
-  aspect-ratio: 16 / 10;
-  border-radius: 10px;
-  overflow: hidden;
-  transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
-  will-change: transform;
-  clip-path: inset(0 round 10px); /* Ensures corners stay rounded */
-}
-
-.image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1),
-    opacity 0.4s ease-out;
-  will-change: transform, opacity;
-}
-
-.imageContainer:hover .image {
-  transform: scale(1.05); /* Image zooms inside container */
-  opacity: 0.95;
-}
-
-.card h2 {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  width: 100%;
-}
-
-.description {
-  display: flex;
-  padding: 18px;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
-  align-self: stretch;
-  border-radius: 0 0 12px 12px;
-  background-color: var(--Surface-Surface-Low, #161616);
-}
-
-.pill {
-  margin-right: 5px;
-  padding: 4px 8px;
-  border-radius: 16px;
-  color: var(--Primary-Primary, #39b252);
-  font-size: 10px;
-  font-weight: 400;
-  line-height: 12px;
-}
-
-.address {
-  width: 90%;
-  white-space: nowrap;
-  overflow: hidden;
-  color: var(--On-Surface-Medium, #7e807e);
-  text-overflow: ellipsis;
-  font-size: 10px;
-  font-weight: 400;
-  line-height: 12px;
-}
-
-.carousel__location {
-  display: flex;
-  align-items: center;
-  gap: 1px;
-  align-self: stretch;
-}
-
-.carousel__address {
-  width: 90%;
-  white-space: nowrap;
-  overflow: hidden;
-  color: var(--On-Surface-Medium, #7e807e);
-  text-overflow: ellipsis;
-  font-size: 10px;
-  font-weight: 400;
-  line-height: 12px;
-}
-
-.carousel__icon {
-  width: var(--2, 12px);
-  height: var(--2, 12px);
-  flex-shrink: 0;
-  padding-right: 2px;
-}
-
-.sportContainer {
-  display: flex;
-}
-
-.sportPill {
-  margin-right: 5px;
-  padding: 4px 8px;
-  border-radius: 16px;
-  background-color: var(--Primary-Container, #082e0f);
-  color: var(--Primary-Primary, #39b252);
-  font-size: 10px;
-  font-weight: 400;
-  line-height: 12px;
-}
-
-/* Dot marker styles */
 .dotMarker {
   width: 8px;
   height: 8px;
   background-color: #444;
   border-radius: 50%;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.6);
+  transition: all 0.2s ease;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
   position: absolute;
   z-index: 1;
   pointer-events: auto;
 }
 
-.popupPin {
-  animation: popupAnimation 0.2s ease-out;
+.activeMarker {
+  z-index: 20;
+  background-color: #39b252;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.7);
+  transform: scale(1.2);
 }
 
-@keyframes popupAnimation {
-  0% {
-    transform: scale(0.4);
-    opacity: 0;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-/* Rating badge styles */
-.ratingBadge {
-  position: absolute;
-  top: 6px;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: white;
-  color: #222;
-  border-radius: 4px;
-  padding: 2px 4px;
-  font-size: 10px;
-  font-weight: bold;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+/* User location marker styles */
+.userLocationMarker {
+  width: 16px;
+  height: 16px;
+  background-color: #39b252; /* var(--primary-primary) */
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.15);
+  position: relative;
   z-index: 2;
 }
 
-/* Location prompt styles */
-.locationPromptWrapper {
-  position: fixed;
-  bottom: 24px;
+.userLocationRipple {
+  position: absolute;
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%);
-  background-color: rgba(0, 0, 0, 0.9);
-  border: 1px solid var(--grey-700, #2a2a2a);
-  border-radius: 12px;
-  padding: 16px;
-  z-index: 1000;
-  max-width: 400px;
-  width: calc(100% - 32px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transform: translate(-50%, -50%);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: rgba(57, 178, 82, 0.15); /* Semi-transparent green */
+  z-index: -1;
+  animation: ripple 2s infinite ease-out;
+}
+
+@keyframes ripple {
+  0% {
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* Popup styles */
+.popupContent {
+  width: 100%;
+  max-width: 280px;
   display: flex;
-  align-items: center;
-  gap: 12px;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.popupImageContainer {
+  width: 100%;
+  height: 140px;
+  position: relative;
+}
+
+.popupImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.popupInfo {
+  padding: 12px;
+}
+
+.popupTitle {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+  color: #333;
+}
+
+.popupAddress {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 6px;
+}
+
+.popupSports {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.popupSport {
+  font-size: 10px;
+  padding: 2px 6px;
+  background-color: #e6f7e9;
+  color: #39b252;
+  border-radius: 4px;
+}
+
+/* Map popup styling */
+.mapPopup {
+  max-width: 280px;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .mapContainer {
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
 }
