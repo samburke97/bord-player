@@ -1,240 +1,228 @@
+// components/search/SearchMap.tsx
 "use client";
 
-import React, {
-  useRef,
-  useCallback,
-  useMemo,
-  useEffect,
-  useState,
-} from "react";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { debounce } from "lodash";
-import type { Center } from "@/types";
-import { useMap } from "@/hooks/useMap";
-import { resetActiveStates } from "@/store/redux/features/searchSlice";
-import { setMapView } from "@/store/redux/features/searchSlice";
-import { executeSearch } from "@/store/redux/features/searchThunk";
-import { convertMapboxBoundsToBounds } from "@/lib/api";
+import React, { useRef, useEffect, useState, useCallback } from "react";
+import mapboxgl from "mapbox-gl";
+import "mapbox-gl/dist/mapbox-gl.css";
+import type { Center } from "@/types/entities";
+import type { MapBounds, MapView } from "@/types/map";
 import MapMarkers from "./map/MapMarkers";
 import UserLocationMarker from "./map/UserLocation";
-import MapControls from "./map/MapControls";
-import Loading from "../ui/Loading";
 import styles from "./SearchMap.module.css";
-import mapboxgl from "mapbox-gl";
+
+// Set Mapbox token
+mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "";
 
 interface SearchMapProps {
   centers: Center[];
   userLocation: { latitude: number; longitude: number } | null;
-  isLoading?: boolean;
+  onBoundsChange?: (mapView: MapView & MapBounds) => void;
   initialCenter?: [number, number];
   initialDistance?: number;
-  onBoundsChange?: (bounds: any) => void;
+  activePin?: string | null;
+  onMarkerClick?: (id: string) => void;
+  onMapClick?: () => void;
 }
 
-export default function SearchMap({
+const SearchMap: React.FC<SearchMapProps> = ({
   centers,
   userLocation,
-  isLoading = false,
+  onBoundsChange,
   initialCenter,
   initialDistance,
-}: SearchMapProps) {
-  const dispatch = useAppDispatch();
-  const mapContainer = useRef<HTMLDivElement>(null);
-  const [mapReady, setMapReady] = useState(false);
-
-  // Get mapView from Redux store
-  const mapView = useAppSelector((state) => state.search.mapView);
-
-  // Check if userLocation is different from the default location
-  const isUserLocationSet =
-    userLocation &&
-    (userLocation.latitude !== 51.5074 || userLocation.longitude !== -0.1278);
+  activePin,
+  onMarkerClick,
+  onMapClick,
+}) => {
+  const mapContainer = useRef<HTMLDivElement | null>(null);
+  const map = useRef<mapboxgl.Map | null>(null);
+  const [isMapReady, setIsMapReady] = useState(false);
+  const isUserInteractionRef = useRef(false);
+  const boundsChangeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Calculate initial zoom from distance
-  const initialZoom = useMemo(
-    () => (initialDistance ? 13 - Math.log2(initialDistance / 5) : undefined),
-    [initialDistance]
-  );
+  const initialZoom = initialDistance
+    ? 13 - Math.log2(initialDistance / 5)
+    : 13;
 
-  // Initialize map with user location - uses our single registry
-  const mapRef = useMap({
-    container: mapContainer.current,
-    userLocation: userLocation || { latitude: 51.5074, longitude: -0.1278 },
-    initialCenter,
-    initialZoom,
-    onLoad: (map) => {
-      map.on("dragend", () => {
-        dispatch(resetActiveStates());
+  // Handle map bounds change - using manual debounce with setTimeout for more control
+  const handleBoundsChange = useCallback(() => {
+    if (!map.current || !onBoundsChange || !isMapReady) return;
+
+    // Clear any existing timeout
+    if (boundsChangeTimeoutRef.current) {
+      clearTimeout(boundsChangeTimeoutRef.current);
+    }
+
+    // Set a timeout to debounce the bounds change event
+    boundsChangeTimeoutRef.current = setTimeout(() => {
+      if (!map.current) return;
+
+      const bounds = map.current.getBounds();
+      const center = map.current.getCenter();
+      const zoom = map.current.getZoom();
+
+      // Calculate distance in km from zoom level
+      const distance = 5 * Math.pow(2, 13 - zoom);
+
+      const mapView: MapView & MapBounds = {
+        center: {
+          latitude: center.lat,
+          longitude: center.lng,
+        },
+        distance,
+        north: bounds.getNorth(),
+        south: bounds.getSouth(),
+        east: bounds.getEast(),
+        west: bounds.getWest(),
+      };
+
+      console.log(
+        "Map bounds changed, updating URL:",
+        isUserInteractionRef.current
+      );
+      onBoundsChange(mapView);
+
+      // Reset the user interaction flag
+      isUserInteractionRef.current = false;
+    }, 200);
+  }, [onBoundsChange, isMapReady]);
+
+  // Initialize map when component mounts
+  useEffect(() => {
+    if (!mapContainer.current || map.current) return;
+
+    const defaultLocation = { latitude: -27.4698, longitude: 153.0251 }; // Brisbane
+    const startLocation = userLocation || defaultLocation;
+
+    const startCenter = initialCenter
+      ? [initialCenter[1], initialCenter[0]]
+      : [startLocation.longitude, startLocation.latitude];
+
+    try {
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: "mapbox://styles/mapbox/light-v11",
+        projection: "mercator",
+        center: startCenter as [number, number],
+        zoom: initialZoom,
+        attributionControl: false,
+        renderWorldCopies: false,
+        minZoom: 5,
+        maxPitch: 0,
+        pitchWithRotate: false,
+        dragRotate: false,
       });
 
-      // Set map ready flag when loaded
-      setMapReady(true);
+      const mapInstance = map.current;
 
-      // Always trigger initial search when map loads
-      if (map.loaded()) {
-        const bounds = map.getBounds();
-        if (bounds) {
-          const boundsObj = convertMapboxBoundsToBounds(bounds);
-          handleBoundsChange(boundsObj);
+      // Track user interactions
+      const handleUserInteractionStart = () => {
+        isUserInteractionRef.current = true;
+      };
+
+      // Handle map load
+      mapInstance.on("load", () => {
+        console.log("Map loaded successfully");
+
+        // Force map resize after load to fix rendering issues
+        mapInstance.resize();
+
+        // Initial bounds change
+        setIsMapReady(true);
+
+        // Initial bounds change won't be from user interaction
+        isUserInteractionRef.current = false;
+        handleBoundsChange();
+      });
+
+      // Add navigation controls
+      const nav = new mapboxgl.NavigationControl({
+        showCompass: false,
+        visualizePitch: false,
+      });
+      mapInstance.addControl(nav, "bottom-right");
+
+      // Add event listeners for user interactions
+      mapInstance.on("dragstart", handleUserInteractionStart);
+      mapInstance.on("zoomstart", handleUserInteractionStart);
+
+      // Add event listeners for bounds changes
+      mapInstance.on("moveend", handleBoundsChange);
+      mapInstance.on("zoomend", handleBoundsChange);
+
+      // Map click handler
+      mapInstance.on("click", (e) => {
+        // Only trigger onMapClick if the click was on the map itself, not a marker
+        const features = mapInstance.queryRenderedFeatures(e.point);
+        const clickedOnMarker = features.some(
+          (f) =>
+            f.layer?.id === "markers-layer" || f.properties?.type === "marker"
+        );
+
+        if (!clickedOnMarker && onMapClick) {
+          onMapClick();
         }
-      }
-    },
-  });
+      });
 
-  // Handle bounds change and search
-  const handleBoundsChange = useCallback(
-    (bounds: any) => {
-      // Validate bounds before processing
-      if (
-        !bounds ||
-        !bounds.center ||
-        typeof bounds.center.latitude === "undefined"
-      ) {
-        console.error("Invalid bounds object:", bounds);
-        return;
-      }
+      return () => {
+        // Clean up on unmount
+        if (boundsChangeTimeoutRef.current) {
+          clearTimeout(boundsChangeTimeoutRef.current);
+        }
 
-      // Update map view in Redux store with full bounds information
-      dispatch(
-        setMapView({
-          center: {
-            latitude: bounds.center.latitude,
-            longitude: bounds.center.longitude,
-          },
-          distance: bounds.distance,
-          north: bounds.north,
-          south: bounds.south,
-          east: bounds.east,
-          west: bounds.west,
-        })
-      );
+        if (mapInstance) {
+          mapInstance.off("dragstart", handleUserInteractionStart);
+          mapInstance.off("zoomstart", handleUserInteractionStart);
+          mapInstance.off("moveend", handleBoundsChange);
+          mapInstance.off("zoomend", handleBoundsChange);
 
-      dispatch(executeSearch());
-    },
-    [dispatch]
-  );
-
-  // Debounced bounds change
-  const debouncedBoundsChange = useMemo(() => {
-    return debounce(handleBoundsChange, 300);
-  }, [handleBoundsChange]);
-
-  // Handler for map click to reset active states
-  const handleMapClick = useCallback(
-    (e: React.MouseEvent) => {
-      // Check if we clicked on a marker or card
-      if (
-        (e.target as HTMLElement).closest(`.${styles.marker}`) ||
-        (e.target as HTMLElement).closest(`.${styles.dotMarker}`) ||
-        (e.target as HTMLElement).closest(`.${styles.clusterMarker}`) ||
-        (e.target as HTMLElement).closest(`.${styles.cardWrapper}`)
-      ) {
-        return;
-      }
-      dispatch(resetActiveStates());
-    },
-    [dispatch]
-  );
-
-  // Map control functions
-  const handleZoomIn = useCallback(() => {
-    if (mapRef.current) {
-      const newZoom = mapRef.current.getZoom() + 1;
-      mapRef.current.zoomTo(newZoom, { duration: 300 });
+          // Remove map
+          mapInstance.remove();
+          map.current = null;
+        }
+      };
+    } catch (error) {
+      console.error("Error initializing map:", error);
     }
-  }, [mapRef]);
+  }, []);
 
-  const handleZoomOut = useCallback(() => {
-    if (mapRef.current) {
-      const newZoom = mapRef.current.getZoom() - 1;
-      mapRef.current.zoomTo(newZoom, { duration: 300 });
-    }
-  }, [mapRef]);
+  // Effect for when centers or activePin changes - avoid dependency on initialCenter/initialZoom
+  useEffect(() => {
+    // Only run if map is ready and active pin exists
+    if (!map.current || !isMapReady || !activePin) return;
 
-  const handleGeolocate = useCallback(() => {
-    if (mapRef.current && userLocation) {
-      // Clear active states when changing location
-      dispatch(resetActiveStates());
+    // Find the active center
+    const activeCenter = centers.find((c) => c.id === activePin);
 
-      mapRef.current.flyTo({
-        center: [userLocation.longitude, userLocation.latitude],
-        zoom: 12,
-        speed: 1.2,
+    // Fly to active center if it exists and has coordinates
+    if (activeCenter && activeCenter.latitude && activeCenter.longitude) {
+      // This is NOT a user interaction
+      isUserInteractionRef.current = false;
+
+      // Fly to the center
+      map.current.flyTo({
+        center: [Number(activeCenter.longitude), Number(activeCenter.latitude)],
+        zoom: map.current.getZoom(),
+        speed: 0.8,
         curve: 1.42,
       });
     }
-  }, [mapRef, userLocation, dispatch]);
+  }, [activePin, centers, isMapReady]);
 
-  // Set up map move and zoom event handlers
-  useEffect(() => {
-    if (!mapRef.current) return;
-
-    const handleMoveEnd = () => {
-      if (mapRef.current) {
-        const bounds = mapRef.current.getBounds();
-        if (bounds) {
-          const boundsObj = convertMapboxBoundsToBounds(bounds);
-          debouncedBoundsChange(boundsObj);
-        }
-      }
-    };
-
-    mapRef.current.on("moveend", handleMoveEnd);
-    mapRef.current.on("zoomend", handleZoomEnd);
-
-    return () => {
-      if (mapRef.current) {
-        mapRef.current.off("moveend", handleMoveEnd);
-        mapRef.current.off("zoomend", handleZoomEnd);
-      }
-      // Cancel any pending debounced calls
-      debouncedBoundsChange.cancel();
-    };
-  }, [mapRef, debouncedBoundsChange]);
-
-  // Force map refresh when centers change
-  useEffect(() => {
-    if (mapRef.current && mapReady && centers.length > 0) {
-      // Force map refresh to ensure markers are displayed
-      setTimeout(() => {
-        if (mapRef.current) {
-          mapRef.current.resize();
-        }
-      }, 100);
-    }
-  }, [centers, mapReady]);
-
+  // Return the map container with markers
   return (
-    <div className={styles.map}>
-      <div
-        ref={mapContainer}
-        className={styles.mapContainer}
-        onClick={handleMapClick}
-      >
-        {mapReady && (
-          <>
-            <MapMarkers
-              centers={centers}
-              mapRef={mapRef}
-              mapContainer={mapContainer}
-            />
+    <div className={styles.mapContainer}>
+      <div ref={mapContainer} className={styles.map} />
 
-            {isUserLocationSet && <UserLocationMarker mapRef={mapRef} />}
-
-            <MapControls
-              onZoomIn={handleZoomIn}
-              onZoomOut={handleZoomOut}
-              onGeolocate={handleGeolocate}
-            />
-          </>
-        )}
-
-        {isLoading && (
-          <div className={styles.loadingWrapper}>
-            <Loading />
-          </div>
-        )}
-      </div>
+      {isMapReady && map.current && (
+        <>
+          <MapMarkers centers={centers} mapRef={map} />
+          <UserLocationMarker mapRef={map} userLocation={userLocation} />
+        </>
+      )}
     </div>
   );
-}
+};
+
+export default React.memo(SearchMap);

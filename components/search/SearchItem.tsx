@@ -10,7 +10,7 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import type { Center } from "@/types";
 import type { RootState } from "@/store/store";
-import { setHoveredCenter } from "@/store/redux/features/searchSlice";
+import { setHoveredCenter } from "@/store/features/searchSlice";
 import styles from "./SearchItem.module.css";
 import {
   MapPinIcon,

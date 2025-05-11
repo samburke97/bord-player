@@ -1,204 +1,104 @@
+/* app/search/SearchPage.module.css */
 .container {
   display: flex;
   flex-direction: column;
-  height: 100%;
-  width: 100%;
-  position: relative;
-}
-
-.mapViewActive {
   height: 100vh;
+  width: 100%;
   overflow: hidden;
 }
 
-.navbarList,
-.navbarMap {
+.content {
   display: flex;
+  flex: 1;
   width: 100%;
-  position: relative;
-  padding: 16px;
-  z-index: 1000;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.navbarMap {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  background: transparent;
-}
-
-.searchBar {
-  flex: 1;
-  margin-right: 12px;
-}
-
-.mapToggleButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--Surface-Surface-Base, #0d0d0d);
-  border: 1px solid var(--Outline-Low, #1f1f1f);
-  border-radius: 50%;
-  width: 48px;
-  height: 48px;
-  cursor: pointer;
-  flex-shrink: 0;
-  z-index: 1001;
-  opacity: 1;
-  transition: opacity 0.2s ease-in-out;
-}
-
-.icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.iconImg {
-  width: 20px;
-  height: 20px;
-  color: white;
-}
-
-.contentContainer {
-  display: flex;
-  flex: 1;
-  position: relative;
-  min-height: calc(100vh - 86px);
+  overflow: hidden;
 }
 
 .leftPanel {
-  width: 400px;
-  flex-shrink: 0;
-  overflow-y: auto;
-  max-height: calc(100vh - 86px);
-}
-
-.leftPanelInner {
+  width: 40%;
   height: 100%;
-}
-
-.rightPanel {
-  /* Change from fixed to relative positioning */
-  position: relative;
-  flex: 1;
-  min-height: calc(100vh - 86px);
-  border-left: 1px solid var(--Outline-Low, #1f1f1f);
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #eee;
+  background-color: white;
+  z-index: 5;
   overflow: hidden;
 }
 
-.rightPanel > div {
+.rightPanel {
+  flex: 1;
   height: 100%;
+  position: relative;
+}
+
+/* Search bar styles */
+.desktopSearchContainer {
+  padding: 16px;
+  border-bottom: 1px solid #eee;
+  background-color: white;
+  z-index: 10;
+}
+
+.desktopSearchBar {
   width: 100%;
 }
 
-@media screen and (max-width: 1023px) {
-  .container {
-    height: 100vh;
-    width: 100vw;
-    overflow: hidden;
-    position: fixed;
-    top: 0;
-    left: 0;
-  }
+/* Mobile specific styles */
+.mobileHeader {
+  display: none;
+  padding: 12px;
+  background-color: white;
+  border-bottom: 1px solid #eee;
+  z-index: 10;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
 
-  .navbarList {
-    position: sticky;
-    top: 0;
-    background: var(--Surface-Surface-Base, #0d0d0d);
-    border-bottom: 1px solid var(--Outline-Low, #1f1f1f);
-    z-index: 1000;
+.mobileSearchBar {
+  flex: 1;
+}
+
+.viewToggleButton {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  background-color: #39b252;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+}
+
+.viewToggleButton:hover {
+  background-color: #2e8a40;
+}
+
+/* Media queries for responsive design */
+@media (max-width: 767px) {
+  .mobileHeader {
     display: flex;
   }
 
-  .navbarMap {
-    display: flex;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1002;
-  }
-
-  .contentContainer {
-    position: relative;
-    width: 100%;
-    height: calc(100vh - 80px);
-    flex: 1;
-    overflow: hidden;
-  }
-
+  .leftPanel,
   .rightPanel {
-    /* For mobile view, keep it fixed */
-    position: fixed;
-    left: 0;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 10;
-  }
-
-  .rightPanel > div {
-    height: 100vh;
-    width: 100vw;
-  }
-
-  .leftPanel {
     width: 100%;
-    height: 100%;
-    z-index: 20;
-    position: relative;
-    overflow: hidden; /* Hide scrollbar on panel itself */
   }
 
-  .leftPanelInner {
-    height: 100%;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+  .hidden {
+    display: none;
   }
 
-  .hiddenOnSmallScreens {
-    display: none !important;
+  .desktopSearchContainer {
+    display: none;
   }
 }
 
-@media (min-width: 1024px) {
-  .navbarList,
-  .navbarMap {
-    display: none;
-  }
-
-  /* Add sticky behavior for desktop view */
-  .leftPanel,
-  .rightPanel {
-    position: sticky;
-    top: 0;
-    height: calc(100vh - 86px);
-    overflow-y: auto;
-  }
-
-  .rightPanel {
-    overflow: hidden; /* Keep map controls from being scrollable */
-  }
-
-  .leftPanelInner {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-
-  .leftPanelInner::-webkit-scrollbar {
-    display: none;
-  }
-
-  /* Make the container properly flex for desktop */
-  .contentContainer {
-    height: calc(100vh - 86px);
-    display: flex;
-    flex-direction: row;
+/* Tablet layout */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .leftPanel {
+    width: 350px;
   }
 }

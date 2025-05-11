@@ -1,52 +1,57 @@
-import { useEffect, useRef } from "react";
+// components/search/map/UserLocationMarker.tsx
+import React, { useEffect, useRef, memo } from "react";
 import mapboxgl from "mapbox-gl";
-import { useAppSelector } from "@/store/hooks";
+import styles from "../SearchMap.module.css";
 
 interface UserLocationMarkerProps {
   mapRef: React.MutableRefObject<mapboxgl.Map | null>;
+  userLocation: { latitude: number; longitude: number } | null;
 }
 
-const UserLocationMarker: React.FC<UserLocationMarkerProps> = ({ mapRef }) => {
-  const location = useAppSelector((state) => state.search.userLocation);
-  const markerRef = useRef<mapboxgl.Marker | null>(null);
+const UserLocationMarker = memo(
+  ({ mapRef, userLocation }: UserLocationMarkerProps) => {
+    const markerRef = useRef<mapboxgl.Marker | null>(null);
 
-  useEffect(() => {
-    if (!mapRef.current || !location) {
-      if (markerRef.current) {
-        markerRef.current.remove();
-        markerRef.current = null;
-      }
-      return;
-    }
+    // Set up marker once on initial render
+    useEffect(() => {
+      // Skip if no map or location
+      if (!mapRef.current || !userLocation) return;
 
-    // Create or update the static green dot marker
-    if (!markerRef.current) {
+      // Create the user location marker element
       const el = document.createElement("div");
-      el.style.width = "18px";
-      el.style.height = "18px";
-      el.style.borderRadius = "50%";
-      el.style.backgroundColor = "#39b252";
-      el.style.border = "2px solid white";
-      el.style.boxShadow = "0 0 0 1px rgba(0,0,0,0.2)";
-      el.style.cursor = "default";
-      el.style.zIndex = "100";
+      el.className = styles.userLocationMarker;
 
-      markerRef.current = new mapboxgl.Marker({ element: el, anchor: "center" })
-        .setLngLat([location.longitude, location.latitude])
+      // Create the ripple effect element
+      const ripple = document.createElement("div");
+      ripple.className = styles.userLocationRipple;
+      el.appendChild(ripple);
+
+      // Create the marker
+      const marker = new mapboxgl.Marker({
+        element: el,
+        anchor: "center",
+        pitchAlignment: "map",
+        rotationAlignment: "map",
+      })
+        .setLngLat([userLocation.longitude, userLocation.latitude])
         .addTo(mapRef.current);
-    } else {
-      markerRef.current.setLngLat([location.longitude, location.latitude]);
-    }
 
-    return () => {
-      if (markerRef.current) {
-        markerRef.current.remove();
-        markerRef.current = null;
-      }
-    };
-  }, [mapRef, location]);
+      // Store marker reference for cleanup
+      markerRef.current = marker;
 
-  return null;
-};
+      // Clean up on unmount
+      return () => {
+        if (markerRef.current) {
+          markerRef.current.remove();
+          markerRef.current = null;
+        }
+      };
+    }, [mapRef, userLocation]); // Only run once for initial userLocation
+
+    return null;
+  }
+);
+
+UserLocationMarker.displayName = "UserLocationMarker";
 
 export default UserLocationMarker;

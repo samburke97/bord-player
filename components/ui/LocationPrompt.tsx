@@ -1,74 +1,38 @@
-"use client";
+// components/ui/LocationHelp.tsx
+import React from "react";
+import styles from "./LocationPrompt.module.css";
 
-import React, { useState } from "react";
-import { motion } from "framer-motion";
-import { LocationAdd } from "iconsax-react";
-
-interface LocationPromptProps {
-  onEnableLocation: () => void;
-  className?: string;
+interface LocationHelpProps {
+  onClose: () => void;
 }
 
-const LocationPrompt: React.FC<LocationPromptProps> = ({
-  onEnableLocation,
-  className = "",
-}) => {
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleEnableClick = () => {
-    setIsLoading(true);
-
-    // Call the enable location function
-    onEnableLocation();
-
-    // Reset loading state after a delay to provide feedback
-    // This helps prevent immediate re-render of the prompt
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 3000);
-  };
-
+const LocationHelp: React.FC<LocationHelpProps> = ({ onClose }) => {
   return (
-    <motion.div
-      className={`fixed bottom-8 left-1/2 transform -translate-x-1/2 
-                  bg-black/90 border border-gray-700 rounded-lg p-4 
-                  flex items-center gap-3 max-w-md z-50 ${className}`}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 20 }}
-    >
-      <div className="rounded-full bg-primary-400 p-2 flex-shrink-0">
-        <LocationAdd size={20} color="#ffffff" variant="Bold" />
-      </div>
-
-      <div className="flex-grow text-sm">
-        <p className="text-white mb-1">
-          Enable location services to find sports venues near you
+    <div className={styles.helpContainer}>
+      <div className={styles.helpContent}>
+        <button className={styles.closeButton} onClick={onClose}>
+          ×
+        </button>
+        <h3 className={styles.title}>Location Access</h3>
+        <p className={styles.message}>
+          You've denied location access. We're currently showing approximate
+          locations based on your network.
         </p>
-        <p className="text-gray-400 text-xs">
-          We'll show you relevant options in your area
-        </p>
+        <div className={styles.instructions}>
+          <h4>To enable precise location:</h4>
+          <ol>
+            <li>Click the lock/info icon in your browser's address bar</li>
+            <li>Find "Location" or "Site settings"</li>
+            <li>Change the permission to "Allow"</li>
+            <li>Refresh this page</li>
+          </ol>
+        </div>
+        <button className={styles.closeButton} onClick={onClose}>
+          Continue with approximate location
+        </button>
       </div>
-
-      <button
-        onClick={handleEnableClick}
-        disabled={isLoading}
-        className={`bg-primary-500 hover:bg-primary-400 
-                  text-white font-medium py-2 px-4 
-                  rounded-lg text-sm transition
-                  ${isLoading ? "opacity-75 cursor-not-allowed" : ""}`}
-      >
-        {isLoading ? (
-          <>
-            <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
-            Enabling...
-          </>
-        ) : (
-          "Enable"
-        )}
-      </button>
-    </motion.div>
+    </div>
   );
 };
 
-export default LocationPrompt;
+export default LocationHelp;

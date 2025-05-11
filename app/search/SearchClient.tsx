@@ -1,374 +1,406 @@
+// app/search/SearchClient.tsx
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { Map1, TextalignJustifyleft } from "iconsax-react";
-import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { useGeolocation } from "@/hooks/useGeolocation";
-import { useSearchParams } from "next/navigation";
-import { RootState } from "@/store/store";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { useAppDispatch, useAppSelector } from "@/store/store";
 import {
+  setCenters,
+  setActivePin,
+  setHoveredItem,
+  setLoading,
+  setError,
   setMapView,
-  resetActiveStates,
   setSearchTerm,
-} from "@/store/redux/features/searchSlice";
-import { executeSearch } from "@/store/redux/features/searchThunk";
-import type { MapView } from "@/types";
-import { debounce } from "lodash";
-
-// UI Components
-import SearchBar from "@/components/ui/SearchBar";
+  resetActiveStates,
+} from "@/store/features/searchSlice";
+import { useGeolocation } from "@/hooks/useGeolocation";
+import { searchCenters } from "@/app/actions/search/searchCenters";
 import SearchMap from "@/components/search/SearchMap";
-import SearchItem from "@/components/search/SearchItem";
-import SearchItemSkeleton from "@/components/search/skeletons/SearchItemSkeleton";
-
-// Styles
+import SearchResults from "@/components/search/SearchResults";
+import SearchBar from "@/components/ui/SearchBar";
+import type { MapBounds, MapView } from "@/types/map";
 import styles from "./Search.module.css";
 
-export default function SearchClient() {
-  // Hooks and State Management
-  const dispatch = useAppDispatch();
-  const searchParams = useSearchParams();
-  const { isLoading: isLoadingLocation } = useGeolocation();
-  const isLargeScreen = useMediaQuery("(min-width: 1024px)");
-  const containerRef = useRef<HTMLDivElement>(null);
+interface SearchClientProps {
+  searchParams?: { [key: string]: string | string[] | undefined };
+}
 
-  // Redux State
+export default function SearchClient({ searchParams = {} }: SearchClientProps) {
+  // Get location and dispatch actions
+  const dispatch = useAppDispatch();
+  const router = useRouter();
+  const pathname = usePathname();
+  const urlSearchParams = useSearchParams();
+  const searchInProgressRef = useRef(false);
+  const urlUpdateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Access Redux state
   const {
     centers,
     activePin,
+    hoveredItem,
+    isLoading,
+    error,
     userLocation,
-    isLoading: isFetching,
     mapView,
     searchTerm,
-  } = useAppSelector((state: RootState) => state.search);
+  } = useAppSelector((state) => state.search);
 
-  // Local Component State
+  // Local state for view toggle on mobile
   const [isMapView, setIsMapView] = useState(false);
-  const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false);
-  const [isInitialLoadComplete, setIsInitialLoadComplete] = useState(false);
+  const [isLargeScreen, setIsLargeScreen] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  // Store last search time to avoid excessive searches
-  const lastSearchTimeRef = useRef(0);
-  // Track if component is mounted
-  const isMountedRef = useRef(false);
+  // Get user location from hook
+  const {
+    latitude,
+    longitude,
+    error: locationError,
+    isLoading: locationLoading,
+  } = useGeolocation();
 
-  // Check if map parameters exist in URL
-  const hasMapParams = useMemo(
-    () => searchParams.has("center") && searchParams.has("distance"),
-    [searchParams]
-  );
-
-  // Initialize search term from URL
+  // Parse URL parameters - run only once on initial load
   useEffect(() => {
-    const queryParam = searchParams.get("q");
+    if (isInitialized) return;
 
-    // Only update if it's different to avoid loops
-    if (queryParam !== null && queryParam !== searchTerm) {
-      console.log(`📝 Setting search term from URL: "${queryParam}"`);
-      dispatch(setSearchTerm(queryParam));
+    // Parse search term from URL
+    const qParam = searchParams?.q;
+    if (qParam !== undefined) {
+      const searchQuery = Array.isArray(qParam) ? qParam[0] : qParam;
+      dispatch(setSearchTerm(searchQuery));
     }
-  }, [searchParams, dispatch, searchTerm]);
 
-  // Create debounced search function - only execute after 500ms of no changes
-  const debouncedSearch = useMemo(
-    () =>
-      debounce(() => {
-        if (!mapView || !isMountedRef.current) return;
+    // Parse center and distance from URL
+    const centerParam = searchParams?.center;
+    const distanceParam = searchParams?.distance;
 
-        const now = Date.now();
-        // Limit search frequency to at most once every 1 second
-        if (now - lastSearchTimeRef.current < 1000) {
-          return;
-        }
+    if (centerParam !== undefined && distanceParam !== undefined) {
+      try {
+        const centerStr = Array.isArray(centerParam)
+          ? centerParam[0]
+          : centerParam;
+        const distanceStr = Array.isArray(distanceParam)
+          ? distanceParam[0]
+          : distanceParam;
 
-        console.log(`🔄 Executing search (debounced)`);
-        lastSearchTimeRef.current = now;
-        dispatch(executeSearch());
-      }, 500),
-    [dispatch, mapView]
-  );
-
-  // Execute search when searchTerm changes
-  useEffect(() => {
-    // Skip the initial render and ensure we have mapView
-    if (isInitialLoadComplete && mapView) {
-      console.log(
-        `🔄 Search term changed to "${searchTerm}" - triggering debounced search`
-      );
-      debouncedSearch();
-    }
-  }, [searchTerm, isInitialLoadComplete, mapView, debouncedSearch]);
-
-  // Clean up debounced function on unmount
-  useEffect(() => {
-    isMountedRef.current = true;
-
-    return () => {
-      isMountedRef.current = false;
-      debouncedSearch.cancel();
-    };
-  }, [debouncedSearch]);
-
-  // Perform initial search once
-  const performInitialSearch = useCallback(async () => {
-    // Prevent multiple initial searches
-    if (isInitialLoadComplete) return;
-
-    // Determine initial map view
-    let initialMapView: MapView | null = null;
-
-    // Try to get map view from URL parameters
-    if (hasMapParams) {
-      const centerParam = searchParams.get("center");
-      const distanceParam = searchParams.get("distance");
-
-      if (centerParam && distanceParam) {
-        const [lat, lng] = centerParam.split(",").map(Number);
-        const distance = Number(distanceParam);
+        const [lat, lng] = centerStr.split(",").map(Number);
+        const distance = Number(distanceStr);
 
         if (!isNaN(lat) && !isNaN(lng) && !isNaN(distance)) {
-          initialMapView = {
-            center: { latitude: lat, longitude: lng },
-            distance: distance,
-          };
+          dispatch(
+            setMapView({
+              center: { latitude: lat, longitude: lng },
+              distance,
+            })
+          );
+
+          // Mark as initialized to prevent repeated parsing
+          setIsInitialized(true);
         }
-      }
-    }
-
-    // Fallback to user location if no URL params
-    if (!initialMapView && userLocation) {
-      initialMapView = {
-        center: {
-          latitude: userLocation.latitude,
-          longitude: userLocation.longitude,
-        },
-        distance: 5, // Default search radius
-      };
-    }
-
-    // If we have a valid map view, proceed with search
-    if (initialMapView) {
-      try {
-        console.log("🚀 Initializing search with map view:", initialMapView);
-
-        // Dispatch map view to store
-        dispatch(setMapView(initialMapView));
-
-        // Log current search term
-        console.log("🔍 Current search term:", searchTerm || "[NONE]");
-
-        // Execute initial search
-        await dispatch(executeSearch({ forceUpdate: true }));
-
-        // Record time of search
-        lastSearchTimeRef.current = Date.now();
-
-        // Mark initial load as complete
-        setIsInitialLoadComplete(true);
       } catch (error) {
-        console.error("❌ Initial search failed:", error);
-        setIsInitialLoadComplete(true);
+        console.error("Failed to parse map parameters from URL:", error);
       }
     }
-  }, [
-    dispatch,
-    executeSearch,
-    hasMapParams,
-    isInitialLoadComplete,
-    searchParams,
-    userLocation,
-    searchTerm,
-  ]);
+  }, [searchParams, dispatch, isInitialized]);
 
-  // Toggle map/list view on mobile
-  const handleToggleView = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsMapView((prev) => !prev);
+  // Check screen size for responsive view - runs only on client
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const checkScreenSize = () => {
+      setIsLargeScreen(window.innerWidth >= 768);
+    };
+
+    // Initial check
+    checkScreenSize();
+
+    // Add listener for resize
+    window.addEventListener("resize", checkScreenSize);
+
+    return () => {
+      window.removeEventListener("resize", checkScreenSize);
+    };
   }, []);
 
-  // Handle search dropdown state
-  const handleSearchDropdownChange = useCallback((isOpen: boolean) => {
-    setIsSearchDropdownOpen(isOpen);
-  }, []);
+  // Update URL with map view and search term
+  const updateUrl = useCallback(
+    (newMapView: MapView, newSearchTerm = searchTerm) => {
+      // Clear any existing timeout
+      if (urlUpdateTimeoutRef.current) {
+        clearTimeout(urlUpdateTimeoutRef.current);
+      }
 
-  // Create debounced map bounds change handler
-  const handleBoundsChange = useMemo(
-    () =>
-      debounce((bounds: any) => {
-        dispatch(resetActiveStates());
+      // Debounce URL updates to avoid excessive history entries
+      urlUpdateTimeoutRef.current = setTimeout(() => {
+        const params = new URLSearchParams();
 
-        dispatch(
-          setMapView({
-            center: {
-              latitude: bounds.center.latitude,
-              longitude: bounds.center.longitude,
-            },
-            distance: bounds.distance,
-          })
+        // Preserve search term
+        if (newSearchTerm) {
+          params.set("q", newSearchTerm);
+        }
+
+        // Add map view parameters
+        params.set(
+          "center",
+          `${newMapView.center.latitude},${newMapView.center.longitude}`
         );
+        params.set("distance", newMapView.distance.toString());
 
-        // Execute search with small delay
-        setTimeout(() => {
-          if (isMountedRef.current) {
-            const now = Date.now();
-            // Don't search if we just did
-            if (now - lastSearchTimeRef.current < 800) {
-              return;
-            }
+        // Construct new URL
+        const newUrl = `${pathname}?${params.toString()}`;
+        console.log("Updating URL to:", newUrl);
 
-            lastSearchTimeRef.current = now;
-            dispatch(executeSearch());
-          }
-        }, 100);
-      }, 800),
+        // Update URL without triggering navigation
+        router.replace(newUrl, { scroll: false });
+      }, 300);
+    },
+    [pathname, router, searchTerm]
+  );
+
+  // Execute search based on map bounds AND search term
+  const executeSearch = useCallback(
+    async (
+      bounds: MapBounds & { center: MapView["center"]; distance: number },
+      term: string = searchTerm
+    ) => {
+      // Prevent multiple simultaneous searches
+      if (searchInProgressRef.current) return;
+      searchInProgressRef.current = true;
+
+      dispatch(setLoading(true));
+
+      try {
+        console.log(`Executing search with term "${term}" and bounds:`, bounds);
+        const results = await searchCenters({
+          bounds,
+          searchTerm: term,
+        });
+
+        dispatch(setCenters(results));
+      } catch (error) {
+        console.error("Search error:", error);
+        dispatch(setError("Failed to load centers. Please try again."));
+      } finally {
+        dispatch(setLoading(false));
+        searchInProgressRef.current = false;
+      }
+    },
+    [dispatch, searchTerm]
+  );
+
+  // Handle map bounds change
+  const handleBoundsChange = useCallback(
+    (
+      newMapView: MapBounds & { center: MapView["center"]; distance: number }
+    ) => {
+      console.log("Map bounds changed:", newMapView);
+
+      // Update map view in Redux
+      dispatch(
+        setMapView({
+          center: newMapView.center,
+          distance: newMapView.distance,
+        })
+      );
+
+      // Update URL with new map bounds AND current search term
+      updateUrl(
+        {
+          center: newMapView.center,
+          distance: newMapView.distance,
+        },
+        searchTerm
+      );
+
+      // Execute search with new bounds AND current search term
+      executeSearch(newMapView, searchTerm);
+    },
+    [dispatch, updateUrl, executeSearch, searchTerm]
+  );
+
+  // Handle search term change
+  const handleSearchChange = useCallback(
+    (term: string) => {
+      console.log("Search term changed:", term);
+      dispatch(setSearchTerm(term));
+
+      if (mapView) {
+        // Update URL with current map view AND new search term
+        updateUrl(mapView, term);
+
+        // Calculate bounds from current mapView if not already available
+        const bounds = {
+          ...mapView,
+          north:
+            mapView.north || mapView.center.latitude + mapView.distance / 111,
+          south:
+            mapView.south || mapView.center.latitude - mapView.distance / 111,
+          east:
+            mapView.east ||
+            mapView.center.longitude +
+              mapView.distance /
+                (111 * Math.cos((mapView.center.latitude * Math.PI) / 180)),
+          west:
+            mapView.west ||
+            mapView.center.longitude -
+              mapView.distance /
+                (111 * Math.cos((mapView.center.latitude * Math.PI) / 180)),
+        };
+
+        // Execute search with current bounds AND new search term
+        executeSearch(bounds, term);
+      }
+    },
+    [dispatch, mapView, updateUrl, executeSearch]
+  );
+
+  // Handle center click
+  const handleCenterClick = useCallback(
+    (id: string) => {
+      dispatch(setActivePin(id));
+    },
     [dispatch]
   );
 
-  // Trigger initial search on component mount
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      performInitialSearch();
-    }
-  }, [performInitialSearch]);
+  // Handle center hover
+  const handleCenterHover = useCallback(
+    (id: string | null) => {
+      dispatch(setHoveredItem(id));
+    },
+    [dispatch]
+  );
 
-  // Handle screen size changes
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.matchMedia("(min-width: 1024px)").matches) {
-        setIsMapView(false);
-      }
-    };
-
-    // Add and remove resize listener
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+  // Toggle between map and list view on mobile
+  const toggleView = useCallback(() => {
+    setIsMapView((prev) => !prev);
   }, []);
 
-  // Manage body styles for map view on mobile
+  // Execute initial search when map view is not available but user location is
   useEffect(() => {
-    // Apply fixed positioning when map view is active on small screens
-    if (isMapView && !isLargeScreen) {
-      document.body.style.overflow = "hidden";
-      document.body.style.position = "fixed";
-      document.body.style.width = "100%";
-      document.body.style.height = "100%";
+    if (!isInitialized && !mapView && latitude && longitude) {
+      console.log(
+        "Initializing map view with user location:",
+        latitude,
+        longitude
+      );
 
-      // Force map reflow
-      const resizeTimer = setTimeout(() => {
-        window.dispatchEvent(new Event("resize"));
-      }, 50);
-
-      return () => {
-        clearTimeout(resizeTimer);
-        document.body.style.overflow = "";
-        document.body.style.position = "";
-        document.body.style.width = "";
-        document.body.style.height = "";
+      // Initialize map view with user location
+      const initialMapView = {
+        center: { latitude, longitude },
+        distance: 5, // Default 5km radius
       };
+
+      dispatch(setMapView(initialMapView));
+      setIsInitialized(true);
+
+      // Update URL with initial map view AND current search term
+      updateUrl(initialMapView, searchTerm);
+
+      // Calculate bounds
+      const bounds = {
+        ...initialMapView,
+        north: latitude + 0.045, // Approximate 5km
+        south: latitude - 0.045,
+        east: longitude + 0.045 / Math.cos((latitude * Math.PI) / 180),
+        west: longitude - 0.045 / Math.cos((latitude * Math.PI) / 180),
+      };
+
+      // Execute search with initial bounds AND current search term
+      executeSearch(bounds, searchTerm);
     }
-  }, [isMapView, isLargeScreen]);
+  }, [
+    latitude,
+    longitude,
+    mapView,
+    searchTerm,
+    dispatch,
+    updateUrl,
+    executeSearch,
+    isInitialized,
+  ]);
 
-  const mapLocation = useMemo(() => {
-    // Only use userLocation if it's actually available
-    if (userLocation && userLocation.latitude && userLocation.longitude) {
-      return userLocation;
-    }
-
-    // Return null to indicate we're waiting for location
-    return null;
-  }, [userLocation]);
-
-  // Ensure map is properly sized after initial render
+  // Clean up on unmount
   useEffect(() => {
-    if (isInitialLoadComplete) {
-      requestAnimationFrame(() => {
-        window.dispatchEvent(new Event("resize"));
-      });
-    }
-  }, [isInitialLoadComplete]);
+    return () => {
+      if (urlUpdateTimeoutRef.current) {
+        clearTimeout(urlUpdateTimeoutRef.current);
+      }
+    };
+  }, []);
 
-  // Render
   return (
-    <div
-      ref={containerRef}
-      className={`
-        ${styles.container} 
-        ${isMapView && !isLargeScreen ? styles.mapViewActive : ""}
-      `}
-    >
-      {/* Navigation Bar */}
-      <div
-        className={
-          isMapView && !isLargeScreen ? styles.navbarMap : styles.navbarList
-        }
-      >
-        {/* Search Bar */}
-        <SearchBar
-          className={styles.searchBar}
-          onDropdownChange={handleSearchDropdownChange}
-          initialSearchTerm={searchTerm || ""}
-        />
+    <div className={styles.container}>
+      {/* Mobile header with search and toggle */}
+      {!isLargeScreen && (
+        <div className={styles.mobileHeader}>
+          <SearchBar
+            placeholder="Search for sports & places"
+            onSearch={handleSearchChange}
+            initialSearchTerm={searchTerm}
+            className={styles.mobileSearchBar}
+          />
 
-        {/* Mobile View Toggle */}
-        {!isLargeScreen && !isSearchDropdownOpen && (
           <button
-            className={styles.mapToggleButton}
-            onClick={handleToggleView}
+            className={styles.viewToggleButton}
+            onClick={toggleView}
             type="button"
-            aria-label={isMapView ? "Show list view" : "Show map view"}
+            aria-label={isMapView ? "Show list" : "Show map"}
           >
-            <div className={styles.icon}>
-              {isMapView ? (
-                <TextalignJustifyleft
-                  className={styles.iconImg}
-                  variant="Bold"
-                />
-              ) : (
-                <Map1 className={styles.iconImg} variant="Bold" />
-              )}
-            </div>
+            {isMapView ? "List" : "Map"}
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* Content Container */}
-      <div className={styles.contentContainer}>
-        {/* Left Panel (Search Results) */}
+      {/* Main content */}
+      <div className={styles.content}>
+        {/* Left panel (search results) */}
         <div
-          className={`
-            ${styles.leftPanel} 
-            ${isMapView && !isLargeScreen ? styles.hiddenOnSmallScreens : ""}
-          `}
+          className={`${styles.leftPanel} ${
+            !isLargeScreen && isMapView ? styles.hidden : ""
+          }`}
         >
-          <div className={styles.leftPanelInner}>
-            {!userLocation || isLoadingLocation ? (
-              <SearchItemSkeleton />
-            ) : (
-              <SearchItem centers={centers} activePin={activePin} />
-            )}
-          </div>
+          {isLargeScreen && (
+            <div className={styles.desktopSearchContainer}>
+              <SearchBar
+                placeholder="Search for sports & places"
+                onSearch={handleSearchChange}
+                initialSearchTerm={searchTerm}
+                className={styles.desktopSearchBar}
+              />
+            </div>
+          )}
+
+          <SearchResults
+            centers={centers}
+            isLoading={isLoading}
+            activePin={activePin}
+            searchTerm={searchTerm}
+            onCenterClick={handleCenterClick}
+            onCenterHover={handleCenterHover}
+          />
         </div>
 
-        {/* Right Panel (Map) */}
+        {/* Right panel (map) */}
         <div
-          className={`
-            ${styles.rightPanel} 
-            ${!isMapView && !isLargeScreen ? styles.hiddenOnSmallScreens : ""}
-          `}
+          className={`${styles.rightPanel} ${
+            !isLargeScreen && !isMapView ? styles.hidden : ""
+          }`}
         >
-          {userLocation && mapView && (
+          {!locationLoading && latitude !== null && longitude !== null && (
             <SearchMap
               centers={centers}
-              userLocation={userLocation}
-              isLoading={isFetching}
-              initialCenter={[
-                mapView.center.latitude,
-                mapView.center.longitude,
-              ]}
-              initialDistance={mapView.distance}
+              userLocation={userLocation || { latitude, longitude }}
               onBoundsChange={handleBoundsChange}
+              initialCenter={
+                mapView
+                  ? [mapView.center.latitude, mapView.center.longitude]
+                  : [latitude, longitude]
+              }
+              initialDistance={mapView?.distance || 5}
+              activePin={activePin}
+              onMarkerClick={handleCenterClick}
+              onMapClick={() => dispatch(resetActiveStates())}
             />
           )}
         </div>
