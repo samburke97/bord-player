@@ -1,8 +1,4 @@
-<<<<<<< HEAD:store/redux/features/searchSlice.ts
-// store/redux/features/optimizedSearchSlice.ts
-=======
 // store/features/searchSlice.ts
->>>>>>> test-map:store/features/searchSlice.ts
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import type { Center } from "@/types/entities";
 import type { MapView } from "@/types/map";
@@ -11,10 +7,6 @@ import type { MapView } from "@/types/map";
 interface SearchState {
   // Data
   centers: Center[];
-<<<<<<< HEAD:store/redux/features/searchSlice.ts
-  filteredCenters: Center[];
-=======
->>>>>>> test-map:store/features/searchSlice.ts
 
   // UI State
   activePin: string | null;
@@ -25,29 +17,17 @@ interface SearchState {
   // Location
   userLocation: { latitude: number; longitude: number } | null;
 
-<<<<<<< HEAD:store/redux/features/searchSlice.ts
-  // Map
-=======
   // Map View
->>>>>>> test-map:store/features/searchSlice.ts
   mapView: MapView | null;
 
   // Search
   searchTerm: string;
-<<<<<<< HEAD:store/redux/features/searchSlice.ts
-  recentSearches: string[];
-=======
->>>>>>> test-map:store/features/searchSlice.ts
 }
 
 // Initial state
 const initialState: SearchState = {
   // Data
   centers: [],
-<<<<<<< HEAD:store/redux/features/searchSlice.ts
-  filteredCenters: [],
-=======
->>>>>>> test-map:store/features/searchSlice.ts
 
   // UI State
   activePin: null,
@@ -63,33 +43,16 @@ const initialState: SearchState = {
 
   // Search
   searchTerm: "",
-<<<<<<< HEAD:store/redux/features/searchSlice.ts
-  recentSearches: [],
-};
-
-// Create the search slice
-export const SearchSlice = createSlice({
-=======
 };
 
 // Create the search slice
 export const searchSlice = createSlice({
->>>>>>> test-map:store/features/searchSlice.ts
   name: "search",
   initialState,
   reducers: {
     // Data actions
     setCenters: (state, action: PayloadAction<Center[]>) => {
       state.centers = action.payload;
-<<<<<<< HEAD:store/redux/features/searchSlice.ts
-      state.filteredCenters = action.payload;
-    },
-
-    // Filtering
-    setFilteredCenters: (state, action: PayloadAction<Center[]>) => {
-      state.filteredCenters = action.payload;
-=======
->>>>>>> test-map:store/features/searchSlice.ts
     },
 
     // UI State actions
@@ -149,10 +112,6 @@ export const searchSlice = createSlice({
     // Complete reset
     resetSearch: (state) => {
       state.centers = [];
-<<<<<<< HEAD:store/redux/features/searchSlice.ts
-      state.filteredCenters = [];
-=======
->>>>>>> test-map:store/features/searchSlice.ts
       state.activePin = null;
       state.hoveredItem = null;
       state.error = null;
@@ -166,11 +125,7 @@ export const searchSlice = createSlice({
 export const {
   setCenters,
   setActivePin,
-<<<<<<< HEAD:store/redux/features/searchSlice.ts
-  setHoveredCenter,
-=======
   setHoveredItem,
->>>>>>> test-map:store/features/searchSlice.ts
   setLoading,
   setError,
   setUserLocation,
@@ -178,11 +133,7 @@ export const {
   setSearchTerm,
   resetActiveStates,
   resetSearch,
-<<<<<<< HEAD:store/redux/features/searchSlice.ts
-} = SearchSlice.actions;
-=======
 } = searchSlice.actions;
->>>>>>> test-map:store/features/searchSlice.ts
 
 // Export reducer
-export default SearchSlice.reducer;
+export default searchSlice.reducer;

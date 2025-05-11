@@ -343,13 +343,8 @@ export default function SearchClient({ searchParams = {} }: SearchClientProps) {
           />
 
           <button
-<<<<<<< HEAD
-            className={styles.mapToggleButton}
-            onClick={toggleMapView}
-=======
             className={styles.viewToggleButton}
             onClick={toggleView}
->>>>>>> test-map
             type="button"
             aria-label={isMapView ? "Show list" : "Show map"}
           >
@@ -366,17 +361,6 @@ export default function SearchClient({ searchParams = {} }: SearchClientProps) {
             !isLargeScreen && isMapView ? styles.hidden : ""
           }`}
         >
-          {isLargeScreen && (
-            <div className={styles.desktopSearchContainer}>
-              <SearchBar
-                placeholder="Search for sports & places"
-                onSearch={handleSearchChange}
-                initialSearchTerm={searchTerm}
-                className={styles.desktopSearchBar}
-              />
-            </div>
-          )}
-
           <SearchResults
             centers={centers}
             isLoading={isLoading}

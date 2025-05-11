@@ -1,28 +1,16 @@
 // components/search/map/MapMarkers.tsx
-"use client";
-
 import React, { useCallback, useEffect, useRef, useMemo } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/store";
+import type { Center } from "@/types";
+import { setActivePin } from "@/store/features/searchSlice";
 import mapboxgl from "mapbox-gl";
 import { createRoot } from "react-dom/client";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import mapboxgl from "mapbox-gl";
-import type { Center } from "@/types";
-import {
-  setActivePin,
-  setHoveredCenter,
-} from "@/store/redux/features/searchSlice";
-
-// Import styles
-import styles from "./MapMarkers.module.css";
-
-// Import MapCard component
 import MapCard from "./MapCard";
 import styles from "../SearchMap.module.css";
 import { throttle } from "lodash";
 
-interface MarkerProps {
-  center: Center;
+interface MapMarkersProps {
+  centers: Center[];
   mapRef: React.MutableRefObject<mapboxgl.Map | null>;
 }
 
