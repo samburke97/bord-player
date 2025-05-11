@@ -1,243 +1,333 @@
-import React, { useCallback, useEffect, useRef } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import type { Center } from "@/types";
-import type { RootState } from "@/store/store";
-import { setActivePin } from "@/store/redux/features/searchSlice";
-import mapboxgl from "mapbox-gl";
+// components/search/map/OptimizedMapMarkers.tsx
+import React, { useCallback, useEffect, useRef, useState, memo } from "react";
 import { createRoot } from "react-dom/client";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import mapboxgl from "mapbox-gl";
+import type { Center } from "@/types";
+import {
+  setActivePin,
+  setHoveredCenter,
+} from "@/store/redux/features/searchSlice";
+
+// Import styles
+import styles from "./MapMarkers.module.css";
+
+// Import MapCard component
 import MapCard from "./MapCard";
 
-interface MapMarkersProps {
-  centers: Center[];
+interface MarkerProps {
+  center: Center;
   mapRef: React.MutableRefObject<mapboxgl.Map | null>;
+  isActive: boolean;
+  isHovered: boolean;
+  onClick: (id: string) => void;
+  onHover: (id: string | null) => void;
 }
 
-const MapMarkers: React.FC<MapMarkersProps> = ({ centers, mapRef }) => {
-  const dispatch = useDispatch();
-  const activePin = useSelector((state: RootState) => state.search.activePin);
-  const hoveredItem = useSelector(
-    (state: RootState) => state.search.hoveredItem
-  );
+// Memoized single marker component for better performance
+const Marker = memo(
+  ({ center, mapRef, isActive, isHovered, onClick, onHover }: MarkerProps) => {
+    const markerRef = useRef<mapboxgl.Marker | null>(null);
+    const elementRef = useRef<HTMLDivElement | null>(null);
+    const [isVisible, setIsVisible] = useState(true);
 
-  // References to track markers
-  const markersRef = useRef<mapboxgl.Marker[]>([]);
-  const activeCardMarkerRef = useRef<mapboxgl.Marker | null>(null);
-
-  // Function to create marker element
-  const createMarkerElement = useCallback(
-    (center: Center, isActive: boolean, isHovered: boolean) => {
-      // Create marker element
-      const markerEl = document.createElement("div");
-      markerEl.className = "map-marker";
-
-      // Apply styles to ensure precise positioning
-      Object.assign(markerEl.style, {
-        width: "16px",
-        height: "16px",
-        borderRadius: "50%",
-        backgroundColor: isActive || isHovered ? "#39b252" : "#444",
-        border: "2px solid white",
-        boxShadow: "0 0 0 1px rgba(0, 0, 0, 0.2)",
-        cursor: "pointer",
-      });
-
-      return markerEl;
-    },
-    []
-  );
-
-  // Function to update markers
-  const updateMarkers = useCallback(() => {
-    if (!mapRef.current) return;
-
-    // Remove existing markers
-    markersRef.current.forEach((marker) => marker.remove());
-    markersRef.current = [];
-
-    centers.forEach((center) => {
-      if (!center.latitude || !center.longitude) return;
-
-      const isActive = center.id === activePin;
-      const isHovered = center.id === hoveredItem;
+    // Create or update marker
+    useEffect(() => {
+      if (!mapRef.current || !center.latitude || !center.longitude) return;
 
       // Create marker element
-      const el = createMarkerElement(center, isActive, isHovered);
+      if (!elementRef.current) {
+        const el = document.createElement("div");
+        el.className = `${styles.marker} ${
+          isActive ? styles.activeMarker : ""
+        } ${isHovered ? styles.hoveredMarker : ""}`;
+        el.setAttribute("data-center-id", center.id);
 
-      // Add click handler
-      el.addEventListener("click", () => {
-        dispatch(setActivePin(center.id));
-      });
+        const markerImage = document.createElement("img");
+        markerImage.src = isActive
+          ? "/images/map/active-pin.svg"
+          : "/images/map/base-pin.svg";
+        markerImage.alt = "Location Marker";
+        markerImage.className = styles.pinImage;
+        markerImage.draggable = false;
+        el.appendChild(markerImage);
 
-      // Create and add new marker
-      const marker = new mapboxgl.Marker({
-        element: el,
-        anchor: "center",
-        pitchAlignment: "map",
-        rotationAlignment: "map",
-      })
-        .setLngLat([Number(center.longitude), Number(center.latitude)])
-        .addTo(mapRef.current);
+        // Add rating badge if available
+        if (center.rating) {
+          const ratingElement = document.createElement("div");
+          ratingElement.className = styles.ratingBadge;
+          ratingElement.textContent = center.rating.toFixed(1);
+          el.appendChild(ratingElement);
+        }
 
-      // Store marker reference
-      markersRef.current.push(marker);
-    });
-  }, [centers, mapRef, activePin, hoveredItem, createMarkerElement, dispatch]);
+        // Add event listeners
+        el.addEventListener("click", (e) => {
+          e.stopPropagation();
+          onClick(center.id);
+        });
+        el.addEventListener("mouseenter", () => onHover(center.id));
+        el.addEventListener("mouseleave", () => onHover(null));
 
-  const createCard = useCallback(
-    (center: Center) => {
+        elementRef.current = el;
+
+        // Create marker
+        const marker = new mapboxgl.Marker({
+          element: el,
+          anchor: "bottom",
+        })
+          .setLngLat([Number(center.longitude), Number(center.latitude)])
+          .addTo(mapRef.current);
+
+        markerRef.current = marker;
+      }
+
+      return () => {
+        if (markerRef.current) {
+          markerRef.current.remove();
+          markerRef.current = null;
+          elementRef.current = null;
+        }
+      };
+    }, [mapRef, center.id, center.latitude, center.longitude, center.rating]);
+
+    // Update marker state when active/hover state changes
+    useEffect(() => {
+      if (!elementRef.current) return;
+
+      // Update marker classes
+      if (isActive) {
+        elementRef.current.classList.add(styles.activeMarker);
+      } else {
+        elementRef.current.classList.remove(styles.activeMarker);
+      }
+
+      if (isHovered) {
+        elementRef.current.classList.add(styles.hoveredMarker);
+      } else {
+        elementRef.current.classList.remove(styles.hoveredMarker);
+      }
+
+      // Update marker image
+      const img = elementRef.current.querySelector("img");
+      if (img) {
+        img.src = isActive
+          ? "/images/map/active-pin.svg"
+          : "/images/map/base-pin.svg";
+      }
+    }, [isActive, isHovered]);
+
+    // Check if marker is in viewport and update visibility
+    useEffect(() => {
+      if (!mapRef.current || !markerRef.current) return;
+
+      const checkVisibility = () => {
+        if (!mapRef.current || !markerRef.current) return;
+
+        const bounds = mapRef.current.getBounds();
+        const markerLngLat = markerRef.current.getLngLat();
+        const isInBounds = bounds.contains(markerLngLat);
+
+        if (isInBounds !== isVisible) {
+          setIsVisible(isInBounds);
+
+          // Hide/show the marker element
+          if (elementRef.current) {
+            elementRef.current.style.display = isInBounds ? "block" : "none";
+          }
+        }
+      };
+
+      // Check visibility initially and on map move
+      checkVisibility();
+
+      const map = mapRef.current;
+      map.on("move", checkVisibility);
+      map.on("zoom", checkVisibility);
+
+      return () => {
+        if (map) {
+          map.off("move", checkVisibility);
+          map.off("zoom", checkVisibility);
+        }
+      };
+    }, [mapRef, isVisible]);
+
+    return null;
+  }
+);
+
+interface OptimizedMapMarkersProps {
+  centers: Center[];
+  mapRef: React.MutableRefObject<mapboxgl.Map | null>;
+  onMarkerClick?: (id: string) => void;
+}
+
+const MapMarkers = memo(
+  ({ centers, mapRef, onMarkerClick }: OptimizedMapMarkersProps) => {
+    const dispatch = useAppDispatch();
+    const activePin = useAppSelector((state) => state.search.activePin);
+    const hoveredItem = useAppSelector((state) => state.search.hoveredItem);
+    const [visibleCenters, setVisibleCenters] = useState<Center[]>([]);
+    const cardMarkerRef = useRef<mapboxgl.Marker | null>(null);
+
+    // Virtualization: Only render markers in viewport
+    useEffect(() => {
       if (!mapRef.current) return;
 
-      // Remove any existing card marker
-      if (activeCardMarkerRef.current) {
-        const el = activeCardMarkerRef.current.getElement();
-        if (el && el.parentNode === document.body) {
-          document.body.removeChild(el);
-        }
-        activeCardMarkerRef.current.remove();
-        activeCardMarkerRef.current = null;
-      }
+      const updateVisibleCenters = () => {
+        if (!mapRef.current) return;
 
-      const container = document.createElement("div");
-      const isMobile = window.innerWidth < 768;
+        const bounds = mapRef.current.getBounds();
+        const zoom = mapRef.current.getZoom();
+        const buffer = 0.1; // Buffer around visible area
 
-      if (isMobile) {
-        // MOBILE: render card fixed at bottom of screen
-        container.style.position = "fixed";
-        container.style.bottom = "16px";
-        container.style.left = "50%";
-        container.style.transform = "translateX(-50%)";
-        container.style.zIndex = "9999";
-        container.style.width = "90vw";
-        container.style.maxWidth = "390px";
-        container.style.pointerEvents = "auto";
+        // Extend bounds with buffer
+        const extendedBounds = bounds
+          .extend([
+            bounds.getNorthEast().lng + buffer,
+            bounds.getNorthEast().lat + buffer,
+          ])
+          .extend([
+            bounds.getSouthWest().lng - buffer,
+            bounds.getSouthWest().lat - buffer,
+          ]);
 
-        const root = createRoot(container);
-        root.render(
-          <MapCard
-            center={center}
-            onCardClick={() => {
-              window.location.href = `/centers/${center.id}`;
-            }}
-          />
-        );
+        // Filter centers based on extended bounds
+        const filtered = centers.filter((center) => {
+          if (!center.latitude || !center.longitude) return false;
+          return extendedBounds.contains([
+            Number(center.longitude),
+            Number(center.latitude),
+          ]);
+        });
 
-        document.body.appendChild(container);
+        // Sort by priority (active first, then hovered)
+        const sorted = [...filtered].sort((a, b) => {
+          if (a.id === activePin) return -1;
+          if (b.id === activePin) return 1;
+          if (a.id === hoveredItem) return -1;
+          if (b.id === hoveredItem) return 1;
+          return 0;
+        });
 
-        // Store a dummy marker just to track and clean up later
-        const dummyMarker = {
-          getElement: () => container,
-          remove: () => {
-            if (container.parentNode === document.body) {
-              document.body.removeChild(container);
-            }
-          },
-        } as unknown as mapboxgl.Marker;
+        setVisibleCenters(sorted);
+      };
 
-        activeCardMarkerRef.current = dummyMarker;
-        return;
-      }
+      updateVisibleCenters();
 
-      // DESKTOP: show card above or below pin
-      const CARD_HEIGHT = 244;
-      const PIN_HEIGHT = 18;
       const map = mapRef.current;
-      const screenPoint = map.project([
-        Number(center.longitude),
-        Number(center.latitude),
-      ]);
-      const spaceBelow = window.innerHeight - screenPoint.y;
-      const shouldShowBelow = spaceBelow >= CARD_HEIGHT + PIN_HEIGHT + 20;
+      map.on("moveend", updateVisibleCenters);
+      map.on("zoomend", updateVisibleCenters);
 
-      container.style.width = "390px";
-      container.style.pointerEvents = "none";
-      container.style.zIndex = "9999";
+      return () => {
+        if (map) {
+          map.off("moveend", updateVisibleCenters);
+          map.off("zoomend", updateVisibleCenters);
+        }
+      };
+    }, [mapRef, centers, activePin, hoveredItem]);
 
-      const root = createRoot(container);
-      root.render(
-        <div
-          style={{
-            pointerEvents: "auto",
-            cursor: "pointer",
-          }}
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            window.location.href = `/centers/${center.id}`;
-          }}
-        >
-          <MapCard
+    // Handle marker click
+    const handleMarkerClick = useCallback(
+      (id: string) => {
+        dispatch(setActivePin(id));
+        if (onMarkerClick) {
+          onMarkerClick(id);
+        }
+      },
+      [dispatch, onMarkerClick]
+    );
+
+    // Handle marker hover
+    const handleMarkerHover = useCallback(
+      (id: string | null) => {
+        dispatch(setHoveredCenter(id));
+      },
+      [dispatch]
+    );
+
+    // Create card for active center
+    useEffect(() => {
+      if (!mapRef.current) return;
+
+      // Clean up previous card
+      if (cardMarkerRef.current) {
+        cardMarkerRef.current.remove();
+        cardMarkerRef.current = null;
+      }
+
+      // Find active center
+      if (activePin) {
+        const activeCenter = centers.find((c) => c.id === activePin);
+
+        if (activeCenter && activeCenter.latitude && activeCenter.longitude) {
+          // Create container for React component
+          const container = document.createElement("div");
+          container.style.position = "absolute";
+          container.style.zIndex = "1000";
+          container.style.pointerEvents = "none";
+
+          // Render MapCard into container
+          const root = createRoot(container);
+          root.render(
+            <div
+              style={{
+                pointerEvents: "auto",
+                cursor: "pointer",
+              }}
+              onClick={() => {
+                window.location.href = `/centers/${activeCenter.id}`;
+              }}
+            >
+              <MapCard
+                center={activeCenter}
+                onCardClick={() => {
+                  window.location.href = `/centers/${activeCenter.id}`;
+                }}
+              />
+            </div>
+          );
+
+          // Create marker to position the card
+          const cardMarker = new mapboxgl.Marker({
+            element: container,
+            anchor: "center",
+            offset: [0, -120], // Offset to position card above pin
+          })
+            .setLngLat([
+              Number(activeCenter.longitude),
+              Number(activeCenter.latitude),
+            ])
+            .addTo(mapRef.current);
+
+          cardMarkerRef.current = cardMarker;
+        }
+      }
+
+      return () => {
+        if (cardMarkerRef.current) {
+          cardMarkerRef.current.remove();
+          cardMarkerRef.current = null;
+        }
+      };
+    }, [activePin, centers, mapRef]);
+
+    return (
+      <>
+        {visibleCenters.map((center) => (
+          <Marker
+            key={center.id}
             center={center}
-            onCardClick={() => {
-              window.location.href = `/centers/${center.id}`;
-            }}
+            mapRef={mapRef}
+            isActive={activePin === center.id}
+            isHovered={hoveredItem === center.id}
+            onClick={handleMarkerClick}
+            onHover={handleMarkerHover}
           />
-        </div>
-      );
-
-      const cardMarker = new mapboxgl.Marker({
-        element: container,
-        anchor: shouldShowBelow ? "top" : "bottom",
-        offset: [0, shouldShowBelow ? PIN_HEIGHT + 10 : -(PIN_HEIGHT + 10)],
-      })
-        .setLngLat([Number(center.longitude), Number(center.latitude)])
-        .addTo(map);
-
-      activeCardMarkerRef.current = cardMarker;
-    },
-    [mapRef]
-  );
-
-  // Add map move listener to ensure markers stay in place
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map) return;
-
-    const handleMove = () => {
-      // Remove and re-add markers to ensure they move precisely with the map
-      markersRef.current.forEach((marker) => {
-        marker.remove().addTo(map);
-      });
-    };
-
-    map.on("move", handleMove);
-
-    return () => {
-      map.off("move", handleMove);
-    };
-  }, [mapRef]);
-
-  // Update markers when data changes
-  useEffect(() => {
-    updateMarkers();
-  }, [centers, updateMarkers]);
-
-  // Handle active pin and card creation
-  useEffect(() => {
-    if (activePin && mapRef.current) {
-      const center = centers.find((c) => c.id === activePin);
-      if (center && center.latitude && center.longitude) {
-        createCard(center);
-      }
-    } else if (activeCardMarkerRef.current) {
-      activeCardMarkerRef.current.remove();
-      activeCardMarkerRef.current = null;
-    }
-  }, [activePin, centers, mapRef, createCard]);
-
-  // Clean up on unmount
-  useEffect(() => {
-    return () => {
-      markersRef.current.forEach((marker) => marker.remove());
-      markersRef.current = [];
-
-      if (activeCardMarkerRef.current) {
-        activeCardMarkerRef.current.remove();
-        activeCardMarkerRef.current = null;
-      }
-    };
-  }, []);
-
-  return null;
-};
+        ))}
+      </>
+    );
+  }
+);
 
 export default MapMarkers;

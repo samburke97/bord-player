@@ -1,13 +1,17 @@
-import { useEffect, useRef } from "react";
+// components/search/map/UserLocation.tsx
+import { useEffect, useRef, memo } from "react";
 import mapboxgl from "mapbox-gl";
 import { useAppSelector } from "@/store/hooks";
+import styles from "../SearchMap.module.css";
 
 interface UserLocationMarkerProps {
   mapRef: React.MutableRefObject<mapboxgl.Map | null>;
 }
 
-const UserLocationMarker: React.FC<UserLocationMarkerProps> = ({ mapRef }) => {
+const UserLocationMarker = memo(({ mapRef }: UserLocationMarkerProps) => {
+  // Get user location from Redux
   const location = useAppSelector((state) => state.search.userLocation);
+
   const markerRef = useRef<mapboxgl.Marker | null>(null);
 
   useEffect(() => {
@@ -19,24 +23,24 @@ const UserLocationMarker: React.FC<UserLocationMarkerProps> = ({ mapRef }) => {
       return;
     }
 
-    // Create or update the static green dot marker
-    if (!markerRef.current) {
-      const el = document.createElement("div");
-      el.style.width = "18px";
-      el.style.height = "18px";
-      el.style.borderRadius = "50%";
-      el.style.backgroundColor = "#39b252";
-      el.style.border = "2px solid white";
-      el.style.boxShadow = "0 0 0 1px rgba(0,0,0,0.2)";
-      el.style.cursor = "default";
-      el.style.zIndex = "100";
-
-      markerRef.current = new mapboxgl.Marker({ element: el, anchor: "center" })
-        .setLngLat([location.longitude, location.latitude])
-        .addTo(mapRef.current);
-    } else {
+    // Update existing marker position
+    if (markerRef.current) {
       markerRef.current.setLngLat([location.longitude, location.latitude]);
+      return;
     }
+
+    // Create new marker
+    const el = document.createElement("div");
+    el.className = styles.mapMarker;
+
+    const marker = new mapboxgl.Marker({
+      element: el,
+      anchor: "center",
+    })
+      .setLngLat([location.longitude, location.latitude])
+      .addTo(mapRef.current);
+
+    markerRef.current = marker;
 
     return () => {
       if (markerRef.current) {
@@ -47,6 +51,8 @@ const UserLocationMarker: React.FC<UserLocationMarkerProps> = ({ mapRef }) => {
   }, [mapRef, location]);
 
   return null;
-};
+});
+
+UserLocationMarker.displayName = "UserLocationMarker";
 
 export default UserLocationMarker;

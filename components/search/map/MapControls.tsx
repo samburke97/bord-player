@@ -1,7 +1,8 @@
+// components/search/map/MapControls.tsx
+import { memo } from "react";
 import { motion } from "framer-motion";
 import { Gps, Add, Minus } from "iconsax-react";
 import styles from "../SearchMap.module.css";
-import { useAppSelector } from "@/store/hooks";
 
 interface MapControlsProps {
   onZoomIn: () => void;
@@ -9,32 +10,18 @@ interface MapControlsProps {
   onGeolocate: () => void;
 }
 
-const MapControls: React.FC<MapControlsProps> = ({
-  onZoomIn,
-  onZoomOut,
-  onGeolocate,
-}) => {
-  // Check if we have a valid user location
-  const userLocation = useAppSelector((state) => state.search.userLocation);
-  const hasValidLocation = userLocation !== null;
-
-  return (
+const MapControls = memo(
+  ({ onZoomIn, onZoomOut, onGeolocate }: MapControlsProps) => (
     <div className={styles.customControls}>
       <motion.button
         onClick={onGeolocate}
-        className={`${styles.controlButton} ${
-          !hasValidLocation ? styles.controlButtonDisabled : ""
-        }`}
-        whileHover={hasValidLocation ? { scale: 1.1 } : {}}
-        whileTap={hasValidLocation ? { scale: 0.9 } : {}}
-        title={hasValidLocation ? "Go to my location" : "Location unavailable"}
-        disabled={!hasValidLocation}
+        className={styles.controlButton}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        aria-label="Go to my location"
+        type="button"
       >
-        <Gps
-          size={24}
-          variant="Bold"
-          color={hasValidLocation ? "white" : "gray"}
-        />
+        <Gps size={24} variant="Bold" />
       </motion.button>
 
       <motion.button
@@ -42,7 +29,8 @@ const MapControls: React.FC<MapControlsProps> = ({
         className={styles.controlButton}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
-        title="Zoom in"
+        aria-label="Zoom in"
+        type="button"
       >
         <Add size={24} />
       </motion.button>
@@ -52,12 +40,15 @@ const MapControls: React.FC<MapControlsProps> = ({
         className={styles.controlButton}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
-        title="Zoom out"
+        aria-label="Zoom out"
+        type="button"
       >
         <Minus size={24} />
       </motion.button>
     </div>
-  );
-};
+  )
+);
+
+MapControls.displayName = "MapControls";
 
 export default MapControls;

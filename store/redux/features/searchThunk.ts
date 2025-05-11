@@ -1,7 +1,7 @@
 // store/redux/features/searchThunk.ts
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { setLoading, setCenters, setError } from "./searchSlice";
-import { searchCenters } from "@/app/actions/search"; // Import the server action directly
+import { fetchCentersByBounds } from "@/lib/api"; // Keep using your existing API function
 import type { RootState } from "@/store/store";
 import type { Center } from "@/types/entities";
 
@@ -22,6 +22,13 @@ export const executeSearch = createAsyncThunk<
       return [];
     }
 
+    console.log("🔍 Executing search with:", {
+      mapView,
+      searchTerm: searchTerm || "[NONE]",
+      forceUpdate: params?.forceUpdate,
+    });
+
+    // Calculate bounds from mapView's center and distance if not explicitly provided
     const bounds = {
       north: mapView.north || mapView.center.latitude + mapView.distance / 111,
       south: mapView.south || mapView.center.latitude - mapView.distance / 111,
@@ -37,16 +44,26 @@ export const executeSearch = createAsyncThunk<
             (111 * Math.cos((mapView.center.latitude * Math.PI) / 180)),
     };
 
-    // Directly call the server action instead of using fetch
-    const centers = await searchCenters({
-      searchTerm,
+    console.log("🗺️ Search bounds:", bounds);
+
+    // Use your existing fetchCentersByBounds function
+    const centers = await fetchCentersByBounds({
       bounds,
-      // You can add more parameters like sportIds, facilityIds if needed
+      searchTerm: searchTerm || "",
     });
+
+    console.log(`✅ Search returned ${centers.length} centers`);
+
+    if (centers.length > 0) {
+      console.log("📍 First center:", centers[0]);
+    } else {
+      console.log("⚠️ No centers found matching criteria");
+    }
 
     dispatch(setCenters(centers));
     return centers;
   } catch (err) {
+    console.error("❌ Search failed:", err);
     dispatch(setError(err instanceof Error ? err.message : "Search failed"));
     return [];
   } finally {

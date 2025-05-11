@@ -1,69 +1,59 @@
+// components/search/OptimizedSearchItem.tsx
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useState, useCallback, memo } from "react";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import type { Center } from "@/types";
-import type { RootState } from "@/store/store";
 import { setHoveredCenter } from "@/store/redux/features/searchSlice";
 import styles from "./SearchItem.module.css";
 import {
+  MapPinIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
-import FavoriteButton from "../ui/FavoriteButton";
 
-interface SearchItemProps {
-  centers: Center[];
-  activePin: string | null;
+interface CenterCardProps {
+  center: Center;
+  isActive: boolean;
+  isHovered: boolean;
+  onMouseEnter: () => void;
+  onMouseLeave: () => void;
 }
 
-function SearchItem({ centers, activePin }: SearchItemProps) {
-  const dispatch = useDispatch();
-  const hoveredPin = useSelector(
-    (state: RootState) => state.search.hoveredItem
-  );
-  const [hoveredImageId, setHoveredImageId] = useState<string | null>(null);
+// Memoized single center card component
+const CenterCard = memo(
+  ({
+    center,
+    isActive,
+    isHovered,
+    onMouseEnter,
+    onMouseLeave,
+  }: CenterCardProps) => {
+    const [hoveredImageId, setHoveredImageId] = useState<boolean>(false);
 
-  const renderNoResults = () => (
-    <div className={styles.noResultsView}>
-      <div className={styles.iconWrapper}>
-        <MagnifyingGlassIcon className={styles.searchIcon} />
-      </div>
-      <h2 className={styles.noResultsTitle}>No results to display</h2>
-      <p className={styles.noResultsSubtitle}>Try adjusting your search area</p>
-    </div>
-  );
-
-  const renderCenterCard = (center: Center) => {
     return (
       <Link
-        key={center.id}
         href={`/centers/${center.id}`}
         className={`${styles.card} ${
-          activePin === center.id || hoveredPin === center.id
-            ? styles.activeCard
-            : ""
+          isActive || isHovered ? styles.activeCard : ""
         }`}
-        onMouseEnter={() => dispatch(setHoveredCenter(center.id))}
-        onMouseLeave={() => dispatch(setHoveredCenter(null))}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
       >
         <div
           className={styles.imageContainer}
-          onMouseEnter={() => setHoveredImageId(center.id)}
-          onMouseLeave={() => setHoveredImageId(null)}
+          onMouseEnter={() => setHoveredImageId(true)}
+          onMouseLeave={() => setHoveredImageId(false)}
         >
           {center.images && center.images.length > 0 ? (
             <div className={styles.swiperContainer}>
-              <div className={styles.favoriteButtonWrapper}>
-                <FavoriteButton centerId={center.id} />
-              </div>
               <Swiper
                 modules={[Navigation, Pagination]}
                 spaceBetween={0}
@@ -94,19 +84,27 @@ function SearchItem({ centers, activePin }: SearchItemProps) {
                     prevButton.style.display = "none";
                   }
                 }}
-                pagination={{
-                  clickable: true,
-                  enabled: true,
-                  type: "bullets",
-                  renderBullet: (_, className) => {
-                    return `<span class="${className}"></span>`;
-                  },
-                }}
-                navigation={{
-                  prevEl: `.prev-arrow-${center.id}`,
-                  nextEl: `.next-arrow-${center.id}`,
-                  enabled: hoveredImageId === center.id,
-                }}
+                pagination={
+                  center.images.length > 1
+                    ? {
+                        clickable: true,
+                        enabled: true,
+                        type: "bullets",
+                        renderBullet: (_, className) => {
+                          return `<span class="${className}"></span>`;
+                        },
+                      }
+                    : false
+                }
+                navigation={
+                  center.images.length > 1
+                    ? {
+                        prevEl: `.prev-arrow-${center.id}`,
+                        nextEl: `.next-arrow-${center.id}`,
+                        enabled: hoveredImageId,
+                      }
+                    : false
+                }
               >
                 {center.images.map((image, index) => (
                   <SwiperSlide key={index} className={styles.slideContainer}>
@@ -122,11 +120,15 @@ function SearchItem({ centers, activePin }: SearchItemProps) {
                   <>
                     <button
                       className={`prev-arrow-${center.id} ${styles.carouselArrow} ${styles.carouselArrowPrev}`}
+                      type="button"
+                      aria-label="Previous image"
                     >
                       <ChevronLeftIcon className={styles.arrowIcon} />
                     </button>
                     <button
                       className={`next-arrow-${center.id} ${styles.carouselArrow} ${styles.carouselArrowNext}`}
+                      type="button"
+                      aria-label="Next image"
                     >
                       <ChevronRightIcon className={styles.arrowIcon} />
                     </button>
@@ -138,50 +140,87 @@ function SearchItem({ centers, activePin }: SearchItemProps) {
             <div className={styles.imagePlaceholder}>Image not available</div>
           )}
         </div>
-
-        <div className={styles.cardContent}>
-          <h2 className={styles.centerTitle}>{center.name}</h2>
-
-          <div className={styles.statusRow}>
-            <span
-              className={
-                center.isOpenNow ? styles.openStatus : styles.closedStatus
-              }
-            >
-              {center.isOpenNow ? "Open Now" : "Closed"}
-            </span>
-            {center.type && (
-              <>
-                <span className={styles.separator}>•</span>
-                <span className={styles.type}>{center.type}</span>
-              </>
-            )}
-            {center.distance !== null && (
-              <>
-                <span className={styles.separator}>•</span>
-                <span className={styles.distance}>{center.distance} km</span>
-              </>
+        <div className={styles.infoContainer}>
+          <div className={styles.sportsContainer}>
+            {center.sports && center.sports.length > 0 ? (
+              center.sports.slice(0, 3).map((sport, index) => (
+                <span key={index} className={styles.sportPill}>
+                  {sport.name}
+                </span>
+              ))
+            ) : (
+              <span className={styles.sportPill}>No sports available</span>
             )}
           </div>
-
-          <div className={styles.tagsRow}>
-            {center.facilities &&
-              center.facilities.slice(0, 3).map((facility) => (
-                <span key={facility.id} className={styles.facilityTag}>
-                  {facility.name}
-                </span>
-              ))}
+          <div className={styles.name}>{center.name}</div>
+          <div className={styles.location}>
+            <MapPinIcon className={styles.icon} />
+            <span className={styles.address}>{center.address}</span>
           </div>
         </div>
       </Link>
     );
-  };
+  }
+);
+
+CenterCard.displayName = "CenterCard";
+
+// No results view component
+const NoResultsView = memo(() => (
+  <div className={styles.noResultsView}>
+    <div className={styles.iconWrapper}>
+      <MagnifyingGlassIcon className={styles.searchIcon} />
+    </div>
+    <h2 className={styles.noResultsTitle}>No results to display</h2>
+    <p className={styles.noResultsSubtitle}>Try adjusting your search area</p>
+  </div>
+));
+
+NoResultsView.displayName = "NoResultsView";
+
+interface OptimizedSearchItemProps {
+  centers: Center[];
+  activePin: string | null;
+  onCenterClick?: (centerId: string) => void;
+}
+
+function SearchItem({
+  centers,
+  activePin,
+  onCenterClick,
+}: OptimizedSearchItemProps) {
+  const dispatch = useAppDispatch();
+  const hoveredPin = useAppSelector((state) => state.search.hoveredItem);
+
+  const handleMouseEnter = useCallback(
+    (centerId: string) => {
+      dispatch(setHoveredCenter(centerId));
+    },
+    [dispatch]
+  );
+
+  const handleMouseLeave = useCallback(() => {
+    dispatch(setHoveredCenter(null));
+  }, [dispatch]);
+
+  if (centers.length === 0) {
+    return <NoResultsView />;
+  }
 
   return (
     <div className={styles.listContainer}>
-      {centers.length === 0 ? renderNoResults() : centers.map(renderCenterCard)}
+      {centers.map((center) => (
+        <CenterCard
+          key={center.id}
+          center={center}
+          isActive={activePin === center.id}
+          isHovered={hoveredPin === center.id}
+          onMouseEnter={() => handleMouseEnter(center.id)}
+          onMouseLeave={handleMouseLeave}
+        />
+      ))}
     </div>
   );
 }
 
-export default SearchItem;
+export default memo(SearchItem);
