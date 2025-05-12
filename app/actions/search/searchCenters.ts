@@ -53,7 +53,6 @@ export async function searchCenters({
       ],
     };
 
-    // If search term is provided, add it as a separate AND condition
     if (searchTerm && searchTerm.trim()) {
       const trimmedTerm = searchTerm.trim();
       whereClause.AND.push({
@@ -104,8 +103,6 @@ export async function searchCenters({
       });
     }
 
-    console.log(`Query conditions: ${JSON.stringify(whereClause, null, 2)}`);
-
     // Run the query
     const centers = await prisma.center.findMany({
       where: whereClause,
@@ -142,8 +139,6 @@ export async function searchCenters({
         },
       },
     });
-
-    console.log(`Found ${centers.length} centers for term "${searchTerm}"`);
 
     // Transform centers to match the expected format
     const formattedCenters = centers.map((center) => ({
