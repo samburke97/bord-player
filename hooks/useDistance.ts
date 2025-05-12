@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useLocation } from "@/store/context/use-location";
+import { useLocation } from "@/store/use-location";
 import { calculateDistance } from "@/lib/utils/distance";
 
 /**

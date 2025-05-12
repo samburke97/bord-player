@@ -23,10 +23,50 @@
   box-shadow: 0 4px 12px rgba(57, 178, 82, 0.2);
 }
 
+/* Image and Carousel styles */
 .imageContainer {
   width: 100%;
   height: 180px;
   position: relative;
+  overflow: hidden;
+}
+
+.carouselContainer {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Embla Carousel specific styles */
+.emblaViewport {
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+}
+
+.emblaContainer {
+  display: flex;
+  height: 100%;
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+.emblaSlide {
+  flex: 0 0 100%;
+  min-width: 0;
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+}
+
+.emblaSlideInner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
 }
 
@@ -35,12 +75,100 @@
   height: 100%;
   object-fit: cover;
   transition: transform 0.3s ease;
+  display: block;
 }
 
 .card:hover .image {
   transform: scale(1.05);
 }
 
+.imagePlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f0f0f0;
+  color: #666;
+  font-size: 14px;
+}
+
+/* Carousel Navigation Buttons */
+.carouselButton {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  opacity: 0;
+  transition: opacity 0.3s ease, background-color 0.3s ease;
+}
+
+.imageContainer:hover .carouselButton {
+  opacity: 1;
+}
+
+.carouselButtonPrev {
+  left: 10px;
+}
+
+.carouselButtonNext {
+  right: 10px;
+}
+
+.carouselButton:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.buttonIcon {
+  width: 18px;
+  height: 18px;
+  color: white;
+}
+
+/* Pagination dots */
+.pagination {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  z-index: 10;
+}
+
+/* Pagination dots */
+.pagination {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  z-index: 10;
+}
+
+.paginationDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.5);
+  transition: background-color 0.3s ease;
+}
+
+.paginationDot.active {
+  background-color: white;
+}
+
+/* Content section */
 .content {
   padding: 16px;
   display: flex;
@@ -79,6 +207,13 @@
   color: #666;
 }
 
+.icon {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  color: #666;
+}
+
 .status {
   margin-top: 8px;
   display: flex;
@@ -108,5 +243,15 @@
 
   .name {
     font-size: 16px;
+  }
+
+  .carouselButton {
+    width: 28px;
+    height: 28px;
+  }
+
+  .buttonIcon {
+    width: 16px;
+    height: 16px;
   }
 }
