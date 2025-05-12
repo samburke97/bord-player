@@ -2,7 +2,6 @@ import { Suspense } from "react";
 import SearchClient from "./SearchClient";
 import { Metadata } from "next";
 
-// Define metadata for SEO
 export const metadata: Metadata = {
   title: "Search Sports & Activities Near You | Bord",
   description:
@@ -20,7 +19,6 @@ interface SearchPageProps {
   searchParams: { [key: string]: string | string[] | undefined };
 }
 
-// Enhanced search page with better loading behavior
 export default function SearchPage({ searchParams }: SearchPageProps) {
   return (
     <main>

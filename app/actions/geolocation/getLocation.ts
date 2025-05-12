@@ -1,10 +1,7 @@
-// app/actions/getGeolocation.ts
 "use server";
 
 export async function getGeolocation(ip?: string) {
   try {
-    // Use the IP-API service to get location based on IP
-    // Note: In production, consider using a paid service with higher limits and reliability
     const apiUrl = ip
       ? `http://ip-api.com/json/${ip}?fields=status,message,lat,lon,city,country,regionName,query`
       : "http://ip-api.com/json/?fields=status,message,lat,lon,city,country,regionName,query";
@@ -20,9 +17,7 @@ export async function getGeolocation(ip?: string) {
 
     const data = await response.json();
 
-    // Check if we got valid location data
     if (data.status !== "success" || !data.lat || !data.lon) {
-      // Return null values to indicate we couldn't determine location
       return {
         latitude: null,
         longitude: null,
@@ -34,7 +29,6 @@ export async function getGeolocation(ip?: string) {
       };
     }
 
-    // Return the actual location data
     return {
       latitude: data.lat,
       longitude: data.lon,
@@ -47,7 +41,6 @@ export async function getGeolocation(ip?: string) {
   } catch (error) {
     console.error("Geolocation error:", error);
 
-    // Return error information instead of a fallback location
     return {
       latitude: null,
       longitude: null,
