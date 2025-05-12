@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import { setSearchTerm, resetSearch } from "@/store/features/searchSlice";
 import { createSearchUrl } from "@/lib/utils/urlUtils";
+import { executeSearch } from "@/store/features/searchThunk";
 
 export function useSearchNavigation(
   results: any,
@@ -66,12 +67,14 @@ export function useSearchNavigation(
         distance: distanceParam,
       });
 
-      // If we're already on the search page, use router.replace
-      if (isSearchPage) {
-        router.replace(searchUrl, { scroll: false });
-      } else {
-        // Otherwise use router.push with a loading indicator
-        router.push(searchUrl);
+      // CHANGED: Always use router.push, even on the search page
+      // This forces a full navigation and re-fetching of data
+      router.push(searchUrl);
+
+      // If we're on the search page, also explicitly trigger a new search
+      // This ensures results update even if the navigation doesn't fully reload
+      if (isSearchPage && mapView) {
+        dispatch(executeSearch({ forceUpdate: true }));
       }
 
       // Reset navigation flag after a short delay

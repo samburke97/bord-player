@@ -141,7 +141,50 @@ h2 {
     font-size: 24px;
   }
 }
+/* Allow scrolling on the search page */
+body.search-page {
+  padding-top: 80px; /* Match your header height */
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: auto;
+  min-height: 100vh;
+}
 
+/* Search page main container */
+.search-page-main {
+  min-height: calc(100vh - 80px); /* Account for header */
+  height: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ensure the search results heading is always visible */
+body.search-page :global(.resultsHeader) {
+  position: sticky;
+  top: 0;
+  background-color: var(--bg-standard);
+  z-index: 10;
+}
+
+/* Custom scrollbar for search page */
+body.search-page::-webkit-scrollbar {
+  width: 10px;
+}
+
+body.search-page::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+body.search-page::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+body.search-page::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.3);
+}
 /* Scrollbar styles */
 
 /* For all elements (Firefox) */

@@ -35,18 +35,37 @@ export default function RootClientLayout({
   }, []);
 
   const isCenterDetailPage = /^\/centers\/[a-zA-Z0-9-]+$/.test(pathname);
+  const isSearchPage = pathname.startsWith("/search");
 
   const shouldHideNavBar =
-    (pathname.startsWith("/search") && !isLargeScreen) ||
-    (isCenterDetailPage && !isMediumScreen);
+    (isSearchPage && !isLargeScreen) || (isCenterDetailPage && !isMediumScreen);
 
-  const shouldHideFooter = pathname.startsWith("/search");
+  const shouldHideFooter = isSearchPage;
+
+  // Add a class to the body when on search page
+  useEffect(() => {
+    if (isClientSide) {
+      if (isSearchPage) {
+        document.body.classList.add("search-page");
+      } else {
+        document.body.classList.remove("search-page");
+      }
+    }
+
+    return () => {
+      if (isClientSide) {
+        document.body.classList.remove("search-page");
+      }
+    };
+  }, [isSearchPage, isClientSide]);
 
   return (
     <Provider store={store}>
       <ThemeProvider>
         {isClientSide && !shouldHideNavBar && <Header />}
-        {children}
+        <main className={isSearchPage ? "search-page-main" : ""}>
+          {children}
+        </main>
         {!shouldHideFooter && <Footer />}
       </ThemeProvider>
     </Provider>

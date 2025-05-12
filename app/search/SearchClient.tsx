@@ -26,7 +26,7 @@ export default function SearchClient() {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const pathname = usePathname();
-  const urlSearchParams = useSearchParams();
+  const searchParams = useSearchParams();
 
   // Redux state
   const { centers, activePin, isLoading, userLocation, mapView, searchTerm } =
@@ -35,7 +35,6 @@ export default function SearchClient() {
   // UI state
   const [isMapView, setIsMapView] = useState(false);
   const [isLargeScreen, setIsLargeScreen] = useState(true);
-  const [isInitialized, setIsInitialized] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   // Get user location
@@ -46,39 +45,71 @@ export default function SearchClient() {
     isLoading: locationLoading,
   } = useGeolocation();
 
-  // Initialize from URL parameters
+  // React directly to URL parameter changes
   useEffect(() => {
-    if (isInitialized) return;
+    // Get search parameters
+    const qParam = searchParams.get("q");
+    const centerParam = searchParams.get("center");
+    const distanceParam = searchParams.get("distance");
 
-    // Parse search term
-    const qParam = urlSearchParams.get("q");
-    if (qParam !== undefined && qParam !== null) {
-      dispatch(setSearchTerm(qParam));
+    // Update search term in Redux state
+    if (qParam !== searchTerm) {
+      dispatch(setSearchTerm(qParam || ""));
     }
 
-    // Parse map view parameters
-    const centerParam = urlSearchParams.get("center");
-    const distanceParam = urlSearchParams.get("distance");
-
+    // Process map parameters
     if (centerParam && distanceParam) {
       try {
         const [lat, lng] = centerParam.split(",").map(Number);
         const distance = Number(distanceParam);
 
         if (!isNaN(lat) && !isNaN(lng) && !isNaN(distance)) {
-          dispatch(
-            setMapView({
-              center: { latitude: lat, longitude: lng },
-              distance,
+          // Update map view
+          const newMapView = {
+            center: { latitude: lat, longitude: lng },
+            distance,
+          };
+
+          dispatch(setMapView(newMapView));
+
+          // Calculate bounds
+          const bounds = {
+            north: lat + distance / 111,
+            south: lat - distance / 111,
+            east: lng + distance / (111 * Math.cos(lat * (Math.PI / 180))),
+            west: lng - distance / (111 * Math.cos(lat * (Math.PI / 180))),
+          };
+
+          // Execute search with current parameters
+          dispatch(setLoading(true));
+          searchCenters({
+            bounds,
+            searchTerm: qParam || "",
+          })
+            .then((results) => {
+              dispatch(setCenters(results));
+              dispatch(setLoading(false));
             })
-          );
-          setIsInitialized(true);
+            .catch((error) => {
+              console.error("Search error:", error);
+              dispatch(setError("Search failed"));
+              dispatch(setLoading(false));
+            });
         }
       } catch (error) {
         console.error("Failed to parse map parameters from URL:", error);
       }
+    } else if (latitude && longitude) {
+      // Fall back to user location if no map parameters
+      const initialMapView = {
+        center: { latitude, longitude },
+        distance: 5, // Default radius
+      };
+
+      dispatch(setMapView(initialMapView));
+      updateUrl(initialMapView, qParam || "");
     }
-  }, [urlSearchParams, dispatch, isInitialized]);
+  }, [searchParams, dispatch, searchTerm, latitude, longitude]);
 
   // Check screen size
   useEffect(() => {
@@ -94,13 +125,11 @@ export default function SearchClient() {
   // Update URL with current view state
   const updateUrl = useCallback(
     (newMapView: MapView, newSearchTerm = searchTerm) => {
-      const params = new URLSearchParams(urlSearchParams.toString());
+      const params = new URLSearchParams();
 
       // Update search term
       if (newSearchTerm) {
         params.set("q", newSearchTerm);
-      } else {
-        params.delete("q");
       }
 
       // Update map parameters
@@ -112,11 +141,11 @@ export default function SearchClient() {
       );
       params.set("distance", newMapView.distance.toFixed(2));
 
-      // Construct and update URL
+      // Construct and update URL - always use push
       const newUrl = `${pathname}?${params.toString()}`;
-      router.replace(newUrl, { scroll: false });
+      router.push(newUrl);
     },
-    [pathname, router, searchTerm, urlSearchParams]
+    [pathname, router, searchTerm]
   );
 
   // Handle map bounds change
@@ -124,138 +153,20 @@ export default function SearchClient() {
     (newMapView: MapView) => {
       dispatch(resetActiveStates());
       dispatch(setMapView(newMapView));
-
       updateUrl(newMapView);
-
-      // Calculate bounds from mapView
-      const bounds = {
-        north:
-          newMapView.north ||
-          newMapView.center.latitude + newMapView.distance / 111,
-        south:
-          newMapView.south ||
-          newMapView.center.latitude - newMapView.distance / 111,
-        east:
-          newMapView.east ||
-          newMapView.center.longitude +
-            newMapView.distance /
-              (111 * Math.cos((newMapView.center.latitude * Math.PI) / 180)),
-        west:
-          newMapView.west ||
-          newMapView.center.longitude -
-            newMapView.distance /
-              (111 * Math.cos((newMapView.center.latitude * Math.PI) / 180)),
-      };
-
-      dispatch(setLoading(true));
-      searchCenters({
-        bounds,
-        searchTerm,
-      })
-        .then((results) => {
-          dispatch(setCenters(results));
-          dispatch(setLoading(false));
-        })
-        .catch((error) => {
-          console.error("Search error:", error);
-          dispatch(setError("Search failed"));
-          dispatch(setLoading(false));
-        });
     },
-    [dispatch, searchTerm, updateUrl]
+    [dispatch, updateUrl]
   );
 
+  // Handle search term change
   const handleSearchChange = useCallback(
     (term: string) => {
-      dispatch(setSearchTerm(term));
-
       if (mapView) {
         updateUrl(mapView, term);
-
-        // Calculate bounds
-        const bounds = {
-          north:
-            mapView.north || mapView.center.latitude + mapView.distance / 111,
-          south:
-            mapView.south || mapView.center.latitude - mapView.distance / 111,
-          east:
-            mapView.east ||
-            mapView.center.longitude +
-              mapView.distance /
-                (111 * Math.cos((mapView.center.latitude * Math.PI) / 180)),
-          west:
-            mapView.west ||
-            mapView.center.longitude -
-              mapView.distance /
-                (111 * Math.cos((mapView.center.latitude * Math.PI) / 180)),
-        };
-
-        dispatch(setLoading(true));
-        searchCenters({
-          bounds,
-          searchTerm: term,
-        })
-          .then((results) => {
-            dispatch(setCenters(results));
-            dispatch(setLoading(false));
-          })
-          .catch((error) => {
-            console.error("Search error:", error);
-            dispatch(setError("Search failed"));
-            dispatch(setLoading(false));
-          });
       }
     },
-    [dispatch, mapView, updateUrl]
+    [mapView, updateUrl]
   );
-
-  // Initialize with user location if needed
-  useEffect(() => {
-    if (!isInitialized && !mapView && latitude && longitude) {
-      const initialMapView = {
-        center: { latitude, longitude },
-        distance: 5, // Default radius
-      };
-
-      dispatch(setMapView(initialMapView));
-      setIsInitialized(true);
-
-      // Update URL
-      updateUrl(initialMapView, searchTerm);
-
-      // Calculate bounds
-      const bounds = {
-        north: latitude + 5 / 111,
-        south: latitude - 5 / 111,
-        east: longitude + 5 / (111 * Math.cos(latitude * (Math.PI / 180))),
-        west: longitude - 5 / (111 * Math.cos(latitude * (Math.PI / 180))),
-      };
-
-      // Search with initial location
-      dispatch(setLoading(true));
-      searchCenters({
-        bounds,
-        searchTerm,
-      })
-        .then((results) => {
-          dispatch(setCenters(results));
-          dispatch(setLoading(false));
-        })
-        .catch((error) => {
-          console.error("Search error:", error);
-          dispatch(setError("Search failed"));
-          dispatch(setLoading(false));
-        });
-    }
-  }, [
-    dispatch,
-    isInitialized,
-    latitude,
-    longitude,
-    mapView,
-    searchTerm,
-    updateUrl,
-  ]);
 
   // Center click handler
   const handleCenterClick = useCallback(
@@ -276,6 +187,16 @@ export default function SearchClient() {
   // Toggle view on mobile
   const toggleView = useCallback(() => {
     setIsMapView((prev) => !prev);
+  }, []);
+
+  // Force browser to recalculate heights after render
+  useEffect(() => {
+    // Small timeout to ensure the DOM is ready
+    const timer = setTimeout(() => {
+      window.dispatchEvent(new Event("resize"));
+    }, 100);
+
+    return () => clearTimeout(timer);
   }, []);
 
   return (

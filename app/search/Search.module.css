@@ -1,71 +1,80 @@
 /* app/search/Search.module.css */
+/* Container layout */
 .container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
   width: 100%;
-  overflow: hidden;
+  min-height: calc(100vh - 80px); /* Account for 80px header */
+  height: auto;
+  position: relative;
 }
 
+/* Main content area */
 .content {
   display: flex;
-  flex: 1 1 0;
-  min-height: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
+  min-height: calc(100vh - 80px); /* Account for 80px header */
+  width: 100%;
+  position: relative;
 }
 
+/* Left panel with search results */
 .leftPanel {
   flex: 0 0 450px;
   max-width: 450px;
-  min-height: 0;
-  overflow: visible;
+  min-height: calc(100vh - 80px); /* Account for 80px header */
+  height: auto;
   display: flex;
   flex-direction: column;
   border-right: 1px solid var(--out-light);
-}
-
-.rightPanel {
-  flex: 1 1 0;
-  min-height: 0;
-  overflow: visible;
-}
-
-.resultsList {
-  flex: 1 1 0;
-  min-height: 0;
-  overflow-y: auto;
-  padding: 16px;
-}
-
-/* Search bar styles */
-.desktopSearchContainer {
-  padding: 16px;
-  border-bottom: 1px solid var(--out-light);
+  position: relative;
+  padding-top: 0; /* No top padding */
   background-color: var(--bg-standard);
-  z-index: 10;
 }
 
-.desktopSearchBar {
-  width: 100%;
+/* Right panel with map - fixed in place */
+.rightPanel {
+  flex: 1;
+  height: calc(100vh - 80px); /* Account for 80px header */
+  position: fixed;
+  left: 450px;
+  right: 0;
+  top: 80px; /* Position below 80px header */
+  bottom: 0;
+  z-index: 5; /* Lower than the header */
 }
 
-/* Mobile specific styles */
+/* Results list container */
+.resultsList {
+  flex: 1;
+  overflow: hidden; /* Don't allow overflow at this level */
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* Mobile header */
 .mobileHeader {
   display: none;
   padding: 12px;
   background-color: var(--bg-standard);
   border-bottom: 1px solid var(--out-light);
-  z-index: 10;
+  z-index: 50;
   flex-direction: row;
   align-items: center;
   gap: 12px;
+  position: fixed;
+  top: 80px; /* Position below 80px main header */
+  left: 0;
+  right: 0;
+  height: 64px;
 }
 
+/* Mobile search bar */
 .mobileSearchBar {
   flex: 1;
 }
 
+/* View toggle button for mobile */
 .viewToggleButton {
   width: 40px;
   height: 40px;
@@ -83,21 +92,38 @@
   background-color: var(--primary-500);
 }
 
+/* Map component sizing */
+.rightPanel :global(.mapContainer),
+.rightPanel :global(.map) {
+  width: 100% !important;
+  height: 100% !important;
+}
+
 @media (max-width: 767px) {
   .mobileHeader {
     display: flex;
   }
 
-  .leftPanel,
+  .content {
+    padding-top: 64px; /* Add padding for mobile header */
+  }
+
+  .leftPanel {
+    min-height: 0;
+    max-width: 100%;
+    flex: 1;
+    border-right: none;
+  }
+
   .rightPanel {
-    width: 100%;
+    position: fixed;
+    left: 0;
+    top: 144px; /* Below both headers (80px + 64px) */
+    height: calc(100vh - 144px);
+    z-index: 40;
   }
 
   .hidden {
-    display: none;
-  }
-
-  .desktopSearchContainer {
     display: none;
   }
 }
