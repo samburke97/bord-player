@@ -1,17 +1,16 @@
 // hooks/useGeolocation.ts
 import { useState, useEffect } from "react";
-import { useDispatch } from "react-redux";
+import { useAppDispatch } from "@/store/store";
 import { setUserLocation } from "@/store/features/searchSlice";
-import { getGeolocation } from "@/app/actions/geolocation/getLocation";
 
 export function useGeolocation() {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const [state, setState] = useState({
     latitude: null as number | null,
     longitude: null as number | null,
+    isPrecise: false,
     error: null as string | null,
     isLoading: true,
-    // Only show our custom prompt if browser permission was denied
     showLocationHelp: false,
   });
 
@@ -30,12 +29,14 @@ export function useGeolocation() {
               const location = {
                 latitude: position.coords.latitude,
                 longitude: position.coords.longitude,
+                isPrecise: true, // Browser geolocation is precise
               };
 
               setState((prev) => ({
                 ...prev,
                 latitude: location.latitude,
                 longitude: location.longitude,
+                isPrecise: true,
                 error: null,
                 isLoading: false,
                 showLocationHelp: false,
@@ -61,12 +62,14 @@ export function useGeolocation() {
                   const location = {
                     latitude: ipLocation.latitude,
                     longitude: ipLocation.longitude,
+                    isPrecise: false, // IP geolocation is NOT precise
                   };
 
                   setState((prev) => ({
                     ...prev,
                     latitude: location.latitude,
                     longitude: location.longitude,
+                    isPrecise: false,
                     error: "Using approximate location",
                     isLoading: false,
                     showLocationHelp: permissionDenied, // Only show help if they denied permission
@@ -100,12 +103,11 @@ export function useGeolocation() {
           );
         } catch (error) {
           console.error("Geolocation error:", error);
-          // Fall back to IP geolocation
-          // [... similar fallback code as above ...]
+          // Handle error with appropriate fallback
         }
       } else {
         // Browser doesn't support geolocation - fall back to IP
-        // [... IP geolocation code as in previous answer ...]
+        // ...IP geolocation code goes here
       }
     };
 

@@ -1,4 +1,3 @@
-// components/search/SearchResults.tsx
 import React, { memo } from "react";
 import CenterCard from "./CenterCard";
 import type { Center } from "@/types/entities";
@@ -21,6 +20,9 @@ const SearchResults: React.FC<SearchResultsProps> = ({
   onCenterHover,
   onCenterClick,
 }) => {
+  // Add this at the top of your component
+  const centerCount = centers.length;
+
   if (centers.length === 0 && !isLoading) {
     return (
       <div className={styles.emptyContainer}>
@@ -54,6 +56,12 @@ const SearchResults: React.FC<SearchResultsProps> = ({
 
   return (
     <div className={styles.resultsContainer}>
+      {/* Add the count header */}
+      <div className={styles.resultsHeader}>
+        <h2 className={styles.resultsTitle}>
+          {centerCount} {centerCount === 1 ? "venue" : "venues"} within map area
+        </h2>
+      </div>
       <div className={styles.resultsList}>
         {centers.map((center) => (
           <CenterCard

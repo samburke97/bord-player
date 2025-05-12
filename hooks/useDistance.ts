@@ -1,28 +1,28 @@
+// hooks/useDistance.ts
 "use client";
 
 import { useState, useEffect } from "react";
-import { useLocation } from "@/store/use-location";
+import { useAppSelector } from "@/store/store";
 import { calculateDistance } from "@/lib/utils/distance";
 
 /**
  * Custom hook to calculate distance between user location and a target location
+ * Only calculates distance when user has provided precise location permission
  *
  * @param targetLat - Target latitude
  * @param targetLng - Target longitude
  * @returns An object containing the calculated distance and loading/error states
  */
-
 export function useDistance(
   targetLat: number | null,
   targetLng: number | null
 ) {
-  const { location, error: locationError } = useLocation();
+  const userLocation = useAppSelector((state) => state.search.userLocation);
   const [distance, setDistance] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Reset loading state when dependencies change
     setLoading(true);
 
     // Handle target coordinates not provided
@@ -32,19 +32,12 @@ export function useDistance(
       return;
     }
 
-    // Handle location error
-    if (locationError) {
-      setError(locationError);
-      setLoading(false);
-      return;
-    }
-
-    // Calculate distance if we have both user location and target coordinates
-    if (location && targetLat && targetLng) {
+    // Only calculate distance if we have precise location
+    if (userLocation && userLocation.isPrecise && targetLat && targetLng) {
       try {
         const calculatedDistance = calculateDistance(
-          location.latitude,
-          location.longitude,
+          userLocation.latitude,
+          userLocation.longitude,
           targetLat,
           targetLng
         );
@@ -53,14 +46,18 @@ export function useDistance(
       } catch (err) {
         setError("Error calculating distance");
         console.error("Distance calculation error:", err);
-      } finally {
-        setLoading(false);
       }
-    } else if (location === null && !locationError) {
-      // Still waiting for location
-      setLoading(true);
+    } else {
+      setDistance(null);
+      if (!userLocation) {
+        setError("User location not available");
+      } else if (!userLocation.isPrecise) {
+        setError("Precise location not available");
+      }
     }
-  }, [location, targetLat, targetLng, locationError]);
+
+    setLoading(false);
+  }, [userLocation, targetLat, targetLng]);
 
   return { distance, loading, error };
 }
