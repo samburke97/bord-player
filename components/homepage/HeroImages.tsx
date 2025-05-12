@@ -1,15 +1,9 @@
 "use client";
 
-import React from "react";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Pagination, Autoplay } from "swiper/modules";
+import React, { useCallback, useEffect, useState } from "react";
+import useEmblaCarousel from "embla-carousel-react";
 import Image from "next/image";
 import Link from "next/link";
-
-// Import Swiper styles
-import "swiper/css";
-import "swiper/css/pagination";
-
 import styles from "./HeroImages.module.css";
 
 const HERO_IMAGES = [
@@ -34,51 +28,87 @@ const HERO_IMAGES = [
 ];
 
 const HeroImages: React.FC = () => {
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    loop: true,
+    align: "start",
+  });
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  // Handle pagination dots
+  const onSelect = useCallback(() => {
+    if (!emblaApi) return;
+    setSelectedIndex(emblaApi.selectedScrollSnap());
+  }, [emblaApi]);
+
+  // Set up autoplay
+  useEffect(() => {
+    if (!emblaApi) return;
+
+    emblaApi.on("select", onSelect);
+
+    // Set up autoplay identical to the original
+    const autoplayInterval = setInterval(() => {
+      if (emblaApi.canScrollNext()) {
+        emblaApi.scrollNext();
+      } else {
+        emblaApi.scrollTo(0);
+      }
+    }, 5000);
+
+    // Clean up
+    return () => {
+      clearInterval(autoplayInterval);
+      emblaApi.off("select", onSelect);
+    };
+  }, [emblaApi, onSelect]);
+
   return (
     <div className={styles.heroImagesContainer}>
-      <Swiper
-        modules={[Pagination, Autoplay]}
-        spaceBetween={0}
-        slidesPerView={1}
-        pagination={{
-          clickable: true,
-          // Use Swiper's built-in pagination instead of custom element
-          // This ensures proper rendering of pagination bullets
-        }}
-        autoplay={{
-          delay: 5000,
-          disableOnInteraction: false,
-        }}
-        loop={true}
-        className={styles.heroSwiper}
-      >
-        {HERO_IMAGES.map((image, index) => (
-          <SwiperSlide key={image.src} className={styles.heroSlide}>
-            <div className={styles.imageWrapper}>
-              <Image
-                src={image.src}
-                alt={image.alt}
-                fill
-                priority={index === 0}
-                className={styles.heroImage}
-              />
-              <Link
-                href={`/search?q=${encodeURIComponent(image.searchQuery)}`}
-                className={styles.imageOverlay}
-              >
-                <span className={styles.activityTitle}>{image.title}</span>
+      <div className={styles.heroSwiper} ref={emblaRef}>
+        <div className={styles.emblaContainer}>
+          {HERO_IMAGES.map((image, index) => (
+            <div key={image.src} className={styles.heroSlide}>
+              <div className={styles.imageWrapper}>
                 <Image
-                  src="/icons/utility-outline/forward.svg"
-                  alt="Forward"
-                  width={24}
-                  height={24}
-                  className={styles.forwardIcon}
+                  src={image.src}
+                  alt={image.alt}
+                  fill
+                  priority={index === 0}
+                  className={styles.heroImage}
                 />
-              </Link>
+                <Link
+                  href={`/search?q=${encodeURIComponent(image.searchQuery)}`}
+                  className={styles.imageOverlay}
+                >
+                  <span className={styles.activityTitle}>{image.title}</span>
+                  <Image
+                    src="/icons/utility-outline/forward.svg"
+                    alt="Forward"
+                    width={24}
+                    height={24}
+                    className={styles.forwardIcon}
+                  />
+                </Link>
+              </div>
             </div>
-          </SwiperSlide>
-        ))}
-      </Swiper>
+          ))}
+        </div>
+
+        {/* Pagination dots */}
+        <div className={styles.emblaPagination}>
+          {HERO_IMAGES.map((_, index) => (
+            <button
+              key={index}
+              className={`${styles.emblaPaginationDot} ${
+                index === selectedIndex ? styles.emblaPaginationDotActive : ""
+              }`}
+              type="button"
+              onClick={() => emblaApi?.scrollTo(index)}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
+        </div>
+      </div>
     </div>
   );
 };

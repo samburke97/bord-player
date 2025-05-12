@@ -11,9 +11,19 @@
   height: 560px;
   border-radius: var(--border-radius-lg);
   position: relative;
+  overflow: hidden;
 }
 
-.heroSwiper :global(.swiper-pagination) {
+/* Embla specific styles */
+.emblaContainer {
+  display: flex;
+  height: 100%;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.emblaPagination {
   position: absolute;
   top: 24px !important;
   bottom: auto !important;
@@ -25,7 +35,7 @@
   z-index: 20;
 }
 
-.heroSwiper :global(.swiper-pagination-bullet) {
+.emblaPaginationDot {
   width: 8px;
   height: 8px;
   background-color: rgba(255, 255, 255, 0.4);
@@ -37,14 +47,16 @@
   box-shadow: none;
 }
 
-.heroSwiper :global(.swiper-pagination-bullet-active) {
+.emblaPaginationDotActive {
   background-color: white;
 }
 
+/* These styles match the original styles exactly */
 .heroSlide {
   position: relative;
   width: 100%;
   height: 100%;
+  flex: 0 0 100%;
 }
 
 .imageWrapper {

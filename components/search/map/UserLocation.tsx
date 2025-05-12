@@ -1,4 +1,3 @@
-// components/search/map/UserLocationMarker.tsx
 import React, { useEffect, useRef, memo } from "react";
 import mapboxgl from "mapbox-gl";
 import styles from "../SearchMap.module.css";
@@ -21,11 +20,6 @@ const UserLocationMarker = memo(
       const el = document.createElement("div");
       el.className = styles.userLocationMarker;
 
-      // Create the ripple effect element
-      const ripple = document.createElement("div");
-      ripple.className = styles.userLocationRipple;
-      el.appendChild(ripple);
-
       // Create the marker
       const marker = new mapboxgl.Marker({
         element: el,
@@ -46,7 +40,7 @@ const UserLocationMarker = memo(
           markerRef.current = null;
         }
       };
-    }, [mapRef, userLocation]); // Only run once for initial userLocation
+    }, [mapRef, userLocation]);
 
     return null;
   }

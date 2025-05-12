@@ -1,6 +1,6 @@
 import React from "react";
 import styles from "./Hero.module.css";
-import SearchBar from "../ui/SearchBar";
+import SearchBar from "../ui/searchbar/SearchBar";
 
 const HeroSection = () => {
   return (

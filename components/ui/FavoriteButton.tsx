@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation"; // Changed from next/router to next/navigation
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import styles from "./FavoriteButton.module.css";
 
@@ -11,15 +11,11 @@ const FavoriteButton: React.FC<{
   const router = useRouter();
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
-    e.preventDefault(); // Prevent link navigation
-
+    e.preventDefault();
     if (!isLoggedIn) {
-      // Redirect to login page if not logged in
       router.push("/login");
       return;
     }
-
-    // TODO: Implement actual favorite logic
   };
 
   return (

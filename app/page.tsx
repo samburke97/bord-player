@@ -9,13 +9,11 @@ import ExploreMap from "@/components/homepage/ExploreMap";
 import { fetchCentersForCarousel } from "@/app/actions/centers/fetchCentersForCarousel";
 
 export default async function HomePage() {
-  // Fetch centers for "Recently Added" carousel
   const recentCenters = await fetchCentersForCarousel({
     type: "recent",
     limit: 12,
   });
 
-  // Fetch centers for "Popular Places" carousel
   const popularCenters = await fetchCentersForCarousel({
     type: "popular",
     limit: 12,

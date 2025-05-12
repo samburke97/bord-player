@@ -1,28 +1,29 @@
-/* components/search/CenterCard.module.css */
 .card {
-  display: flex;
-  flex-direction: column;
-  border-radius: 8px;
+  border-radius: 12px;
   overflow: hidden;
-  background-color: white;
+  background-color: var(--con-lightest, #ffffff);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
   text-decoration: none;
   color: inherit;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
   margin-bottom: 16px;
   cursor: pointer;
 }
 
 .card:hover {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   transform: translateY(-2px);
 }
 
 /* Image and Carousel styles */
 .imageContainer {
-  width: 100%;
-  height: 180px;
   position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border-radius: 12px 12px 0 0;
   overflow: hidden;
 }
 
@@ -33,12 +34,18 @@
   overflow: hidden;
 }
 
+.favoriteContainer {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+}
+
 /* Embla Carousel specific styles */
 .emblaViewport {
   overflow: hidden;
   width: 100%;
   height: 100%;
-  border-radius: 8px;
 }
 
 .emblaContainer {
@@ -123,10 +130,10 @@
   background: rgba(0, 0, 0, 0.7);
 }
 
-.buttonIcon {
-  width: 18px;
-  height: 18px;
-  color: white;
+.carouselButton img {
+  width: 16px;
+  height: 16px;
+  filter: brightness(0) invert(1);
 }
 
 /* Pagination dots */
@@ -160,65 +167,59 @@
   gap: 8px;
 }
 
-.tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 4px;
-}
-
-.tag {
-  font-size: 12px;
-  padding: 2px 8px;
-  border-radius: 4px;
-  background-color: #e6f7e9;
-  color: #39b252;
-}
-
 .name {
   font-size: 18px;
   font-weight: 600;
   margin: 0;
+  color: var(--for-darkest, #333);
   line-height: 1.3;
-  color: #333;
 }
 
-.address {
+.centerMeta {
   display: flex;
   align-items: center;
-  gap: 6px;
+  flex-wrap: wrap;
+  gap: 4px;
   font-size: 14px;
-  color: #666;
+  color: var(--grey-500, #7e807e);
 }
 
-.icon {
-  flex-shrink: 0;
-  width: 16px;
-  height: 16px;
-  color: #666;
-}
-
-.status {
-  margin-top: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.statusIndicator {
-  font-size: 14px;
+.statusTag {
+  color: var(--primary-400, #39b252);
   font-weight: 500;
-  color: #39b252;
+}
+
+.metaDot {
+  display: inline-block;
+  margin: 0 2px;
+  color: var(--grey-500, #7e807e);
+}
+
+.sportType,
+.distance {
+  color: var(--grey-500, #7e807e);
+}
+
+.tagsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.tag {
+  padding: 4px 12px;
+  border-radius: 100px;
+  background-color: var(--grey-200, #f2f5f3);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--grey-600, #4c4d4c);
 }
 
 /* Mobile Adjustments */
 @media (max-width: 768px) {
   .card {
     margin-bottom: 12px;
-  }
-
-  .imageContainer {
-    height: 160px;
   }
 
   .content {
@@ -234,8 +235,7 @@
     height: 28px;
   }
 
-  .buttonIcon {
-    width: 16px;
-    height: 16px;
+  .centerMeta {
+    font-size: 13px;
   }
 }

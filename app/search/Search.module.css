@@ -1,3 +1,4 @@
+/* app/search/Search.module.css */
 .container {
   display: flex;
   flex-direction: column;
@@ -14,25 +15,34 @@
   overflow-x: hidden;
 }
 
-.leftPanel,
-.rightPanel {
-  flex: 1 1 0;
+.leftPanel {
+  flex: 0 0 450px;
+  max-width: 450px;
   min-height: 0;
   overflow: visible;
   display: flex;
   flex-direction: column;
+  border-right: 1px solid var(--out-light);
+}
+
+.rightPanel {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: visible;
 }
 
 .resultsList {
   flex: 1 1 0;
   min-height: 0;
-  overflow: visible;
+  overflow-y: auto;
+  padding: 16px;
 }
+
 /* Search bar styles */
 .desktopSearchContainer {
   padding: 16px;
-  border-bottom: 1px solid #eee;
-  background-color: white;
+  border-bottom: 1px solid var(--out-light);
+  background-color: var(--bg-standard);
   z-index: 10;
 }
 
@@ -44,8 +54,8 @@
 .mobileHeader {
   display: none;
   padding: 12px;
-  background-color: white;
-  border-bottom: 1px solid #eee;
+  background-color: var(--bg-standard);
+  border-bottom: 1px solid var(--out-light);
   z-index: 10;
   flex-direction: row;
   align-items: center;
@@ -60,7 +70,7 @@
   width: 40px;
   height: 40px;
   border-radius: 4px;
-  background-color: #39b252;
+  background-color: var(--primary-400);
   color: white;
   display: flex;
   align-items: center;
@@ -70,10 +80,9 @@
 }
 
 .viewToggleButton:hover {
-  background-color: #2e8a40;
+  background-color: var(--primary-500);
 }
 
-/* Media queries for responsive design */
 @media (max-width: 767px) {
   .mobileHeader {
     display: flex;
@@ -91,17 +100,4 @@
   .desktopSearchContainer {
     display: none;
   }
-}
-
-/* Tablet layout */
-@media (min-width: 768px) and (max-width: 1023px) {
-  .leftPanel {
-    width: 350px;
-  }
-}
-
-.resultsList {
-  flex: 1 1 0;
-  min-height: 0;
-  overflow-y: auto;
 }

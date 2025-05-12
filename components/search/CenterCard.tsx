@@ -5,7 +5,8 @@ import Link from "next/link";
 import type { Center } from "@/types/entities";
 import styles from "./CenterCard.module.css";
 import useEmblaCarousel from "embla-carousel-react";
-import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
+import FavoriteButton from "../ui/FavoriteButton";
+import { useDistance } from "@/hooks/useDistance";
 
 interface CenterCardProps {
   center: Center;
@@ -23,8 +24,13 @@ const CenterCard: React.FC<CenterCardProps> = memo(
     // Get first 3 sports for display
     const displaySports = center.sports?.slice(0, 3) || [];
 
-    const [isHovered, setIsHovered] = useState(false);
+    // Use the distance hook
+    const { distance, loading: distanceLoading } = useDistance(
+      center.latitude ? Number(center.latitude) : null,
+      center.longitude ? Number(center.longitude) : null
+    );
 
+    const [isHovered, setIsHovered] = useState(false);
     const [currentSlide, setCurrentSlide] = useState(0);
     const [canScrollPrev, setCanScrollPrev] = useState(false);
     const [canScrollNext, setCanScrollNext] = useState(false);
@@ -83,19 +89,28 @@ const CenterCard: React.FC<CenterCardProps> = memo(
       };
     }, [emblaApi]);
 
+    // Primary sport to display in the status line
+    const primarySport =
+      center.sports && center.sports.length > 0
+        ? center.sports[0].name
+        : "Sports Center";
+
     return (
       <Link
         href={`/centers/${center.id}`}
         className={styles.card}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
-        // No onClick handler - let Link handle navigation
       >
         <div
           className={styles.imageContainer}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
+          <div className={styles.favoriteContainer}>
+            <FavoriteButton centerId={center.id} />
+          </div>
+
           {images.length > 0 ? (
             <div className={styles.carouselContainer}>
               <div className={styles.emblaViewport} ref={emblaRef}>
@@ -115,33 +130,6 @@ const CenterCard: React.FC<CenterCardProps> = memo(
                 </div>
               </div>
 
-              {/* Navigation arrows - only when hovering and there are multiple images */}
-              {images.length > 1 && isHovered && (
-                <>
-                  {canScrollPrev && (
-                    <button
-                      className={`${styles.carouselButton} ${styles.carouselButtonPrev}`}
-                      onClick={scrollPrev}
-                      aria-label="Previous image"
-                      type="button"
-                    >
-                      <ChevronLeftIcon className={styles.buttonIcon} />
-                    </button>
-                  )}
-
-                  {canScrollNext && (
-                    <button
-                      className={`${styles.carouselButton} ${styles.carouselButtonNext}`}
-                      onClick={scrollNext}
-                      aria-label="Next image"
-                      type="button"
-                    >
-                      <ChevronRightIcon className={styles.buttonIcon} />
-                    </button>
-                  )}
-                </>
-              )}
-
               {/* Pagination dots - always visible when there are multiple images */}
               {images.length > 1 && (
                 <div className={styles.pagination}>
@@ -155,6 +143,36 @@ const CenterCard: React.FC<CenterCardProps> = memo(
                   ))}
                 </div>
               )}
+
+              {/* Navigation arrows - only when hovering and there are multiple images */}
+              {images.length > 1 && isHovered && (
+                <>
+                  {canScrollPrev && (
+                    <button
+                      className={`${styles.carouselButton} ${styles.carouselButtonPrev}`}
+                      onClick={scrollPrev}
+                      aria-label="Previous image"
+                      type="button"
+                    >
+                      <img
+                        src="/icons/utility-outline/left.svg"
+                        alt="Previous"
+                      />
+                    </button>
+                  )}
+
+                  {canScrollNext && (
+                    <button
+                      className={`${styles.carouselButton} ${styles.carouselButtonNext}`}
+                      onClick={scrollNext}
+                      aria-label="Next image"
+                      type="button"
+                    >
+                      <img src="/icons/utility-outline/right.svg" alt="Next" />
+                    </button>
+                  )}
+                </>
+              )}
             </div>
           ) : (
             <div className={styles.imagePlaceholder}>Image not available</div>
@@ -162,43 +180,30 @@ const CenterCard: React.FC<CenterCardProps> = memo(
         </div>
 
         <div className={styles.content}>
-          {/* Sports tags */}
-          <div className={styles.tags}>
-            {displaySports.map((sport) => (
-              <span key={sport.id} className={styles.tag}>
-                {sport.name}
-              </span>
-            ))}
-          </div>
-
-          {/* Center name */}
           <h3 className={styles.name}>{center.name}</h3>
 
-          {/* Address */}
-          <div className={styles.address}>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className={styles.icon}
-            >
-              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-              <circle cx="12" cy="10" r="3"></circle>
-            </svg>
-            <span>{center.address || "Address not available"}</span>
-          </div>
-
-          {/* Status indicator */}
-          <div className={styles.status}>
-            <span className={styles.statusIndicator}>
+          <div className={styles.centerMeta}>
+            <span className={styles.statusTag}>
               {center.isOpenNow ? "Open Now" : "Closed"}
             </span>
+            <span className={styles.metaDot}>•</span>
+            <span className={styles.sportType}>{primarySport}</span>
+            {distance !== null && !distanceLoading && (
+              <>
+                <span className={styles.metaDot}>•</span>
+                <span className={styles.distance}>{distance} km</span>
+              </>
+            )}
+          </div>
+
+          {/* Facility tags */}
+          <div className={styles.tagsContainer}>
+            {center.facilities &&
+              center.facilities.slice(0, 3).map((facility) => (
+                <span key={facility.id} className={styles.tag}>
+                  {facility.name}
+                </span>
+              ))}
           </div>
         </div>
       </Link>

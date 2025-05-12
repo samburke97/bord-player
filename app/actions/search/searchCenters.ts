@@ -1,4 +1,3 @@
-// app/actions/search/searchCenters.ts
 "use server";
 
 import { prisma } from "@/lib/prisma";

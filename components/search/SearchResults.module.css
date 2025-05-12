@@ -1,4 +1,3 @@
-/* components/search/SearchResults.module.css */
 .resultsContainer {
   display: flex;
   flex-direction: column;
@@ -56,7 +55,6 @@
   }
 }
 
-/* Empty state */
 .emptyContainer {
   height: 100%;
   display: flex;
@@ -141,7 +139,6 @@
   backdrop-filter: blur(2px);
 }
 
-/* Make the results container positioned for the overlay */
 .resultsContainer {
   position: relative;
   height: 100%;

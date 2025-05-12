@@ -6,13 +6,12 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import Container from "@/components/layout/Container";
 import IconButton from "@/components/ui/IconButton";
-import SearchBar from "@/components/ui/SearchBar";
+import SearchBar from "@/components/ui/searchbar/SearchBar";
 import DesktopNav from "./DesktopNav";
 import MobileNav from "./MobileNav";
 import { NavItem } from "@/types/navigation";
 import styles from "./Header.module.css";
 
-// Define navigation items to avoid duplication
 const navItems: NavItem[] = [
   {
     href: "/explore",
@@ -45,11 +44,9 @@ export default function Header() {
   const [isLargeScreen, setIsLargeScreen] = useState(false);
   const pathname = usePathname();
 
-  // Check if we're on the search page
   const isSearchPage = pathname?.includes("/search") || false;
 
   useEffect(() => {
-    // Lock body scroll when mobile menu is open
     if (mobileMenuOpen && !isLargeScreen) {
       document.body.style.overflow = "hidden";
     } else {
@@ -60,7 +57,6 @@ export default function Header() {
       const prevIsLargeScreen = isLargeScreen;
       const isNowLargeScreen = window.innerWidth >= 768;
 
-      // When screen size changes, close the menu to avoid inconsistent states
       if (prevIsLargeScreen !== isNowLargeScreen && mobileMenuOpen) {
         setMobileMenuOpen(false);
       }
@@ -80,8 +76,6 @@ export default function Header() {
 
       setShowSearchInNav(newShowSearchInNav);
 
-      // Only close mobile menu if transitioning from scrolled state to non-scrolled state
-      // AND we're on a large screen where desktop nav will appear
       if (
         wasShowingSearchInNav &&
         !newShowSearchInNav &&
@@ -92,10 +86,8 @@ export default function Header() {
       }
     };
 
-    // Handle clicks outside the menu to close it
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
-      // Close menu if clicking outside and menu is open
       if (
         mobileMenuOpen &&
         !target.closest("#mobile-menu") &&
@@ -123,7 +115,6 @@ export default function Header() {
     setMobileMenuOpen(!mobileMenuOpen);
   };
 
-  // Separated rendering for mobile vs desktop menus
   const renderMobileMenu = () => {
     if (!isLargeScreen) {
       return <MobileNav isOpen={mobileMenuOpen} navItems={fullNavItems} />;
@@ -131,7 +122,6 @@ export default function Header() {
     return null;
   };
 
-  // Desktop dropdown menu
   const renderDesktopDropdown = () => {
     if (isLargeScreen) {
       return (
@@ -168,7 +158,6 @@ export default function Header() {
     >
       <Container>
         <div className={headerContentClass}>
-          {/* Logo - conditionally visible on mobile, always visible on desktop */}
           {(isLargeScreen || showLogoInMobile) && (
             <Link
               href="/"
@@ -192,9 +181,7 @@ export default function Header() {
               <DesktopNav navItems={navItems} showLinks={true} />
             </div>
           ) : (
-            /* Search and Desktop Nav - conditionally visible */
             <div className={styles.search}>
-              {/* Search Bar */}
               {(isLargeScreen && (isSearchPage || showSearchInNav)) ||
               (!isLargeScreen && showSearchInMobile) ||
               isSearchPage ? (
@@ -203,9 +190,7 @@ export default function Header() {
             </div>
           )}
 
-          {/* Mobile Menu Button - conditionally visible based on screen size and nav state */}
           <div className={styles.mobileControls} id="menu-button-container">
-            {/* Only show menu button when desktop nav is not visible */}
             {(showSearchInNav || isSearchPage || !isLargeScreen) && (
               <IconButton
                 id="menu-button"
@@ -229,13 +214,11 @@ export default function Header() {
               />
             )}
 
-            {/* Desktop dropdown menu */}
             {renderDesktopDropdown()}
           </div>
         </div>
       </Container>
 
-      {/* Mobile Menu for small screens */}
       {renderMobileMenu()}
     </header>
   );
