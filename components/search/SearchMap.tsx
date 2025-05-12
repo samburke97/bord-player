@@ -9,9 +9,9 @@ import type { MapBounds, MapView } from "@/types/map";
 import MapMarkers from "./map/MapMarkers";
 import UserLocationMarker from "./map/UserLocation";
 import MapControls from "./map/MapControls";
+import LoadingIndicator from "./LoadingIndicator";
 import styles from "./SearchMap.module.css";
 
-// Set Mapbox token
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "";
 
 interface SearchMapProps {
@@ -23,6 +23,7 @@ interface SearchMapProps {
   activePin?: string | null;
   onMarkerClick?: (id: string) => void;
   onMapClick?: () => void;
+  isLoading?: boolean;
 }
 
 const SearchMap: React.FC<SearchMapProps> = ({
@@ -34,6 +35,7 @@ const SearchMap: React.FC<SearchMapProps> = ({
   activePin,
   onMarkerClick,
   onMapClick,
+  isLoading, // Added this prop to the destructuring
 }) => {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const map = useRef<mapboxgl.Map | null>(null);
@@ -262,6 +264,7 @@ const SearchMap: React.FC<SearchMapProps> = ({
             onZoomOut={handleZoomOut}
             onGeolocate={handleGeolocate}
           />
+          <LoadingIndicator isLoading={isLoading} />
         </>
       )}
     </div>

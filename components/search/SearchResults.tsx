@@ -10,26 +10,18 @@ interface SearchResultsProps {
   activePin: string | null;
   searchTerm: string;
   onCenterHover: (id: string | null) => void;
+  onCenterClick?: (id: string) => void;
 }
 
 const SearchResults: React.FC<SearchResultsProps> = ({
   centers,
   isLoading,
+  activePin,
   searchTerm,
   onCenterHover,
+  onCenterClick,
 }) => {
-  // Loading state
-  if (isLoading) {
-    return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.spinner}></div>
-        <p>Loading results...</p>
-      </div>
-    );
-  }
-
-  // Empty state
-  if (centers.length === 0) {
+  if (centers.length === 0 && !isLoading) {
     return (
       <div className={styles.emptyContainer}>
         <div className={styles.emptyIcon}>
@@ -60,23 +52,17 @@ const SearchResults: React.FC<SearchResultsProps> = ({
     );
   }
 
-  // Results state
   return (
     <div className={styles.resultsContainer}>
-      <div className={styles.resultsHeader}>
-        <h2 className={styles.resultsTitle}>
-          {centers.length} {centers.length === 1 ? "center" : "centers"} found
-          {searchTerm ? ` for "${searchTerm}"` : ""}
-        </h2>
-      </div>
-
       <div className={styles.resultsList}>
         {centers.map((center) => (
           <CenterCard
             key={center.id}
             center={center}
+            isActive={activePin === center.id}
             onMouseEnter={() => onCenterHover(center.id)}
             onMouseLeave={() => onCenterHover(null)}
+            onClick={onCenterClick ? () => onCenterClick(center.id) : undefined}
           />
         ))}
       </div>

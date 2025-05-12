@@ -1,5 +1,5 @@
 import React from "react";
-import styles from "./SearchLoadingIndicator.module.css";
+import styles from "./LoadingIndicator.module.css";
 
 interface LoadingIndicatorProps {
   isLoading: boolean;
@@ -15,7 +15,6 @@ const LoadingIndicator: React.FC<LoadingIndicatorProps> = ({ isLoading }) => {
         <div className={styles.dot}></div>
         <div className={styles.dot}></div>
       </div>
-      <div className={styles.text}>Searching...</div>
     </div>
   );
 };

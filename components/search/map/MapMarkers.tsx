@@ -1,4 +1,3 @@
-// components/search/map/MapMarkers.tsx - Completely rebuilt from scratch
 import React, { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import { createRoot } from "react-dom/client";
@@ -18,16 +17,24 @@ const MapMarkers: React.FC<MapMarkersProps> = ({ centers, mapRef }) => {
   const markersRef = useRef<Record<string, mapboxgl.Marker>>({});
   const cardMarkerRef = useRef<mapboxgl.Marker | null>(null);
 
-  // Handle map or marker cleanup
   useEffect(() => {
+    if (!mapRef.current) return;
+
+    // 1. Clean up ALL existing markers first
+    Object.values(markersRef.current).forEach((marker) => marker.remove());
+    markersRef.current = {}; // Reset the markers object
+
+    // 2. Add new markers
+    centers.forEach((center) => {
+      // [Rest of marker creation code]
+    });
+
+    // 3. Complete cleanup on unmount
     return () => {
-      // Remove all markers on unmount
       Object.values(markersRef.current).forEach((marker) => marker.remove());
-      if (cardMarkerRef.current) {
-        cardMarkerRef.current.remove();
-      }
+      markersRef.current = {};
     };
-  }, []);
+  }, [centers, mapRef]);
 
   // Create or update markers when centers change
   useEffect(() => {

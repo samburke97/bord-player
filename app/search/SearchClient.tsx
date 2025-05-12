@@ -1,4 +1,3 @@
-// app/search/SearchClient.tsx
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
@@ -38,16 +37,8 @@ export default function SearchClient({ searchParams = {} }: SearchClientProps) {
   const urlUpdateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Redux state
-  const {
-    centers,
-    activePin,
-    hoveredItem,
-    isLoading,
-    error,
-    userLocation,
-    mapView,
-    searchTerm,
-  } = useAppSelector((state) => state.search);
+  const { centers, activePin, isLoading, userLocation, mapView, searchTerm } =
+    useAppSelector((state) => state.search);
 
   // UI state
   const [isMapView, setIsMapView] = useState(false);
@@ -159,6 +150,8 @@ export default function SearchClient({ searchParams = {} }: SearchClientProps) {
 
       searchInProgressRef.current = true;
       console.log(`Starting search execution with term "${term}"`);
+
+      // Set loading state WITHOUT clearing centers
       dispatch(setLoading(true));
 
       try {
@@ -180,7 +173,7 @@ export default function SearchClient({ searchParams = {} }: SearchClientProps) {
 
         console.log(`Search returned ${results.length} results for "${term}"`);
 
-        // Update centers in Redux
+        // Update centers in Redux ONLY after we have results
         dispatch(setCenters(results));
         return results;
       } catch (error) {
@@ -188,6 +181,7 @@ export default function SearchClient({ searchParams = {} }: SearchClientProps) {
         dispatch(
           setError(error instanceof Error ? error.message : "Search failed")
         );
+        // Don't clear centers on error - keep showing what we had
         return [];
       } finally {
         dispatch(setLoading(false));
@@ -231,8 +225,6 @@ export default function SearchClient({ searchParams = {} }: SearchClientProps) {
     [dispatch, executeSearch, searchTerm, updateUrl]
   );
 
-  // In SearchClient.tsx - modify handleSearchChange to properly handle new search terms
-
   const handleSearchChange = useCallback(
     (term: string) => {
       console.log("Search term changed to:", term);
@@ -240,13 +232,10 @@ export default function SearchClient({ searchParams = {} }: SearchClientProps) {
       // 1. Update the search term in Redux
       dispatch(setSearchTerm(term));
 
-      // 2. Important: Clear current results immediately to avoid showing old results
-      dispatch(setCenters([]));
-
-      // 3. Set loading state
+      // 2. Set loading state WITHOUT clearing centers
       dispatch(setLoading(true));
 
-      // 4. If we have a map view, execute a fresh search
+      // 3. If we have a map view, execute a fresh search
       if (mapView) {
         const bounds = {
           north:
@@ -267,7 +256,7 @@ export default function SearchClient({ searchParams = {} }: SearchClientProps) {
           distance: mapView.distance,
         };
 
-        // Force a fresh search with the new term - explicitly pass it to ensure it's used
+        // Force a fresh search with the new term
         searchCenters({
           bounds,
           searchTerm: term,
@@ -276,6 +265,7 @@ export default function SearchClient({ searchParams = {} }: SearchClientProps) {
             console.log(
               `Search for "${term}" returned ${results.length} results`
             );
+            // Only update centers when we have results
             dispatch(setCenters(results));
             dispatch(setLoading(false));
           })
@@ -286,7 +276,7 @@ export default function SearchClient({ searchParams = {} }: SearchClientProps) {
           });
       }
 
-      // 5. Update URL with new search term
+      // 4. Update URL with new search term
       if (mapView) {
         updateUrl(mapView, term);
       }
@@ -364,10 +354,10 @@ export default function SearchClient({ searchParams = {} }: SearchClientProps) {
     };
   }, []);
 
-  // New useEffect to trigger search when search term or map view changes
+  // Modified useEffect for search term or map view changes
   useEffect(() => {
     // Only run if both are initialized
-    if (!mapView || !searchTerm) return;
+    if (!mapView || !isInitialized) return;
 
     // Build bounds from mapView
     const bounds = {
@@ -387,8 +377,6 @@ export default function SearchClient({ searchParams = {} }: SearchClientProps) {
       distance: mapView.distance,
     };
 
-    // Clear results and set loading
-    dispatch(setCenters([]));
     dispatch(setLoading(true));
 
     searchCenters({ bounds, searchTerm })
@@ -396,16 +384,14 @@ export default function SearchClient({ searchParams = {} }: SearchClientProps) {
         dispatch(setCenters(results));
         dispatch(setLoading(false));
       })
-      .catch(() => {
-        dispatch(setCenters([]));
+      .catch((error) => {
+        console.error("Search error:", error);
         dispatch(setLoading(false));
       });
-  }, [searchTerm, mapView]);
+  }, [searchTerm, mapView, isInitialized, dispatch]);
 
-  // Render the UI
   return (
     <div className={styles.container}>
-      {/* Mobile header with search and view toggle */}
       {!isLargeScreen && (
         <div className={styles.mobileHeader}>
           <SearchBar
@@ -426,9 +412,7 @@ export default function SearchClient({ searchParams = {} }: SearchClientProps) {
         </div>
       )}
 
-      {/* Main content */}
       <div className={styles.content}>
-        {/* Left panel (search results) */}
         <div
           className={`${styles.leftPanel} ${
             !isLargeScreen && isMapView ? styles.hidden : ""
@@ -444,7 +428,6 @@ export default function SearchClient({ searchParams = {} }: SearchClientProps) {
           />
         </div>
 
-        {/* Right panel (map) */}
         <div
           className={`${styles.rightPanel} ${
             !isLargeScreen && !isMapView ? styles.hidden : ""
@@ -464,6 +447,7 @@ export default function SearchClient({ searchParams = {} }: SearchClientProps) {
               activePin={activePin}
               onMarkerClick={handleCenterClick}
               onMapClick={() => dispatch(resetActiveStates())}
+              isLoading={isLoading}
             />
           )}
         </div>
