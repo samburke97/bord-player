@@ -102,12 +102,6 @@ const SearchMap: React.FC<SearchMapProps> = ({
         projection: "mercator",
         center: startCenter as [number, number],
         zoom: initialZoom,
-        attributionControl: false,
-        renderWorldCopies: false,
-        minZoom: 5,
-        maxPitch: 0,
-        pitchWithRotate: false,
-        dragRotate: false,
       });
 
       const mapInstance = map.current;
@@ -259,14 +253,9 @@ const SearchMap: React.FC<SearchMapProps> = ({
   return (
     <div className={styles.mapContainer}>
       <div ref={mapContainer} className={styles.map} />
-
       {isMapReady && map.current && (
         <>
-          <MapMarkers
-            centers={centers}
-            mapRef={map}
-            onMarkerClick={onMarkerClick}
-          />
+          <MapMarkers centers={centers} mapRef={map} />
           <UserLocationMarker mapRef={map} userLocation={userLocation} />
           <MapControls
             onZoomIn={handleZoomIn}

@@ -1,6 +1,5 @@
 // components/search/SearchResults.tsx
 import React, { memo } from "react";
-
 import CenterCard from "./CenterCard";
 import type { Center } from "@/types/entities";
 import styles from "./SearchResults.module.css";
@@ -10,16 +9,13 @@ interface SearchResultsProps {
   isLoading: boolean;
   activePin: string | null;
   searchTerm: string;
-  onCenterClick: (id: string) => void;
   onCenterHover: (id: string | null) => void;
 }
 
 const SearchResults: React.FC<SearchResultsProps> = ({
   centers,
   isLoading,
-  activePin,
   searchTerm,
-  onCenterClick,
   onCenterHover,
 }) => {
   // Loading state
@@ -37,7 +33,20 @@ const SearchResults: React.FC<SearchResultsProps> = ({
     return (
       <div className={styles.emptyContainer}>
         <div className={styles.emptyIcon}>
-          <p>Search</p>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
         </div>
         <h3 className={styles.emptyTitle}>
           {searchTerm
@@ -66,10 +75,8 @@ const SearchResults: React.FC<SearchResultsProps> = ({
           <CenterCard
             key={center.id}
             center={center}
-            isActive={activePin === center.id}
             onMouseEnter={() => onCenterHover(center.id)}
             onMouseLeave={() => onCenterHover(null)}
-            onClick={() => onCenterClick(center.id)}
           />
         ))}
       </div>

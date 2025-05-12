@@ -1,4 +1,3 @@
-// components/search/CenterCard.tsx
 "use client";
 
 import React, { memo, useCallback, useState, useEffect } from "react";
@@ -10,15 +9,12 @@ import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 
 interface CenterCardProps {
   center: Center;
-  isActive: boolean;
   onMouseEnter: () => void;
   onMouseLeave: () => void;
-  onClick: () => void;
 }
 
 const CenterCard: React.FC<CenterCardProps> = memo(
-  ({ center, isActive, onMouseEnter, onMouseLeave, onClick }) => {
-    // Get images from center or use placeholder
+  ({ center, onMouseEnter, onMouseLeave }) => {
     const images =
       center.images && center.images.length > 0
         ? center.images
@@ -27,18 +23,14 @@ const CenterCard: React.FC<CenterCardProps> = memo(
     // Get first 3 sports for display
     const displaySports = center.sports?.slice(0, 3) || [];
 
-    // Track if the image is being hovered
     const [isHovered, setIsHovered] = useState(false);
 
-    // Track current slide index and navigation state
     const [currentSlide, setCurrentSlide] = useState(0);
     const [canScrollPrev, setCanScrollPrev] = useState(false);
     const [canScrollNext, setCanScrollNext] = useState(false);
 
-    // Initialize Embla Carousel without loop option
     const [emblaRef, emblaApi] = useEmblaCarousel({
       loop: false,
-      draggable: images.length > 1,
       skipSnaps: false,
       containScroll: "trimSnaps",
       align: "start",
@@ -94,17 +86,10 @@ const CenterCard: React.FC<CenterCardProps> = memo(
     return (
       <Link
         href={`/centers/${center.id}`}
-        className={`${styles.card} ${isActive ? styles.activeCard : ""}`}
-        onMouseEnter={() => {
-          onMouseEnter();
-        }}
-        onMouseLeave={() => {
-          onMouseLeave();
-        }}
-        onClick={(e) => {
-          // Allow onClick handler but still navigate
-          onClick();
-        }}
+        className={styles.card}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+        // No onClick handler - let Link handle navigation
       >
         <div
           className={styles.imageContainer}
@@ -133,7 +118,6 @@ const CenterCard: React.FC<CenterCardProps> = memo(
               {/* Navigation arrows - only when hovering and there are multiple images */}
               {images.length > 1 && isHovered && (
                 <>
-                  {/* Previous button - only show if not on first slide */}
                   {canScrollPrev && (
                     <button
                       className={`${styles.carouselButton} ${styles.carouselButtonPrev}`}
@@ -145,7 +129,6 @@ const CenterCard: React.FC<CenterCardProps> = memo(
                     </button>
                   )}
 
-                  {/* Next button - only show if not on last slide */}
                   {canScrollNext && (
                     <button
                       className={`${styles.carouselButton} ${styles.carouselButtonNext}`}

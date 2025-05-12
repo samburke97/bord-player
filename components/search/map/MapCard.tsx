@@ -1,5 +1,6 @@
+// components/search/map/MapCard.tsx
 import React from "react";
-import { Center } from "@/types";
+import type { Center } from "@/types";
 import styles from "./MapCard.module.css";
 
 interface MapCardProps {
@@ -9,45 +10,35 @@ interface MapCardProps {
 
 const MapCard: React.FC<MapCardProps> = ({ center, onCardClick }) => {
   return (
-    <div className={styles.card}>
-      <div className={styles.cardImageContainer}>
+    <div className={styles.card} onClick={onCardClick}>
+      <div className={styles.imageContainer}>
         {center.images && center.images.length > 0 ? (
           <img
             src={center.images[0]}
             alt={center.name}
-            className={styles.cardImage}
+            className={styles.image}
           />
         ) : (
-          <div className={styles.cardImagePlaceholder}>No Image</div>
+          <div className={styles.imagePlaceholder}>No Image</div>
         )}
       </div>
-      <div className={styles.cardContent}>
-        <div className={styles.tagsRow}>
+      <div className={styles.content}>
+        <h3 className={styles.title}>{center.name}</h3>
+        <div className={styles.address}>
+          {center.address || "Address not available"}
+        </div>
+        <div className={styles.tags}>
           {center.sports &&
-            center.sports.slice(0, 3).map((sport) => (
-              <span key={sport.id} className={styles.tag}>
+            center.sports.slice(0, 3).map((sport, index) => (
+              <span key={index} className={styles.tag}>
                 {sport.name}
               </span>
             ))}
-          {center.facilities &&
-            center.facilities.slice(0, 3).map((facility) => (
-              <span key={facility.id} className={styles.facilityTag}>
-                {facility.name}
-              </span>
-            ))}
         </div>
-
-        <h2 className={styles.cardTitle}>{center.name || "Unknown Center"}</h2>
-
-        <div className={styles.cardLocation}>
-          <span
-            className={
-              center.isOpenNow ? styles.statusTag : styles.statusClosed
-            }
-          >
-            {center.isOpenNow ? "Open Now" : "Closed Now"}
+        <div className={styles.status}>
+          <span className={center.isOpenNow ? styles.open : styles.closed}>
+            {center.isOpenNow ? "Open Now" : "Closed"}
           </span>
-          • {center.distance ? `${center.distance} km` : "Unknown distance"}
         </div>
       </div>
     </div>
