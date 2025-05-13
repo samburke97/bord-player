@@ -89,7 +89,6 @@ const CenterCard: React.FC<CenterCardProps> = memo(
       };
     }, [emblaApi]);
 
-    // Primary sport to display in the status line
     const primarySport =
       center.sports && center.sports.length > 0
         ? center.sports[0].name
@@ -183,8 +182,14 @@ const CenterCard: React.FC<CenterCardProps> = memo(
           <h3 className={styles.name}>{center.name}</h3>
 
           <div className={styles.centerMeta}>
-            <span className={styles.statusTag}>
-              {center.isOpenNow ? "Open Now" : "Closed"}
+            <span
+              className={
+                center.isOpenNow
+                  ? `${styles.openStatus}`
+                  : `${styles.closedStatus}`
+              }
+            >
+              {center.isOpenNow ? "Open Now" : "Closed Now"}
             </span>
             <span className={styles.metaDot}>•</span>
             <span className={styles.sportType}>{primarySport}</span>

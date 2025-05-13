@@ -15,22 +15,15 @@ interface SearchResultsProps {
 const SearchResults: React.FC<SearchResultsProps> = ({
   centers,
   isLoading,
-  activePin,
   searchTerm,
   onCenterHover,
   onCenterClick,
 }) => {
-  // Add this at the top of your component
   const centerCount = centers.length;
 
   if (centers.length === 0 && !isLoading) {
     return (
       <div className={styles.resultsContainer}>
-        {/* Keep the header even when empty */}
-        <div className={styles.resultsHeader}>
-          <h2 className={styles.resultsTitle}>0 venues within map area</h2>
-        </div>
-
         <div className={styles.emptyContainer}>
           <div className={styles.emptyIcon}>
             <svg
@@ -64,12 +57,14 @@ const SearchResults: React.FC<SearchResultsProps> = ({
   return (
     <div className={styles.resultsContainer}>
       {/* Fixed header */}
-      <div className={styles.resultsHeader}>
-        <h2 className={styles.resultsTitle}>
-          {centerCount} {centerCount === 1 ? "venue" : "venues"} within map area
-        </h2>
-      </div>
-
+      {centers.length > 0 && (
+        <div className={styles.resultsHeader}>
+          <h2 className={styles.resultsTitle}>
+            {centerCount} {centerCount === 1 ? "venue" : "venues"} within map
+            area
+          </h2>
+        </div>
+      )}
       {/* Scrollable content */}
       <div className={styles.resultsList}>
         {centers.map((center) => (
