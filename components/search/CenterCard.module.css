@@ -217,6 +217,8 @@
 @media (max-width: 768px) {
   .card {
     margin-bottom: 12px;
+    padding: none;
+    border-bottom: none;
   }
 
   .content {
@@ -234,5 +236,12 @@
 
   .centerMeta {
     font-size: 13px;
+  }
+}
+
+@media (max-width: 1023px) {
+  .card {
+    padding: none;
+    border-bottom: none;
   }
 }

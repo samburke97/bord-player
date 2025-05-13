@@ -20,6 +20,18 @@ const SearchResults: React.FC<SearchResultsProps> = ({
   onCenterClick,
 }) => {
   const centerCount = centers.length;
+  const [isLargeScreen, setIsLargeScreen] = React.useState(true);
+
+  // Detect screen size
+  React.useEffect(() => {
+    const checkScreenSize = () => {
+      setIsLargeScreen(window.innerWidth >= 1023);
+    };
+
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
+    return () => window.removeEventListener("resize", checkScreenSize);
+  }, []);
 
   if (centers.length === 0 && !isLoading) {
     return (
@@ -56,8 +68,8 @@ const SearchResults: React.FC<SearchResultsProps> = ({
 
   return (
     <div className={styles.resultsContainer}>
-      {/* Fixed header */}
-      {centers.length > 0 && (
+      {/* Fixed header - only show on large screens */}
+      {centers.length > 0 && isLargeScreen && (
         <div className={styles.resultsHeader}>
           <h2 className={styles.resultsTitle}>
             {centerCount} {centerCount === 1 ? "venue" : "venues"} within map
@@ -65,6 +77,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
           </h2>
         </div>
       )}
+
       {/* Scrollable content */}
       <div className={styles.resultsList}>
         {centers.map((center) => (

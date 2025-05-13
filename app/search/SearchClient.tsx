@@ -45,6 +45,17 @@ export default function SearchClient() {
     isLoading: locationLoading,
   } = useGeolocation();
 
+  // Check screen size
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsLargeScreen(window.innerWidth >= 1024);
+    };
+
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
+    return () => window.removeEventListener("resize", checkScreenSize);
+  }, []);
+
   // React directly to URL parameter changes
   useEffect(() => {
     // Get search parameters
@@ -111,17 +122,6 @@ export default function SearchClient() {
     }
   }, [searchParams, dispatch, searchTerm, latitude, longitude]);
 
-  // Check screen size
-  useEffect(() => {
-    const checkScreenSize = () => {
-      setIsLargeScreen(window.innerWidth >= 768);
-    };
-
-    checkScreenSize();
-    window.addEventListener("resize", checkScreenSize);
-    return () => window.removeEventListener("resize", checkScreenSize);
-  }, []);
-
   // Update URL with current view state
   const updateUrl = useCallback(
     (newMapView: MapView, newSearchTerm = searchTerm) => {
@@ -184,19 +184,9 @@ export default function SearchClient() {
     [dispatch]
   );
 
-  // Toggle view on mobile
+  // Toggle view on tablet and mobile
   const toggleView = useCallback(() => {
     setIsMapView((prev) => !prev);
-  }, []);
-
-  // Force browser to recalculate heights after render
-  useEffect(() => {
-    // Small timeout to ensure the DOM is ready
-    const timer = setTimeout(() => {
-      window.dispatchEvent(new Event("resize"));
-    }, 100);
-
-    return () => clearTimeout(timer);
   }, []);
 
   return (

@@ -4,7 +4,7 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  min-height: calc(100vh - 80px); /* Account for 80px header */
+  min-height: calc(100vh - 80px);
   height: auto;
   position: relative;
 }
@@ -12,7 +12,7 @@
 /* Main content area */
 .content {
   display: flex;
-  min-height: calc(100vh - 80px); /* Minimum height accounting for header */
+  min-height: calc(100vh - 80px);
   width: 100%;
   position: relative;
 }
@@ -21,32 +21,23 @@
 .leftPanel {
   flex: 0 0 450px;
   max-width: 450px;
-  min-height: calc(
-    100vh - 80px
-  ); /* Minimum height equal to viewport - header */
-  height: auto; /* Allow height to grow with content */
+  min-height: calc(100vh - 80px);
+  height: auto;
   display: flex;
   flex-direction: column;
   border-right: 1px solid var(--out-light);
-  position: relative; /* Normal positioning to scroll with page */
+  position: relative;
 }
 
 /* Right panel with map - fixed in place */
 .rightPanel {
   flex: 1;
   height: calc(100vh - 80px);
-  position: fixed; /* Fixed in viewport */
-  left: 450px; /* Width of the left panel */
+  position: fixed;
+  left: 450px;
   right: 0;
-  top: 80px; /* Height of the header */
+  top: 80px;
   bottom: 0;
-}
-
-/* Results list - full height to push scrollbar to page edge */
-.resultsList {
-  flex: 1;
-  padding: 0; /* No padding here - let the inner components handle padding */
-  /* No overflow setting - we want the page to scroll */
 }
 
 /* Mobile header */
@@ -55,12 +46,11 @@
   padding: 12px;
   background-color: var(--bg-standard);
   border-bottom: 1px solid var(--out-light);
-  z-index: 50;
+  z-index: 100;
   flex-direction: row;
   align-items: center;
   gap: 12px;
   position: fixed;
-  top: 80px;
   left: 0;
   right: 0;
   height: 64px;
@@ -73,7 +63,7 @@
 
 /* View toggle button for mobile */
 .viewToggleButton {
-  width: 40px;
+  min-width: 40px;
   height: 40px;
   border-radius: 4px;
   background-color: var(--primary-400);
@@ -83,44 +73,133 @@
   justify-content: center;
   border: none;
   cursor: pointer;
+  padding: 0 12px;
 }
 
 .viewToggleButton:hover {
   background-color: var(--primary-500);
 }
 
-/* Map component sizing */
-.rightPanel :global(.mapContainer),
-.rightPanel :global(.map) {
-  width: 100% !important;
-  height: 100% !important;
-}
+/* Tablet styles (between 768px and 1023px) */
+@media (max-width: 1023px) {
+  .container {
+    min-height: 100vh;
+    overflow: hidden;
+  }
 
-@media (max-width: 767px) {
   .mobileHeader {
     display: flex;
+    top: 0; /* Position at top since main header is hidden */
+  }
+
+  .content {
+    padding-top: 64px; /* Account for mobile header height */
+    min-height: calc(100vh - 64px);
+    position: relative;
+  }
+
+  .leftPanel {
+    flex: 1;
+    max-width: 100%;
+    width: 100%;
+    min-height: calc(100vh - 64px);
+    border-right: none;
+    position: absolute;
+    top: 64px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 20;
+    background-color: var(--bg-standard);
+  }
+
+  .rightPanel {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 64px;
+    height: calc(100vh - 64px);
+    width: 100%;
+    z-index: 10;
+  }
+
+  .hidden {
+    display: none !important;
+  }
+}
+
+/* Mobile styles (below 768px) */
+@media (max-width: 767px) {
+  .mobileHeader {
+    top: 0;
+  }
+
+  .leftPanel,
+  .rightPanel {
+    top: 64px;
+    height: calc(100vh - 64px);
+  }
+}
+
+/* Tablet styles (between 768px and 1023px) */
+@media (max-width: 1023px) {
+  .container {
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  .mobileHeader {
+    display: flex;
+    top: 0;
+    z-index: 100;
   }
 
   .content {
     padding-top: 64px;
+    min-height: calc(100vh - 64px);
+    position: relative;
   }
 
   .leftPanel {
-    min-height: 0;
-    max-width: 100%;
     flex: 1;
+    max-width: 100%;
+    width: 100%;
+    min-height: calc(100vh - 64px);
     border-right: none;
+    position: absolute;
+    top: 64px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 20;
+    background-color: var(--bg-standard);
+    overflow-y: auto;
   }
 
   .rightPanel {
-    position: fixed;
+    position: absolute;
     left: 0;
-    top: 144px;
-    height: calc(100vh - 144px);
-    z-index: 40;
+    right: 0;
+    top: 64px;
+    height: calc(100vh - 64px);
+    width: 100%;
+    z-index: 10;
   }
 
   .hidden {
-    display: none;
+    display: none !important;
+  }
+}
+
+/* Mobile styles (below 768px) */
+@media (max-width: 767px) {
+  .mobileHeader {
+    top: 0;
+  }
+
+  .leftPanel,
+  .rightPanel {
+    top: 64px;
+    height: calc(100vh - 64px);
   }
 }

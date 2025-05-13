@@ -13,7 +13,7 @@
   top: 76px;
   left: 0;
   right: 0;
-  z-index: 10;
+  z-index: 20;
   margin: 0;
 }
 
@@ -94,9 +94,28 @@
   margin: 0;
 }
 
-/* Mobile adjustments */
-@media (max-width: 767px) {
+/* Tablet styles (1023px - 767px): Two-column layout */
+@media (max-width: 1023px) and (min-width: 768px) {
+  .resultsList {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    padding: 16px;
+  }
+
   .resultsHeader {
-    top: 144px; /* Account for main header (80px) + mobile header (64px) */
+    display: none;
+  }
+}
+
+/* Mobile styles (< 767px): One-column layout */
+@media (max-width: 767px) {
+  .resultsList {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .resultsHeader {
+    display: none;
   }
 }

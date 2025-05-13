@@ -37,6 +37,8 @@ export default function RootClientLayout({
   const isCenterDetailPage = /^\/centers\/[a-zA-Z0-9-]+$/.test(pathname);
   const isSearchPage = pathname.startsWith("/search");
 
+  // On search pages, hide main header below 1023px
+  // On center detail pages, hide header below 768px
   const shouldHideNavBar =
     (isSearchPage && !isLargeScreen) || (isCenterDetailPage && !isMediumScreen);
 
