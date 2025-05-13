@@ -1,10 +1,8 @@
+/* components/search/SearchResults.module.css */
 .resultsContainer {
   display: flex;
   flex-direction: column;
-  height: 100%;
   width: 100%;
-  overflow: hidden;
-  position: relative;
 }
 
 .resultsHeader {
@@ -12,7 +10,7 @@
   border-bottom: 1px solid var(--out-light);
   background-color: var(--bg-standard);
   position: sticky;
-  top: 0;
+  top: 80px; /* This must match your header height */
   left: 0;
   right: 0;
   z-index: 10;
@@ -27,11 +25,10 @@
 }
 
 .resultsList {
-  flex: 1;
-  padding: 16px 16px 32px 16px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding-top: 0; /* Remove top padding since the header has padding */
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  padding-top: 0; /* No top padding since the header has padding */
 }
 
 /* Loading state */
@@ -97,36 +94,9 @@
   margin: 0;
 }
 
-/* Custom scrollbar */
-.resultsList::-webkit-scrollbar {
-  width: 6px;
-}
-
-.resultsList::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.resultsList::-webkit-scrollbar-thumb {
-  background: var(--out-medium);
-  border-radius: 4px;
-}
-
-.resultsList::-webkit-scrollbar-thumb:hover {
-  background: var(--out-dark);
-}
-
-/* Additional fixes for the header */
-.loadingOverlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(255, 255, 255, 0.7);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-  backdrop-filter: blur(2px);
+/* Mobile adjustments */
+@media (max-width: 767px) {
+  .resultsHeader {
+    top: 144px; /* Account for main header (80px) + mobile header (64px) */
+  }
 }
