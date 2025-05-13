@@ -151,20 +151,19 @@ body.search-page {
 
 @media (max-width: 1023px) {
   body.search-page {
-    padding-top: 0; /* Remove the padding on mobile */
+    padding-top: 0;
   }
 }
 
 /* Search page main container 
 */
 .search-page-main {
-  min-height: calc(100vh - 80px); /* Account for header */
+  min-height: calc(100vh - 76px);
   height: auto;
   display: flex;
   flex-direction: column;
 }
 
-/* Make your header stay fixed at the top */
 header.isSearchPage {
   position: fixed;
   top: 0;
@@ -173,7 +172,6 @@ header.isSearchPage {
   z-index: 100;
 }
 
-/* Enhance sticky positioning with a class that can be referenced */
 .sticky-results-header {
   position: sticky;
   top: 80px;

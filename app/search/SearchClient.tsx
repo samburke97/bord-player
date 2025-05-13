@@ -1,8 +1,10 @@
+// app/search/SearchClient.tsx - With proper icon colors and no header background
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/store/store";
+import Image from "next/image";
 import {
   setCenters,
   setActivePin,
@@ -18,6 +20,7 @@ import { searchCenters } from "@/app/actions/search/searchCenters";
 import SearchMap from "@/components/search/SearchMap";
 import SearchResults from "@/components/search/SearchResults";
 import SearchBar from "@/components/ui/searchbar/SearchBar";
+import IconButton from "@/components/ui/IconButton";
 import type { MapView } from "@/types/map";
 import styles from "./Search.module.css";
 
@@ -36,6 +39,7 @@ export default function SearchClient() {
   const [isMapView, setIsMapView] = useState(false);
   const [isLargeScreen, setIsLargeScreen] = useState(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [mapRendered, setMapRendered] = useState(false);
 
   // Get user location
   const {
@@ -53,6 +57,10 @@ export default function SearchClient() {
 
     checkScreenSize();
     window.addEventListener("resize", checkScreenSize);
+
+    // Set map as rendered once we're ready
+    setMapRendered(true);
+
     return () => window.removeEventListener("resize", checkScreenSize);
   }, []);
 
@@ -187,12 +195,36 @@ export default function SearchClient() {
   // Toggle view on tablet and mobile
   const toggleView = useCallback(() => {
     setIsMapView((prev) => !prev);
+
+    // Force resize after toggle by dispatching a window resize event
+    setTimeout(() => {
+      window.dispatchEvent(new Event("resize"));
+    }, 10);
   }, []);
+
+  // Handle body overflow for fullscreen map
+  useEffect(() => {
+    if (!isLargeScreen && isMapView) {
+      // Lock body when fullscreen map is shown
+      document.body.style.overflow = "hidden";
+    } else {
+      // Reset when not in fullscreen map
+      document.body.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isLargeScreen, isMapView]);
 
   return (
     <div className={styles.container}>
       {!isLargeScreen && (
-        <div className={styles.mobileHeader}>
+        <div
+          className={`${styles.mobileHeader} ${
+            isMapView ? styles.noHeaderBackground : ""
+          }`}
+        >
           <SearchBar
             placeholder="Search for sports & places"
             onSearch={handleSearchChange}
@@ -200,14 +232,28 @@ export default function SearchClient() {
             className={styles.mobileSearchBar}
           />
 
-          <button
-            className={styles.viewToggleButton}
+          {/* Icon button with white icons */}
+          <IconButton
+            icon={
+              <div className={styles.iconWrapper}>
+                <Image
+                  src={
+                    isMapView
+                      ? "/icons/utility-outline/list.svg"
+                      : "/icons/utility-outline/map.svg"
+                  }
+                  alt={isMapView ? "Show list" : "Show map"}
+                  width={24}
+                  height={24}
+                  className={styles.iconImage}
+                />
+              </div>
+            }
             onClick={toggleView}
-            type="button"
+            className={styles.viewToggleButton}
             aria-label={isMapView ? "Show list" : "Show map"}
-          >
-            {isMapView ? "List" : "Map"}
-          </button>
+            variant="primary"
+          />
         </div>
       )}
 
@@ -234,23 +280,27 @@ export default function SearchClient() {
             !isLargeScreen && !isMapView ? styles.hidden : ""
           }`}
         >
-          {!locationLoading && latitude !== null && longitude !== null && (
-            <SearchMap
-              centers={centers}
-              userLocation={userLocation || { latitude, longitude }}
-              onBoundsChange={handleBoundsChange}
-              initialCenter={
-                mapView
-                  ? [mapView.center.latitude, mapView.center.longitude]
-                  : [latitude, longitude]
-              }
-              initialDistance={mapView?.distance || 5}
-              activePin={activePin}
-              onMarkerClick={handleCenterClick}
-              onMapClick={() => dispatch(resetActiveStates())}
-              isLoading={isLoading}
-            />
-          )}
+          {!locationLoading &&
+            latitude !== null &&
+            longitude !== null &&
+            mapRendered && (
+              <SearchMap
+                centers={centers}
+                userLocation={userLocation || { latitude, longitude }}
+                onBoundsChange={handleBoundsChange}
+                initialCenter={
+                  mapView
+                    ? [mapView.center.latitude, mapView.center.longitude]
+                    : [latitude, longitude]
+                }
+                initialDistance={mapView?.distance || 5}
+                activePin={activePin}
+                onMarkerClick={handleCenterClick}
+                onMapClick={() => dispatch(resetActiveStates())}
+                isLoading={isLoading}
+                isVisible={isLargeScreen || isMapView} // Keep this prop
+              />
+            )}
         </div>
       </div>
     </div>
