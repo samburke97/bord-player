@@ -207,6 +207,15 @@ const SearchMap: React.FC<SearchMapProps> = ({
     }
   }, [handleBoundsChange]);
 
+  useEffect(() => {
+    if (map.current && isMapReady) {
+      // Force a resize after a tiny delay to ensure DOM updates
+      setTimeout(() => {
+        map.current?.resize();
+      }, 100);
+    }
+  }, [isFullscreen, isMapReady]);
+
   // Effect for active pin
   useEffect(() => {
     if (!map.current || !isMapReady || !activePin) return;

@@ -9,14 +9,6 @@
   position: relative;
 }
 
-/* Main content area */
-.content {
-  display: flex;
-  min-height: calc(100vh - 80px);
-  width: 100%;
-  position: relative;
-}
-
 /* Left panel with search results - scrollable with page */
 .leftPanel {
   flex: 0 0 450px;
@@ -152,12 +144,6 @@
     display: flex;
     top: 0;
     z-index: 100;
-  }
-
-  .content {
-    padding-top: 64px;
-    min-height: calc(100vh - 64px);
-    position: relative;
   }
 
   .leftPanel {

@@ -217,7 +217,7 @@
 @media (max-width: 768px) {
   .card {
     margin-bottom: 12px;
-    padding: none;
+    padding: 0;
     border-bottom: none;
   }
 
@@ -241,7 +241,7 @@
 
 @media (max-width: 1023px) {
   .card {
-    padding: none;
+    padding: 16px;
     border-bottom: none;
   }
 }

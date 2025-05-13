@@ -149,7 +149,14 @@ body.search-page {
   min-height: 100vh;
 }
 
-/* Search page main container */
+@media (max-width: 1023px) {
+  body.search-page {
+    padding-top: 0; /* Remove the padding on mobile */
+  }
+}
+
+/* Search page main container 
+*/
 .search-page-main {
   min-height: calc(100vh - 80px); /* Account for header */
   height: auto;
