@@ -1,4 +1,4 @@
-// app/search/SearchClient.tsx - With proper icon colors and no header background
+// Simplified SearchClient.tsx
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
@@ -38,7 +38,6 @@ export default function SearchClient() {
   // UI state
   const [isMapView, setIsMapView] = useState(false);
   const [isLargeScreen, setIsLargeScreen] = useState(true);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [mapRendered, setMapRendered] = useState(false);
 
   // Get user location
@@ -218,42 +217,40 @@ export default function SearchClient() {
   }, [isLargeScreen, isMapView]);
 
   return (
-    <div className={styles.container}>
+    <div
+      className={`${styles.container} ${isMapView ? styles.mapViewActive : ""}`}
+    >
+      {/* Navigation Bar - Use separate classes for list and map views */}
       {!isLargeScreen && (
-        <div
-          className={`${styles.mobileHeader} ${
-            isMapView ? styles.noHeaderBackground : ""
-          }`}
-        >
-          <SearchBar
-            placeholder="Search for sports & places"
-            onSearch={handleSearchChange}
-            initialSearchTerm={searchTerm}
-            className={styles.mobileSearchBar}
-          />
+        <div className={isMapView ? styles.navbarMap : styles.navbarList}>
+          <div className={styles.searchBar}>
+            <SearchBar
+              placeholder="Search for sports & places"
+              onSearch={handleSearchChange}
+              initialSearchTerm={searchTerm}
+            />
+          </div>
 
-          {/* Icon button with white icons */}
-          <IconButton
-            icon={
-              <div className={styles.iconWrapper}>
-                <Image
-                  src={
-                    isMapView
-                      ? "/icons/utility-outline/list.svg"
-                      : "/icons/utility-outline/map.svg"
-                  }
-                  alt={isMapView ? "Show list" : "Show map"}
-                  width={24}
-                  height={24}
-                  className={styles.iconImage}
-                />
-              </div>
-            }
+          <button
+            className={styles.mapToggleButton}
             onClick={toggleView}
-            className={styles.viewToggleButton}
+            type="button"
             aria-label={isMapView ? "Show list" : "Show map"}
-            variant="primary"
-          />
+          >
+            <div className={styles.icon}>
+              <Image
+                src={
+                  isMapView
+                    ? "/icons/utility-outline/list.svg"
+                    : "/icons/utility-outline/map.svg"
+                }
+                alt={isMapView ? "Show list" : "Show map"}
+                width={24}
+                height={24}
+                className={styles.iconImg}
+              />
+            </div>
+          </button>
         </div>
       )}
 
@@ -298,7 +295,6 @@ export default function SearchClient() {
                 onMarkerClick={handleCenterClick}
                 onMapClick={() => dispatch(resetActiveStates())}
                 isLoading={isLoading}
-                isVisible={isLargeScreen || isMapView} // Keep this prop
               />
             )}
         </div>
