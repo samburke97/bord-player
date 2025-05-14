@@ -1,3 +1,5 @@
+/* app/search/Search.module.css - Updated with transparent navbar */
+
 .container {
   display: flex;
   flex-direction: column;
@@ -26,15 +28,14 @@
   z-index: 1000;
   align-items: center;
   justify-content: space-between;
-  /* Position the navbar correctly to work with absolute search component */
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
 }
 
 /* Map-specific navbar with transparent background */
 .navbarMap {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
   background: transparent;
   z-index: 30; /* Higher z-index than the map and content */
 }
@@ -42,12 +43,9 @@
 .searchBar {
   flex: 1;
   margin-right: 12px;
-  /* Make the search bar container full width to accommodate any expansion */
-  position: static;
-  /* Let search bar handle its own expanded state */
 }
 
-/* Move button absolutely positioned to not impact search bar expansion */
+/* Button styling */
 .mapToggleButton {
   display: flex;
   align-items: center;
@@ -59,10 +57,8 @@
   padding: 0;
   border: none;
   cursor: pointer;
-  /* Position absolutely so it doesn't fight with search bar */
-  position: absolute;
-  right: 16px;
-  top: 16px;
+  flex-shrink: 0;
+  z-index: 1001;
 }
 
 .icon {
@@ -135,7 +131,6 @@
     z-index: 20;
     background-color: var(--bg-standard);
     overflow-y: auto;
-    padding-top: 64px; /* Add padding for the navbar */
   }
 
   .rightPanel {
@@ -151,13 +146,5 @@
 
   .hidden {
     display: none !important;
-  }
-}
-
-@media (max-width: 767px) {
-  .leftPanel,
-  .rightPanel {
-    top: 0;
-    height: 100vh;
   }
 }
