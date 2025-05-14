@@ -1,8 +1,7 @@
 // components/search/map/MapControls.tsx
 import { memo } from "react";
-import { motion } from "framer-motion";
 import { Gps, Add, Minus } from "iconsax-react";
-import styles from "../SearchMap.module.css";
+import styles from "./MapControls.module.css"; // Update path to use proper module
 
 interface MapControlsProps {
   onZoomIn: () => void;
@@ -12,39 +11,33 @@ interface MapControlsProps {
 
 const MapControls = memo(
   ({ onZoomIn, onZoomOut, onGeolocate }: MapControlsProps) => (
-    <div className={styles.customControls}>
-      <motion.button
+    <div className={styles.controlsContainer}>
+      <button
         onClick={onGeolocate}
         className={styles.controlButton}
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
         aria-label="Go to my location"
         type="button"
       >
-        <Gps size={24} variant="Bold" />
-      </motion.button>
+        <Gps size={20} />
+      </button>
 
-      <motion.button
+      <button
         onClick={onZoomIn}
         className={styles.controlButton}
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
         aria-label="Zoom in"
         type="button"
       >
-        <Add size={24} />
-      </motion.button>
+        <Add size={20} />
+      </button>
 
-      <motion.button
+      <button
         onClick={onZoomOut}
         className={styles.controlButton}
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
         aria-label="Zoom out"
         type="button"
       >
-        <Minus size={24} />
-      </motion.button>
+        <Minus size={20} />
+      </button>
     </div>
   )
 );

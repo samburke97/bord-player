@@ -16,6 +16,8 @@ interface SearchBarProps {
   initialSearchTerm?: string;
   placeholder?: string;
   onSearch?: (term: string) => void;
+  onFocus?: () => void;
+  onBlur?: () => void;
 }
 
 function SearchBar({
@@ -24,6 +26,8 @@ function SearchBar({
   initialSearchTerm = "",
   placeholder = "Search for sports & activities",
   onSearch,
+  onFocus,
+  onBlur,
 }: SearchBarProps) {
   const pathname = usePathname();
   const isSearchPage = pathname === "/search";
@@ -69,6 +73,15 @@ function SearchBar({
     ? styles.mobileContainer
     : `${styles.searchContainer} ${className || ""}`;
 
+  const handleFocus = () => {
+    handleInputFocus();
+    if (onFocus) onFocus();
+  };
+
+  const handleBlur = () => {
+    if (onBlur) onBlur();
+  };
+
   if (isMobileView) {
     return (
       <MobileSearchView
@@ -84,6 +97,8 @@ function SearchBar({
         clearSearch={clearSearch}
         handleOptionSelect={handleOptionSelect}
         closeDropdown={closeDropdown}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
       />
     );
   }
@@ -103,10 +118,11 @@ function SearchBar({
       hasNoResults={hasNoResults}
       dropdownPosition={dropdownPosition}
       handleInputChange={handleInputChange}
-      handleInputFocus={handleInputFocus}
+      handleInputFocus={handleFocus}
       clearSearch={clearSearch}
       handleOptionSelect={handleOptionSelect}
       handleSearchSubmit={handleSearchSubmit}
+      onBlur={handleBlur}
     />
   );
 }

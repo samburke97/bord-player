@@ -257,7 +257,12 @@ const SearchMap: React.FC<SearchMapProps> = ({
       <div ref={mapContainer} className={styles.map} />
       {isMapReady && map.current && (
         <>
-          <MapMarkers centers={centers} mapRef={map} />
+          <MapMarkers
+            centers={centers}
+            mapRef={map}
+            activePin={activePin}
+            onMarkerClick={onMarkerClick}
+          />
           <UserLocationMarker mapRef={map} userLocation={userLocation} />
           <MapControls
             onZoomIn={handleZoomIn}

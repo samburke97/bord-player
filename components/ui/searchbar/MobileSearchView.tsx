@@ -16,6 +16,8 @@ interface MobileSearchViewProps {
   clearSearch: () => void;
   handleOptionSelect: (option: string) => void;
   closeDropdown: () => void;
+  onFocus?: () => void;
+  onBlur?: () => void;
 }
 
 const MobileSearchView: React.FC<MobileSearchViewProps> = ({
@@ -31,6 +33,8 @@ const MobileSearchView: React.FC<MobileSearchViewProps> = ({
   clearSearch,
   handleOptionSelect,
   closeDropdown,
+  onFocus,
+  onBlur,
 }) => {
   return (
     <div className={containerClass} ref={containerRef}>
@@ -41,7 +45,10 @@ const MobileSearchView: React.FC<MobileSearchViewProps> = ({
           width={20}
           height={20}
           className={styles.backIcon}
-          onClick={closeDropdown}
+          onClick={() => {
+            closeDropdown();
+            if (onBlur) onBlur(); // Trigger blur when going back
+          }}
         />
 
         <input
@@ -52,6 +59,8 @@ const MobileSearchView: React.FC<MobileSearchViewProps> = ({
           onChange={handleInputChange}
           className={styles.searchInput}
           autoFocus
+          onFocus={onFocus}
+          onBlur={onBlur}
         />
 
         {inputValue && (

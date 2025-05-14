@@ -213,11 +213,22 @@
   background: var(--Conatiner-Medium, #edf0f0);
 }
 
-/* Mobile Adjustments */
-@media (max-width: 768px) {
+/* Media query for tablets (767px-1023px) */
+@media (min-width: 767px) and (max-width: 1023px) {
+  .card {
+    padding: 0;
+    border-bottom: none;
+  }
+
+  .content {
+    padding: 12px;
+  }
+}
+
+/* Mobile styles (< 767px) */
+@media (max-width: 767px) {
   .card {
     margin-bottom: 12px;
-    padding: 0;
     border-bottom: none;
   }
 
@@ -236,12 +247,5 @@
 
   .centerMeta {
     font-size: 13px;
-  }
-}
-
-@media (max-width: 1023px) {
-  .card {
-    padding: 16px;
-    border-bottom: none;
   }
 }

@@ -1,4 +1,3 @@
-// components/ui/SearchBar/DesktopSearchView.tsx
 import React from "react";
 import Image from "next/image";
 import styles from "./SearchBar.module.css";
@@ -22,6 +21,7 @@ interface DesktopSearchViewProps {
   clearSearch: () => void;
   handleOptionSelect: (option: string) => void;
   handleSearchSubmit: (e: React.FormEvent) => void;
+  onBlur?: () => void;
 }
 
 const DesktopSearchView: React.FC<DesktopSearchViewProps> = ({
@@ -42,6 +42,7 @@ const DesktopSearchView: React.FC<DesktopSearchViewProps> = ({
   clearSearch,
   handleOptionSelect,
   handleSearchSubmit,
+  onBlur,
 }) => {
   return (
     <div className={containerClass} ref={containerRef}>
@@ -65,7 +66,9 @@ const DesktopSearchView: React.FC<DesktopSearchViewProps> = ({
           value={inputValue}
           onChange={handleInputChange}
           onFocus={handleInputFocus}
+          onBlur={onBlur}
           className={styles.searchInput}
+          title={placeholder}
         />
 
         {inputValue && (

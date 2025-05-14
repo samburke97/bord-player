@@ -19,7 +19,6 @@ import { searchCenters } from "@/app/actions/search/searchCenters";
 import SearchMap from "@/components/search/SearchMap";
 import SearchResults from "@/components/search/SearchResults";
 import SearchBar from "@/components/ui/searchbar/SearchBar";
-import IconButton from "@/components/ui/IconButton";
 import type { MapView } from "@/types/map";
 import styles from "./Search.module.css";
 
@@ -38,7 +37,6 @@ export default function SearchClient() {
   const [isMapView, setIsMapView] = useState(false);
   const [isLargeScreen, setIsLargeScreen] = useState(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isSearchActive, setIsSearchActive] = useState(false);
   const [mapRendered, setMapRendered] = useState(false);
 
   // Get user location
@@ -192,18 +190,9 @@ export default function SearchClient() {
     [dispatch]
   );
 
-  // Handle search dropdown state and active state
+  // Handle search dropdown state
   const handleSearchDropdownChange = useCallback((isOpen: boolean) => {
     setIsDropdownOpen(isOpen);
-    // When dropdown opens, search is also active
-    if (isOpen) {
-      setIsSearchActive(true);
-    }
-  }, []);
-
-  // Handle when search bar loses focus but isn't showing dropdown
-  const handleSearchFocus = useCallback((isFocused: boolean) => {
-    setIsSearchActive(isFocused);
   }, []);
 
   // Toggle view on tablet and mobile
@@ -244,34 +233,31 @@ export default function SearchClient() {
               onSearch={handleSearchChange}
               initialSearchTerm={searchTerm}
               onDropdownChange={handleSearchDropdownChange}
-              onFocus={() => setIsSearchActive(true)}
-              onBlur={() => setTimeout(() => setIsSearchActive(false), 200)}
+              className={styles.searchBarInput}
             />
           </div>
 
-          {/* Hide toggle button when search is active OR dropdown is open */}
-          {!isSearchActive && !isDropdownOpen && (
-            <button
-              className={styles.mapToggleButton}
-              onClick={toggleView}
-              type="button"
-              aria-label={isMapView ? "Show list" : "Show map"}
-            >
-              <div className={styles.icon}>
-                <Image
-                  src={
-                    isMapView
-                      ? "/icons/utility-outline/list.svg"
-                      : "/icons/utility-outline/map.svg"
-                  }
-                  alt={isMapView ? "Show list" : "Show map"}
-                  width={24}
-                  height={24}
-                  className={styles.iconImg}
-                />
-              </div>
-            </button>
-          )}
+          {/* Always render the toggle button, don't conditionally hide it */}
+          <button
+            className={styles.mapToggleButton}
+            onClick={toggleView}
+            type="button"
+            aria-label={isMapView ? "Show list" : "Show map"}
+          >
+            <div className={styles.icon}>
+              <Image
+                src={
+                  isMapView
+                    ? "/icons/utility-outline/list.svg"
+                    : "/icons/utility-outline/map.svg"
+                }
+                alt={isMapView ? "Show list" : "Show map"}
+                width={24}
+                height={24}
+                className={styles.iconImg}
+              />
+            </div>
+          </button>
         </div>
       )}
 

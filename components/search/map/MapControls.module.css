@@ -1,35 +1,41 @@
-.customControls {
+/* components/search/map/MapControls.module.css */
+.controlsContainer {
+  position: fixed;
+  right: 24px; /* Changed from right to left */
+  bottom: 24px; /* Changed from top: 50% to bottom */
   display: flex;
   flex-direction: column;
-  position: fixed;
-  bottom: 16px;
-  right: 16px;
   gap: 8px;
-  z-index: 2;
+  z-index: 10;
+  transform: none; /* Remove the vertical centering transform */
 }
 
 .controlButton {
-  border-radius: 8px;
-  border: 1px solid var(--Outline-Medium, #d9dbdb);
-  background: var(--Conatiner-Lightest, #fff);
+  width: 48px;
+  height: 48px;
   display: flex;
-  justify-content: center;
   align-items: center;
-  padding: 8px;
+  justify-content: center;
+  background-color: white;
+  border: none;
+  border-radius: 8px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  color: var(--for-darkest);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .controlButton:hover {
-  background: var(--grey-300);
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-.controlButtonDisabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.controlButton:active {
+  transform: scale(0.95);
 }
 
-.controlButtonDisabled:hover {
-  background: var(--grey-300);
+/* Only show on screens larger than 1023px */
+@media (max-width: 1023px) {
+  .controlsContainer {
+    display: none;
+  }
 }

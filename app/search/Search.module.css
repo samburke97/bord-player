@@ -1,5 +1,3 @@
-/* app/search/Search.module.css - Updated with transparent navbar */
-
 .container {
   display: flex;
   flex-direction: column;
@@ -18,14 +16,14 @@
   width: 100%;
 }
 
-/* Separate navbar styles for list and map views */
+/* Navbar styles for list and map views */
 .navbarList,
 .navbarMap {
   display: flex;
   width: 100%;
   position: relative;
   padding: 16px;
-  z-index: 1000;
+  z-index: 20; /* Lower than dropdown but higher than content */
   align-items: center;
   justify-content: space-between;
 }
@@ -37,12 +35,12 @@
   left: 0;
   right: 0;
   background: transparent;
-  z-index: 30; /* Higher z-index than the map and content */
 }
 
 .searchBar {
   flex: 1;
-  margin-right: 12px;
+  margin-right: 12px; /* Ensure exactly 12px spacing between searchbar and button */
+  position: relative;
 }
 
 /* Button styling */
@@ -54,11 +52,12 @@
   border-radius: 4px;
   width: 40px;
   height: 40px;
+  min-width: 40px; /* Ensure it doesn't shrink */
   padding: 0;
   border: none;
   cursor: pointer;
   flex-shrink: 0;
-  z-index: 1001;
+  z-index: 20; /* Same as navbar */
 }
 
 .icon {
@@ -128,7 +127,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    z-index: 20;
+    z-index: 10; /* Lower than navbar */
     background-color: var(--bg-standard);
     overflow-y: auto;
   }
@@ -141,7 +140,7 @@
     bottom: 0;
     height: 100vh;
     width: 100vw;
-    z-index: 10; /* Lower z-index than navbar */
+    z-index: 10; /* Same z-index as leftPanel */
   }
 
   .hidden {

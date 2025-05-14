@@ -5,7 +5,7 @@
 
 .inputContainer {
   display: flex;
-  padding: 12px 24px;
+  padding: 12px 16px; /* Reduced padding from 24px to 16px */
   align-items: center;
   gap: 12px;
   align-self: stretch;
@@ -15,6 +15,7 @@
   transition: border-radius 0.2s ease;
   z-index: 50;
   position: relative;
+  min-width: 0; /* Allow container to shrink if needed */
 }
 
 .inputContainerClosed {
@@ -22,21 +23,30 @@
 }
 
 .searchInput {
-  flex-grow: 1;
-  margin-left: 12px;
+  flex: 1;
+  margin-left: 8px; /* Reduced from 12px to 8px */
   font-size: 16px;
   background: transparent;
   border: none;
   outline: none;
   color: var(--foreground, #374151);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0; /* Allow input to shrink */
 }
 
 .searchInput::placeholder {
   color: var(--grey-500, #9ca3af);
+  text-overflow: ellipsis;
 }
 
 .clearIcon {
   cursor: pointer;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  min-width: 20px; /* Prevent icon from shrinking */
 }
 
 .dropdown {
@@ -50,7 +60,7 @@
   border-radius: 0 0 12px 12px;
   border: 1px solid var(--out-medium, #d9dbdb);
   border-top: none;
-  z-index: 9999; /* Keep the high z-index */
+  z-index: 1000; /* Very high z-index to overlay everything */
   max-height: 320px;
   display: flex;
   overflow: hidden;
@@ -233,5 +243,25 @@
 @media (min-width: 1024px) {
   .mobileContainer {
     display: none;
+  }
+}
+
+/* Responsive adjustments for tiny screens */
+@media (max-width: 400px) {
+  .inputContainer {
+    padding: 12px 10px; /* Further reduce padding on very small screens */
+  }
+
+  .searchInput {
+    margin-left: 4px; /* Even less margin on small screens */
+    font-size: 14px; /* Slightly smaller text */
+  }
+
+  .optionRow {
+    padding: 12px 16px; /* Reduce padding in dropdown options */
+  }
+
+  .optionRow span {
+    font-size: 14px; /* Smaller text in dropdown options */
   }
 }
