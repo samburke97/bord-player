@@ -12,10 +12,30 @@ interface MapMarkersProps {
 const MapMarkers: React.FC<MapMarkersProps> = ({ centers, mapRef }) => {
   // Track active marker ID
   const [activeMarkerId, setActiveMarkerId] = useState<string | null>(null);
+  // Add mobile detection state
+  const [isMobile, setIsMobile] = useState(false);
 
   // Track all markers and the active card
   const markersRef = useRef<Record<string, mapboxgl.Marker>>({});
   const cardMarkerRef = useRef<mapboxgl.Marker | null>(null);
+
+  // Define consistent marker sizes
+  const normalSize = "14px";
+  const activeSize = "18px"; // Larger size for active and hovered
+
+  // Add mobile detection
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 767);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+
+    return () => {
+      window.removeEventListener("resize", checkMobile);
+    };
+  }, []);
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -23,11 +43,6 @@ const MapMarkers: React.FC<MapMarkersProps> = ({ centers, mapRef }) => {
     // 1. Clean up ALL existing markers first
     Object.values(markersRef.current).forEach((marker) => marker.remove());
     markersRef.current = {}; // Reset the markers object
-
-    // 2. Add new markers
-    centers.forEach((center) => {
-      // [Rest of marker creation code]
-    });
 
     // 3. Complete cleanup on unmount
     return () => {
@@ -40,9 +55,46 @@ const MapMarkers: React.FC<MapMarkersProps> = ({ centers, mapRef }) => {
   useEffect(() => {
     if (!mapRef.current) return;
 
+    // Get the primary color from CSS variables
+    const primaryColor =
+      getComputedStyle(document.documentElement)
+        .getPropertyValue("--primary-300")
+        .trim() || "#39b252";
+
     // Track existing markers to compare with new centers
     const existingMarkerIds = new Set(Object.keys(markersRef.current));
     const newMarkerIds = new Set<string>();
+
+    // Function to update marker appearance
+    const updateMarkerAppearance = (
+      element: HTMLElement,
+      isActive: boolean,
+      isHovered: boolean = false
+    ) => {
+      // Set marker active state as data attribute
+      element.dataset.active = isActive ? "true" : "false";
+      element.dataset.hovered = isHovered ? "true" : "false";
+
+      if (isActive) {
+        element.style.backgroundColor = primaryColor;
+        element.style.width = activeSize;
+        element.style.height = activeSize;
+        element.style.border = "2px solid white";
+        element.style.boxShadow = "0 0 0 2px rgba(255, 255, 255, 0.8)";
+      } else if (isHovered) {
+        element.style.backgroundColor = "#666"; // Slightly lighter gray when hovered
+        element.style.width = activeSize;
+        element.style.height = activeSize;
+        element.style.border = "2px solid white";
+        element.style.boxShadow = "0 0 0 2px rgba(255, 255, 255, 0.7)";
+      } else {
+        element.style.backgroundColor = "#444";
+        element.style.width = normalSize;
+        element.style.height = normalSize;
+        element.style.border = "2px solid white";
+        element.style.boxShadow = "0 0 0 2px rgba(255, 255, 255, 0.5)";
+      }
+    };
 
     // Process each center
     centers.forEach((center) => {
@@ -56,32 +108,44 @@ const MapMarkers: React.FC<MapMarkersProps> = ({ centers, mapRef }) => {
       const lng = Number(center.longitude);
       if (isNaN(lat) || isNaN(lng)) return;
 
+      const isActive = center.id === activeMarkerId;
+
       // Check if marker already exists
       if (existingMarkerIds.has(center.id)) {
         // Update existing marker's position if needed
         const marker = markersRef.current[center.id];
         marker.setLngLat([lng, lat]);
 
-        // Update marker appearance based on active state
-        const element = marker.getElement();
-        if (center.id === activeMarkerId) {
-          element.style.backgroundColor = "#39b252";
-          element.style.boxShadow = "0 0 0 2px rgba(255, 255, 255, 0.7)";
-        } else {
-          element.style.backgroundColor = "#444";
-          element.style.boxShadow = "0 0 0 2px rgba(255, 255, 255, 0.5)";
-        }
+        // Update marker appearance
+        updateMarkerAppearance(marker.getElement(), isActive);
       } else {
         // Create a new marker element
         const el = document.createElement("div");
 
-        // Base marker styles
-        el.style.width = "8px";
-        el.style.height = "8px";
-        el.style.backgroundColor = "#444";
+        // Base marker styles - we'll set the specific styles with updateMarkerAppearance
         el.style.borderRadius = "50%";
         el.style.cursor = "pointer";
-        el.style.boxShadow = "0 0 0 2px rgba(255, 255, 255, 0.5)";
+        el.style.transition =
+          "width 0.15s ease, height 0.15s ease, background-color 0.15s ease";
+        el.style.boxSizing = "border-box"; // Ensure border is included in width/height
+
+        // Set initial appearance
+        updateMarkerAppearance(el, isActive);
+
+        // Add hover effects
+        el.addEventListener("mouseenter", () => {
+          // Only apply hover effect if not active
+          if (el.dataset.active !== "true") {
+            updateMarkerAppearance(el, false, true);
+          }
+        });
+
+        el.addEventListener("mouseleave", () => {
+          // Only revert if not active
+          if (el.dataset.active !== "true") {
+            updateMarkerAppearance(el, false, false);
+          }
+        });
 
         // Create and add the marker
         const marker = new mapboxgl.Marker({
@@ -95,10 +159,21 @@ const MapMarkers: React.FC<MapMarkersProps> = ({ centers, mapRef }) => {
         el.addEventListener("click", (e) => {
           e.stopPropagation();
 
-          // Set this as the active marker
-          setActiveMarkerId((prevId) =>
-            prevId === center.id ? null : center.id
-          );
+          // Check if this marker is currently active
+          const isCurrentlyActive = el.dataset.active === "true";
+
+          // Reset all markers first
+          Object.values(markersRef.current).forEach((m) => {
+            updateMarkerAppearance(m.getElement(), false, false);
+          });
+
+          // If this wasn't active before, make it active now
+          if (!isCurrentlyActive) {
+            updateMarkerAppearance(el, true, false);
+            setActiveMarkerId(center.id);
+          } else {
+            setActiveMarkerId(null);
+          }
         });
 
         // Store marker reference
@@ -113,7 +188,7 @@ const MapMarkers: React.FC<MapMarkersProps> = ({ centers, mapRef }) => {
         delete markersRef.current[id];
       }
     });
-  }, [centers, mapRef]);
+  }, [centers, mapRef, activeMarkerId, activeSize, normalSize]);
 
   // Handle active marker - show/hide card
   useEffect(() => {
@@ -125,6 +200,40 @@ const MapMarkers: React.FC<MapMarkersProps> = ({ centers, mapRef }) => {
 
     // If no active marker or map, just return
     if (!activeMarkerId || !mapRef.current) return;
+
+    // Get the primary color from CSS variables
+    const primaryColor =
+      getComputedStyle(document.documentElement)
+        .getPropertyValue("--primary-300")
+        .trim() || "#39b252";
+
+    // Function to update marker appearance
+    const updateMarkerAppearance = (
+      element: HTMLElement,
+      isActive: boolean
+    ) => {
+      // Set active state as data attribute
+      element.dataset.active = isActive ? "true" : "false";
+
+      if (isActive) {
+        element.style.backgroundColor = primaryColor;
+        element.style.width = activeSize;
+        element.style.height = activeSize;
+        element.style.border = "2px solid white";
+        element.style.boxShadow = "0 0 0 2px rgba(255, 255, 255, 0.8)";
+      } else {
+        element.style.backgroundColor = "#444";
+        element.style.width = normalSize;
+        element.style.height = normalSize;
+        element.style.border = "2px solid white";
+        element.style.boxShadow = "0 0 0 2px rgba(255, 255, 255, 0.5)";
+      }
+    };
+
+    // Update all markers to ensure correct appearance
+    Object.entries(markersRef.current).forEach(([id, marker]) => {
+      updateMarkerAppearance(marker.getElement(), id === activeMarkerId);
+    });
 
     // Find the center for the active marker
     const activeCenter = centers.find((c) => c.id === activeMarkerId);
@@ -152,11 +261,40 @@ const MapMarkers: React.FC<MapMarkersProps> = ({ centers, mapRef }) => {
       />
     );
 
-    // Create and add the card marker
+    // Determine optimal card positioning based on marker position
+    let anchorPosition = "bottom";
+    let offsetY = -15;
+
+    if (isMobile) {
+      // On mobile, position at the bottom center of the map
+      container.style.position = "fixed";
+      container.style.bottom = "20px";
+      container.style.left = "50%";
+      container.style.transform = "translateX(-50%)";
+      container.style.maxWidth = "90%";
+      container.style.width = "280px";
+    } else {
+      // On desktop, check if marker is in top or bottom half
+      try {
+        const mapHeight = mapRef.current.getContainer().offsetHeight;
+        const markerPoint = mapRef.current.project([lng, lat]);
+        const centerPoint = mapRef.current.project(mapRef.current.getCenter());
+
+        // If marker is in the top half, show card below
+        if (markerPoint.y < centerPoint.y) {
+          anchorPosition = "top";
+          offsetY = 15;
+        }
+      } catch (e) {
+        console.error("Error determining marker position:", e);
+      }
+    }
+
+    // Create and add the card marker with appropriate positioning
     cardMarkerRef.current = new mapboxgl.Marker({
       element: container,
-      anchor: "bottom",
-      offset: [0, -10],
+      anchor: anchorPosition as "top" | "bottom",
+      offset: [0, offsetY],
     })
       .setLngLat([lng, lat])
       .addTo(mapRef.current);
@@ -167,6 +305,10 @@ const MapMarkers: React.FC<MapMarkersProps> = ({ centers, mapRef }) => {
       if (e.originalEvent.target instanceof Element) {
         const target = e.originalEvent.target as Element;
         if (!target.closest(".mapboxgl-marker")) {
+          // Reset all markers
+          Object.values(markersRef.current).forEach((m) => {
+            updateMarkerAppearance(m.getElement(), false);
+          });
           setActiveMarkerId(null);
         }
       }
@@ -174,6 +316,10 @@ const MapMarkers: React.FC<MapMarkersProps> = ({ centers, mapRef }) => {
 
     // Set up pan/zoom handler to clear active marker
     const handleMapMove = () => {
+      // Reset all markers
+      Object.values(markersRef.current).forEach((m) => {
+        updateMarkerAppearance(m.getElement(), false);
+      });
       setActiveMarkerId(null);
     };
 
@@ -190,7 +336,7 @@ const MapMarkers: React.FC<MapMarkersProps> = ({ centers, mapRef }) => {
         mapRef.current.off("zoomstart", handleMapMove);
       }
     };
-  }, [activeMarkerId, centers, mapRef]);
+  }, [activeMarkerId, centers, mapRef, activeSize, normalSize, isMobile]);
 
   return null;
 };

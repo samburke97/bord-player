@@ -1,3 +1,5 @@
+/* app/search/Search.module.css - Updated with fixed navbar for all views */
+
 .container {
   display: flex;
   flex-direction: column;
@@ -16,31 +18,31 @@
   width: 100%;
 }
 
-/* Navbar styles for list and map views */
+/* Separate navbar styles for list and map views */
 .navbarList,
 .navbarMap {
   display: flex;
   width: 100%;
-  position: relative;
+  position: fixed; /* Changed from relative to fixed */
+  top: 0;
+  left: 0;
+  right: 0;
   padding: 16px;
-  z-index: 20; /* Lower than dropdown but higher than content */
+  z-index: 1000;
   align-items: center;
   justify-content: space-between;
+  background-color: var(--bg-standard);
 }
 
 /* Map-specific navbar with transparent background */
 .navbarMap {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
   background: transparent;
+  z-index: 30;
 }
 
 .searchBar {
   flex: 1;
-  margin-right: 12px; /* Ensure exactly 12px spacing between searchbar and button */
-  position: relative;
+  margin-right: 12px;
 }
 
 /* Button styling */
@@ -52,12 +54,11 @@
   border-radius: 4px;
   width: 40px;
   height: 40px;
-  min-width: 40px; /* Ensure it doesn't shrink */
   padding: 0;
   border: none;
   cursor: pointer;
   flex-shrink: 0;
-  z-index: 20; /* Same as navbar */
+  z-index: 1001;
 }
 
 .icon {
@@ -69,7 +70,7 @@
 .iconImg {
   width: 24px;
   height: 24px;
-  filter: brightness(0) invert(1); /* Make icons white */
+  filter: brightness(0) invert(1);
 }
 
 /* Content layout */
@@ -80,7 +81,6 @@
   position: relative;
 }
 
-/* Left panel with search results */
 .leftPanel {
   flex: 0 0 450px;
   max-width: 450px;
@@ -92,7 +92,6 @@
   position: relative;
 }
 
-/* Right panel with map */
 .rightPanel {
   flex: 1;
   height: calc(100vh - 80px);
@@ -127,20 +126,21 @@
     left: 0;
     right: 0;
     bottom: 0;
-    z-index: 10; /* Lower than navbar */
+    z-index: 20;
     background-color: var(--bg-standard);
     overflow-y: auto;
+    padding-top: 72px;
   }
 
   .rightPanel {
     position: fixed;
     left: 0;
     right: 0;
-    top: 0; /* Start from the very top */
+    top: 0;
     bottom: 0;
     height: 100vh;
     width: 100vw;
-    z-index: 10; /* Same z-index as leftPanel */
+    z-index: 10;
   }
 
   .hidden {
