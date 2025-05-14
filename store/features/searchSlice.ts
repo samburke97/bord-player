@@ -1,4 +1,4 @@
-// store/features/searchSlice.ts (fixed error handling)
+// store/features/searchSlice.ts
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import type { Center } from "@/types/entities";
 import type { MapView } from "@/types/map";
@@ -102,6 +102,22 @@ export const searchSlice = createSlice({
       state.hoveredItem = null;
     },
 
+    // New action for cleanup when entering/leaving search page
+    cleanupSearchState: (state) => {
+      if (!state) return initialState; // Safety check
+      // Reset search results
+      state.centers = [];
+      // Reset UI states
+      state.activePin = null;
+      state.hoveredItem = null;
+      state.error = null;
+      // Don't reset mapView or userLocation - these are helpful to keep
+      // Reset loading state to false
+      state.isLoading = false;
+      // Optional: reset search term if you want a fresh start each time
+      // state.searchTerm = "";
+    },
+
     // Complete reset
     resetSearch: (state) => {
       if (!state) return initialState; // Safety check
@@ -127,6 +143,7 @@ export const {
   setSearchTerm,
   resetActiveStates,
   resetSearch,
+  cleanupSearchState,
 } = searchSlice.actions;
 
 // Export reducer

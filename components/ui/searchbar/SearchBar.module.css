@@ -5,7 +5,7 @@
 
 .inputContainer {
   display: flex;
-  padding: 12px 16px; /* Reduced padding from 24px to 16px */
+  padding: 12px 16px;
   align-items: center;
   gap: 12px;
   align-self: stretch;
@@ -15,7 +15,7 @@
   transition: border-radius 0.2s ease;
   z-index: 50;
   position: relative;
-  min-width: 0; /* Allow container to shrink if needed */
+  min-width: 0;
 }
 
 .inputContainerClosed {
@@ -24,7 +24,7 @@
 
 .searchInput {
   flex: 1;
-  margin-left: 8px; /* Reduced from 12px to 8px */
+  margin-left: 8px;
   font-size: 16px;
   background: transparent;
   border: none;
@@ -33,7 +33,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  min-width: 0; /* Allow input to shrink */
+  min-width: 0;
 }
 
 .searchInput::placeholder {
@@ -46,26 +46,43 @@
   flex-shrink: 0;
   width: 20px;
   height: 20px;
-  min-width: 20px; /* Prevent icon from shrinking */
+  min-width: 20px;
+  position: relative;
+  z-index: 55; /* Make the clear icon appear above other elements in the input */
 }
 
 .dropdown {
-  position: fixed; /* Changed from absolute to fixed */
+  position: fixed;
   width: 100%;
-  max-width: inherit; /* Inherit the max-width from parent */
-  left: 0; /* Will be calculated by JS */
-  right: 0; /* Will be calculated by JS */
-  top: auto; /* Will be calculated by JS */
+  max-width: inherit;
+  left: 0;
+  right: 0;
+  top: auto;
   background-color: var(--con-lightest, #fff);
   border-radius: 0 0 12px 12px;
   border: 1px solid var(--out-medium, #d9dbdb);
   border-top: none;
-  z-index: 1000; /* Very high z-index to overlay everything */
+  z-index: 1050; /* Increased z-index to be higher than any other UI element */
   max-height: 320px;
   display: flex;
   overflow: hidden;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -1px rgba(0, 0, 0, 0.06); /* Add shadow for depth */
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.searchOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1040; /* Between navbar and dropdown */
+  display: none;
+}
+
+.searchOverlayActive {
+  display: block;
 }
 
 .optionsContainer {
@@ -177,7 +194,7 @@
   width: 100%;
   height: 100%;
   background-color: var(--background, #ffffff);
-  z-index: 1000;
+  z-index: 1050; /* Match the dropdown z-index */
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -249,19 +266,19 @@
 /* Responsive adjustments for tiny screens */
 @media (max-width: 400px) {
   .inputContainer {
-    padding: 12px 10px; /* Further reduce padding on very small screens */
+    padding: 12px 10px;
   }
 
   .searchInput {
-    margin-left: 4px; /* Even less margin on small screens */
-    font-size: 14px; /* Slightly smaller text */
+    margin-left: 4px;
+    font-size: 14px;
   }
 
   .optionRow {
-    padding: 12px 16px; /* Reduce padding in dropdown options */
+    padding: 12px 16px;
   }
 
   .optionRow span {
-    font-size: 14px; /* Smaller text in dropdown options */
+    font-size: 14px;
   }
 }

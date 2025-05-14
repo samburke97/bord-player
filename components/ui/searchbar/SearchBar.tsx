@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, memo } from "react";
-import { usePathname } from "next/navigation";
+import { useRef, memo, useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { useAppSelector } from "@/store/store";
 import styles from "./SearchBar.module.css";
 import MobileSearchView from "./MobileSearchView";
@@ -30,11 +30,19 @@ function SearchBar({
   onBlur,
 }: SearchBarProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const isSearchPage = pathname === "/search";
   const searchTerm = useAppSelector((state) => state.search.searchTerm);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const isUserEditingRef = useRef(false);
+
+  // Prefetch search page for faster navigation
+  useEffect(() => {
+    if (!isSearchPage) {
+      router.prefetch("/search");
+    }
+  }, [isSearchPage, router]);
 
   const {
     containerRef,

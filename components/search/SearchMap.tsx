@@ -1,4 +1,3 @@
-// components/search/SearchMap.tsx (with fixed dependencies)
 "use client";
 
 import React, { useRef, useEffect, useState, useCallback } from "react";
@@ -43,9 +42,7 @@ const SearchMap: React.FC<SearchMapProps> = ({
   const [currentDistance, setCurrentDistance] = useState<number>(
     initialDistance || 13 - Math.log2(5 / 5)
   );
-  const handleBoundsChangeRef = useRef(onBoundsChange); // Use ref to avoid dependencies
-
-  // Track when the map is being moved by the user
+  const handleBoundsChangeRef = useRef(onBoundsChange);
   const userMovingMapRef = useRef(false);
   const moveEndTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -90,9 +87,8 @@ const SearchMap: React.FC<SearchMapProps> = ({
     // Call the callback with the new map view
     console.log("Map bounds changed, updating state:", mapView);
     handleBoundsChangeRef.current(mapView);
-  }, [isMapReady]); // Only depends on isMapReady, not on props
+  }, [isMapReady]);
 
-  // Initialize map when component mounts - ONLY ONCE
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
 

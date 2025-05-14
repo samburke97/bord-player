@@ -1,6 +1,13 @@
+// app/search/SearchClient.tsx
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import {
+  useEffect,
+  useState,
+  useCallback,
+  useRef,
+  useLayoutEffect,
+} from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import Image from "next/image";
@@ -13,14 +20,14 @@ import {
   setMapView,
   setSearchTerm,
   resetActiveStates,
+  cleanupSearchState,
 } from "@/store/features/searchSlice";
+import { executeSearch } from "@/store/features/searchThunk";
 import { useGeolocation } from "@/hooks/useGeolocation";
-import { searchCenters } from "@/app/actions/search/searchCenters";
 import SearchMap from "@/components/search/SearchMap";
 import SearchResults from "@/components/search/SearchResults";
 import SearchBar from "@/components/ui/searchbar/SearchBar";
 import type { MapView, MapBounds } from "@/types/map";
-import type { Center } from "@/types/entities";
 import styles from "./Search.module.css";
 
 // Helper function to calculate map bounds
@@ -52,6 +59,11 @@ export default function SearchClient() {
   const [isLargeScreen, setIsLargeScreen] = useState(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [mapRendered, setMapRendered] = useState(false);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+
+  // Request tracking for debouncing
+  const lastSearchParamsRef = useRef("");
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Get user location
   const {
@@ -60,6 +72,17 @@ export default function SearchClient() {
     error: locationError,
     isLoading: locationLoading,
   } = useGeolocation();
+
+  // Clean up state on mount and unmount
+  useLayoutEffect(() => {
+    // Clean up stale data when component mounts
+    dispatch(cleanupSearchState());
+
+    // Also clean up when component unmounts
+    return () => {
+      dispatch(cleanupSearchState());
+    };
+  }, [dispatch]);
 
   // Check screen size
   useEffect(() => {
@@ -76,14 +99,38 @@ export default function SearchClient() {
     return () => window.removeEventListener("resize", checkScreenSize);
   }, []);
 
-  // React directly to URL parameter changes
+  // Clean up debounce timer on unmount
   useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
+
+  // React to URL parameter changes - The source of truth
+  useEffect(() => {
+    if (initialLoadComplete) return; // Only run this on initial load
+
     // Get search parameters
     const qParam = searchParams.get("q");
     const centerParam = searchParams.get("center");
     const distanceParam = searchParams.get("distance");
 
-    // Update search term in Redux state
+    // Generate a key for this URL state for deduplication
+    const urlStateKey = `${qParam || ""}-${centerParam || ""}-${
+      distanceParam || ""
+    }`;
+
+    // Skip if the URL hasn't actually changed
+    if (urlStateKey === lastSearchParamsRef.current) {
+      return;
+    }
+
+    // Update our reference for next time
+    lastSearchParamsRef.current = urlStateKey;
+
+    // Update search term in Redux state if different
     if (qParam !== searchTerm) {
       dispatch(setSearchTerm(qParam || ""));
     }
@@ -103,32 +150,19 @@ export default function SearchClient() {
 
           dispatch(setMapView(newMapView));
 
-          // Calculate bounds
-          const bounds = {
-            north: lat + distance / 111,
-            south: lat - distance / 111,
-            east: lng + distance / (111 * Math.cos(lat * (Math.PI / 180))),
-            west: lng - distance / (111 * Math.cos(lat * (Math.PI / 180))),
-          };
-
-          // Execute search with current parameters
-          dispatch(setLoading(true));
-          searchCenters({
-            bounds,
-            searchTerm: qParam || "",
-          })
-            .then((results) => {
-              dispatch(setCenters(results));
-              dispatch(setLoading(false));
+          // Execute search with parameters
+          dispatch(executeSearch())
+            .then(() => {
+              setInitialLoadComplete(true);
             })
             .catch((error) => {
-              console.error("Search error:", error);
-              dispatch(setError("Search failed"));
-              dispatch(setLoading(false));
+              console.error("Initial search failed:", error);
+              setInitialLoadComplete(true);
             });
         }
       } catch (error) {
         console.error("Failed to parse map parameters from URL:", error);
+        setInitialLoadComplete(true);
       }
     } else if (latitude && longitude) {
       // Fall back to user location if no map parameters
@@ -139,31 +173,55 @@ export default function SearchClient() {
 
       dispatch(setMapView(initialMapView));
       updateUrl(initialMapView, qParam || "");
-    }
-  }, [searchParams, dispatch, searchTerm, latitude, longitude]);
 
-  // Update URL with current view state
+      // Set the initial load as complete
+      setInitialLoadComplete(true);
+    } else {
+      // If there's nothing to load, mark as complete anyway
+      setInitialLoadComplete(true);
+    }
+  }, [
+    searchParams,
+    dispatch,
+    searchTerm,
+    latitude,
+    longitude,
+    initialLoadComplete,
+  ]);
+
+  // Update URL with current view state - debounce to prevent too many history entries
   const updateUrl = useCallback(
     (newMapView: MapView, newSearchTerm = searchTerm) => {
-      const params = new URLSearchParams();
-
-      // Update search term
-      if (newSearchTerm) {
-        params.set("q", newSearchTerm);
+      // Clear any existing debounce timer
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
       }
 
-      // Update map parameters
-      params.set(
-        "center",
-        `${newMapView.center.latitude.toFixed(
-          6
-        )},${newMapView.center.longitude.toFixed(6)}`
-      );
-      params.set("distance", newMapView.distance.toFixed(2));
+      // Debounce the URL update
+      debounceTimerRef.current = setTimeout(() => {
+        const params = new URLSearchParams();
 
-      // Construct and update URL - always use push
-      const newUrl = `${pathname}?${params.toString()}`;
-      router.push(newUrl);
+        // Update search term
+        if (newSearchTerm) {
+          params.set("q", newSearchTerm);
+        }
+
+        // Update map parameters
+        params.set(
+          "center",
+          `${newMapView.center.latitude.toFixed(
+            6
+          )},${newMapView.center.longitude.toFixed(6)}`
+        );
+        params.set("distance", newMapView.distance.toFixed(2));
+
+        // Construct and update URL - use replace to avoid filling history
+        const newUrl = `${pathname}?${params.toString()}`;
+        router.replace(newUrl, { scroll: false });
+
+        // Clear the timer reference
+        debounceTimerRef.current = null;
+      }, 300);
     },
     [pathname, router, searchTerm]
   );
@@ -171,58 +229,53 @@ export default function SearchClient() {
   // Handle map bounds change
   const handleBoundsChange = useCallback(
     (newMapView: MapView) => {
+      // Reset active states when user changes map
       dispatch(resetActiveStates());
+
+      // Update map view
       dispatch(setMapView(newMapView));
+
+      // Update URL (which will trigger the search via URL parameters effect)
       updateUrl(newMapView);
+
+      // Execute search with the new bounds
+      dispatch(setLoading(true));
+      dispatch(executeSearch()).finally(() => {
+        dispatch(setLoading(false));
+      });
     },
     [dispatch, updateUrl]
   );
 
   // Handle search term change
-  useEffect(() => {
-    // Reset active pin when URL changes (including on initial load)
-    dispatch(resetActiveStates());
-  }, [searchParams, dispatch]);
-
-  // Update the search term change handler
   const handleSearchChange = useCallback(
     (newTerm: string) => {
+      // Reset active pin when search term changes
       dispatch(resetActiveStates());
+
+      // Update Redux state
       dispatch(setSearchTerm(newTerm));
 
       if (mapView) {
+        // Update URL and trigger search
+        updateUrl(mapView, newTerm);
+
+        // Execute search with the current map view and new search term
         dispatch(setLoading(true));
-
-        const bounds = calculateBoundsFromMapView(mapView);
-
-        searchCenters({ bounds, searchTerm: newTerm })
-          .then((results) => {
-            // Assuming results now conform to Center[] due to prior fixes.
-            // If not, 'as Center[]' might be needed but avoided if possible.
-            dispatch(setCenters(results));
-          })
-          .catch((err) => {
-            console.error("Search error in handleSearchChange:", err);
-            dispatch(setError("Failed to update search results."));
-          })
-          .finally(() => {
-            dispatch(setLoading(false));
-          });
-
-        const currentParams = new URLSearchParams(searchParams.toString());
-        currentParams.set("q", newTerm);
-        router.replace(`${pathname}?${currentParams.toString()}`, {
-          scroll: false,
+        dispatch(executeSearch()).finally(() => {
+          dispatch(setLoading(false));
         });
-      } else {
-        // Fallback: If no mapView, just update the URL's 'q' param via push.
-        // The main useEffect will pick it up.
-        const currentParams = new URLSearchParams(searchParams.toString());
-        currentParams.set("q", newTerm);
-        router.push(`${pathname}?${currentParams.toString()}`);
+      } else if (latitude && longitude) {
+        // Create default map view if we don't have one
+        const defaultMapView = {
+          center: { latitude, longitude },
+          distance: 5,
+        };
+        dispatch(setMapView(defaultMapView));
+        updateUrl(defaultMapView, newTerm);
       }
     },
-    [dispatch, mapView, searchParams, router, pathname] // Ensure all dependencies are listed
+    [dispatch, mapView, updateUrl, latitude, longitude]
   );
 
   // Center click handler

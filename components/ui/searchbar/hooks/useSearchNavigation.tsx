@@ -1,14 +1,7 @@
-"use client";
-
-import { useCallback, useRef, useEffect } from "react";
+import { useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { useAppDispatch, useAppSelector } from "@/store/store";
-import {
-  setSearchTerm,
-  resetSearch,
-  setLoading,
-} from "@/store/features/searchSlice";
-import { createSearchUrl } from "@/lib/utils/urlUtils";
+import { useAppDispatch } from "@/store/store";
+import { setSearchTerm, resetSearch } from "@/store/features/searchSlice";
 import { executeSearch } from "@/store/features/searchThunk";
 
 export function useSearchNavigation(
@@ -21,18 +14,7 @@ export function useSearchNavigation(
 ) {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const mapView = useAppSelector((state) => state.search.mapView);
   const navigationInProgressRef = useRef(false);
-  const prevPathRef = useRef<string | null>(null);
-
-  // Prefetch search page for faster transitions
-  useEffect(() => {
-    try {
-      router.prefetch("/search");
-    } catch (error) {
-      // Ignore if prefetch isn't available
-    }
-  }, [router]);
 
   // Navigate to search page with optimizations
   const navigateToSearch = useCallback(
@@ -43,15 +25,6 @@ export function useSearchNavigation(
       if (navigationInProgressRef.current) return;
       navigationInProgressRef.current = true;
 
-      // Clean up old search results first
-      if (!isSearchPage) {
-        dispatch(resetSearch());
-      }
-
-      // Then update the search term
-      dispatch(setSearchTerm(term));
-      dispatch(setLoading(true));
-
       // If we have an exact center match, go directly to center page
       if (centerMatch) {
         router.push(`/centers/${centerMatch.id}`);
@@ -59,30 +32,30 @@ export function useSearchNavigation(
         return;
       }
 
-      // Get map parameters
-      let centerParam: [number, number] | undefined;
-      let distanceParam: number | undefined;
+      // Update Redux search term first for immediate UI feedback
+      dispatch(setSearchTerm(term));
 
-      if (mapView) {
-        centerParam = [mapView.center.latitude, mapView.center.longitude];
-        distanceParam = mapView.distance;
-      }
+      // On search page, update the URL without navigation to avoid a full page reload
+      if (isSearchPage) {
+        // Update the URL - this should trigger the search through URL parameter effect
+        const currentUrl = new URL(window.location.href);
+        const searchParams = new URLSearchParams(currentUrl.search);
 
-      // Create search URL
-      const searchUrl = createSearchUrl({
-        query: term,
-        center: centerParam,
-        distance: distanceParam,
-      });
+        if (term) {
+          searchParams.set("q", term);
+        } else {
+          searchParams.delete("q");
+        }
 
-      // CHANGED: Always use router.push, even on the search page
-      // This forces a full navigation and re-fetching of data
-      router.push(searchUrl);
+        // Use history.replaceState for instant URL update without navigation
+        const newUrl = `${currentUrl.pathname}?${searchParams.toString()}`;
+        window.history.replaceState(null, "", newUrl);
 
-      // If we're on the search page, also explicitly trigger a new search
-      // This ensures results update even if the navigation doesn't fully reload
-      if (isSearchPage && mapView) {
+        // Execute search immediately using the thunk (avoid waiting for URL effect)
         dispatch(executeSearch({ forceUpdate: true }));
+      } else {
+        // For non-search pages, navigate to search page with the term
+        router.push(`/search${term ? `?q=${encodeURIComponent(term)}` : ""}`);
       }
 
       // Reset navigation flag after a short delay
@@ -90,7 +63,7 @@ export function useSearchNavigation(
         navigationInProgressRef.current = false;
       }, 300);
     },
-    [dispatch, router, mapView, isSearchPage]
+    [dispatch, router, isSearchPage]
   );
 
   // Option selection handler
