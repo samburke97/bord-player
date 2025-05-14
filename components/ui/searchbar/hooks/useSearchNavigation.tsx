@@ -3,7 +3,11 @@
 import { useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/store/store";
-import { setSearchTerm, resetSearch } from "@/store/features/searchSlice";
+import {
+  setSearchTerm,
+  resetSearch,
+  setLoading,
+} from "@/store/features/searchSlice";
 import { createSearchUrl } from "@/lib/utils/urlUtils";
 import { executeSearch } from "@/store/features/searchThunk";
 
@@ -32,7 +36,10 @@ export function useSearchNavigation(
 
   // Navigate to search page with optimizations
   const navigateToSearch = useCallback(
-    (term: string = "", centerMatch = null) => {
+    (
+      term: string = "",
+      centerMatch: { id: string; [key: string]: any } | null = null
+    ) => {
       if (navigationInProgressRef.current) return;
       navigationInProgressRef.current = true;
 
@@ -43,6 +50,7 @@ export function useSearchNavigation(
 
       // Then update the search term
       dispatch(setSearchTerm(term));
+      dispatch(setLoading(true));
 
       // If we have an exact center match, go directly to center page
       if (centerMatch) {

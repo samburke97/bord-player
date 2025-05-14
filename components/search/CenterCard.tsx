@@ -21,9 +21,6 @@ const CenterCard: React.FC<CenterCardProps> = memo(
         ? center.images
         : ["/images/placeholder-center.jpg"];
 
-    // Get first 3 sports for display
-    const displaySports = center.sports?.slice(0, 3) || [];
-
     // Use the distance hook
     const { distance, loading: distanceLoading } = useDistance(
       center.latitude ? Number(center.latitude) : null,

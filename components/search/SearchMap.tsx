@@ -32,14 +32,17 @@ const SearchMap: React.FC<SearchMapProps> = ({
   onBoundsChange,
   initialCenter,
   initialDistance,
-  activePin,
+  activePin = null,
   onMarkerClick,
   onMapClick,
-  isLoading, // Added this prop to the destructuring
+  isLoading = false,
 }) => {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
+  const [currentDistance, setCurrentDistance] = useState<number>(
+    initialDistance || 13 - Math.log2(5 / 5)
+  );
   const handleBoundsChangeRef = useRef(onBoundsChange); // Use ref to avoid dependencies
 
   // Track when the map is being moved by the user
@@ -62,11 +65,14 @@ const SearchMap: React.FC<SearchMapProps> = ({
 
     // Get current map state
     const bounds = map.current.getBounds();
+    if (!bounds) return;
+
     const center = map.current.getCenter();
     const zoom = map.current.getZoom();
 
     // Calculate distance in km from zoom level
     const distance = 5 * Math.pow(2, 13 - zoom);
+    setCurrentDistance(distance);
 
     // Prepare the map view object to pass to the callback
     const mapView: MapView & MapBounds = {
@@ -109,7 +115,7 @@ const SearchMap: React.FC<SearchMapProps> = ({
       const mapInstance = map.current;
 
       // Handle map load
-      mapInstance.on("load", () => {
+      const onLoad = () => {
         console.log("Map loaded successfully");
         mapInstance.resize();
         setIsMapReady(true);
@@ -118,9 +124,11 @@ const SearchMap: React.FC<SearchMapProps> = ({
         setTimeout(() => {
           if (mapInstance && handleBoundsChangeRef.current) {
             const bounds = mapInstance.getBounds();
+            if (!bounds) return;
             const center = mapInstance.getCenter();
             const zoom = mapInstance.getZoom();
             const distance = 5 * Math.pow(2, 13 - zoom);
+            setCurrentDistance(distance);
 
             handleBoundsChangeRef.current({
               center: {
@@ -135,19 +143,21 @@ const SearchMap: React.FC<SearchMapProps> = ({
             });
           }
         }, 500);
-      });
+      };
+      mapInstance.on("load", onLoad);
 
       // Track when user starts dragging or zooming
-      mapInstance.on("dragstart", () => {
+      const onDragStart = () => {
         userMovingMapRef.current = true;
-      });
-
-      mapInstance.on("zoomstart", () => {
+      };
+      const onZoomStart = () => {
         userMovingMapRef.current = true;
-      });
+      };
+      mapInstance.on("dragstart", onDragStart);
+      mapInstance.on("zoomstart", onZoomStart);
 
       // Handle move end - this fires after drag, zoom, or programmatic movement
-      mapInstance.on("moveend", () => {
+      const onMoveEnd = () => {
         // Clear any existing timeout
         if (moveEndTimeoutRef.current) {
           clearTimeout(moveEndTimeoutRef.current);
@@ -162,10 +172,11 @@ const SearchMap: React.FC<SearchMapProps> = ({
             userMovingMapRef.current = false;
           }, 300);
         }
-      });
+      };
+      mapInstance.on("moveend", onMoveEnd);
 
       // Also handle zoom end separately
-      mapInstance.on("zoomend", () => {
+      const onZoomEnd = () => {
         // Clear any existing timeout
         if (moveEndTimeoutRef.current) {
           clearTimeout(moveEndTimeoutRef.current);
@@ -178,14 +189,16 @@ const SearchMap: React.FC<SearchMapProps> = ({
             userMovingMapRef.current = false;
           }, 300);
         }
-      });
+      };
+      mapInstance.on("zoomend", onZoomEnd);
 
       // Map click handler
-      mapInstance.on("click", (e) => {
+      const onMapClickHandler = (e: mapboxgl.MapMouseEvent) => {
         if (onMapClick) {
           onMapClick();
         }
-      });
+      };
+      mapInstance.on("click", onMapClickHandler);
 
       return () => {
         // Clean up
@@ -194,10 +207,12 @@ const SearchMap: React.FC<SearchMapProps> = ({
         }
 
         if (mapInstance) {
-          mapInstance.off("dragstart");
-          mapInstance.off("zoomstart");
-          mapInstance.off("moveend");
-          mapInstance.off("zoomend");
+          mapInstance.off("load", onLoad);
+          mapInstance.off("dragstart", onDragStart);
+          mapInstance.off("zoomstart", onZoomStart);
+          mapInstance.off("moveend", onMoveEnd);
+          mapInstance.off("zoomend", onZoomEnd);
+          mapInstance.off("click", onMapClickHandler);
           mapInstance.remove();
           map.current = null;
         }
@@ -206,25 +221,6 @@ const SearchMap: React.FC<SearchMapProps> = ({
       console.error("Error initializing map:", error);
     }
   }, [handleBoundsChange]);
-
-  // Effect for active pin
-  useEffect(() => {
-    if (!map.current || !isMapReady || !activePin) return;
-
-    const activeCenter = centers.find((c) => c.id === activePin);
-
-    if (activeCenter && activeCenter.latitude && activeCenter.longitude) {
-      // This is a programmatic move, not user-initiated
-      userMovingMapRef.current = false;
-
-      map.current.flyTo({
-        center: [Number(activeCenter.longitude), Number(activeCenter.latitude)],
-        zoom: map.current.getZoom(),
-        speed: 0.8,
-        curve: 1.42,
-      });
-    }
-  }, [activePin, centers, isMapReady]);
 
   // Map control handlers
   const handleZoomIn = useCallback(() => {
@@ -261,7 +257,8 @@ const SearchMap: React.FC<SearchMapProps> = ({
             centers={centers}
             mapRef={map}
             activePin={activePin}
-            onMarkerClick={onMarkerClick}
+            onMarkerClick={onMarkerClick ?? (() => {})}
+            distance={currentDistance}
           />
           <UserLocationMarker mapRef={map} userLocation={userLocation} />
           <MapControls

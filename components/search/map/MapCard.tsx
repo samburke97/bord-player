@@ -5,10 +5,11 @@ import type { Center } from "@/types";
 
 interface MapCardProps {
   center: Center;
+  distance: number | null;
   onCardClick?: () => void;
 }
 
-const MapCard: React.FC<MapCardProps> = ({ center, onCardClick }) => {
+const MapCard: React.FC<MapCardProps> = ({ center, distance, onCardClick }) => {
   // Get primary image
   const image =
     center.images && center.images.length > 0
@@ -59,10 +60,11 @@ const MapCard: React.FC<MapCardProps> = ({ center, onCardClick }) => {
             </>
           )}
 
-          {center.distance && (
+          {/* Display distance from distanceKm prop */}
+          {distance !== null && (
             <>
               <span className={styles.metaDot}>•</span>
-              <span className={styles.distance}>{center.distance} km</span>
+              <span className={styles.distance}>{distance.toFixed(1)} km</span>
             </>
           )}
         </div>

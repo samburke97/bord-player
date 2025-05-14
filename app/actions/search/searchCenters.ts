@@ -18,8 +18,6 @@ export async function searchCenters({
 }: SearchParams) {
   noStore();
 
-  console.log(`🔍 Server search with term: "${searchTerm}"`);
-
   // Validate bounds
   if (
     !bounds ||
@@ -107,21 +105,14 @@ export async function searchCenters({
       where: whereClause,
       include: {
         images: {
-          select: {
-            imageUrl: true,
-          },
-          orderBy: {
-            order: "asc",
-          },
+          select: { imageUrl: true },
+          orderBy: { order: "asc" },
           take: 5,
         },
         sportCenters: {
           select: {
             sport: {
-              select: {
-                id: true,
-                name: true,
-              },
+              select: { id: true, name: true, imageUrl: true },
             },
           },
           take: 10,
@@ -129,10 +120,7 @@ export async function searchCenters({
         facilities: {
           select: {
             tag: {
-              select: {
-                id: true,
-                name: true,
-              },
+              select: { id: true, name: true, imageUrl: true },
             },
           },
         },
@@ -143,19 +131,33 @@ export async function searchCenters({
     const formattedCenters = centers.map((center) => ({
       id: center.id,
       name: center.name,
-      address: center.address || "",
+      address: center.address || null,
+      description: center.description || null,
       latitude: parseFloat(center.latitude?.toString() || "0"),
       longitude: parseFloat(center.longitude?.toString() || "0"),
       logoUrl: center.logoUrl || "/images/default-center.svg",
+      phone: center.phone || null,
+      email: center.email || null,
+      isActive: center.isActive !== undefined ? center.isActive : true,
+      isOpenNow: false,
+      type: null,
+      locationNotice: undefined,
       images: center.images.map((img) => img.imageUrl),
       sports: center.sportCenters.map((sc) => ({
         id: sc.sport.id,
         name: sc.sport.name,
+        imageUrl: sc.sport.imageUrl || null,
       })),
       facilities: center.facilities.map((f) => ({
         id: f.tag.id,
         name: f.tag.name,
+        imageUrl: f.tag.imageUrl || null,
       })),
+      tags: [],
+      openingHours: [],
+      socials: [],
+      links: [],
+      activities: [],
     }));
 
     return formattedCenters;

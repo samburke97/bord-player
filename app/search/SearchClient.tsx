@@ -19,8 +19,22 @@ import { searchCenters } from "@/app/actions/search/searchCenters";
 import SearchMap from "@/components/search/SearchMap";
 import SearchResults from "@/components/search/SearchResults";
 import SearchBar from "@/components/ui/searchbar/SearchBar";
-import type { MapView } from "@/types/map";
+import type { MapView, MapBounds } from "@/types/map";
+import type { Center } from "@/types/entities";
 import styles from "./Search.module.css";
+
+// Helper function to calculate map bounds
+function calculateBoundsFromMapView(mapView: MapView): MapBounds {
+  const { center, distance } = mapView;
+  const lat = center.latitude;
+  const lng = center.longitude;
+  return {
+    north: lat + distance / 111,
+    south: lat - distance / 111,
+    east: lng + distance / (111 * Math.cos(lat * (Math.PI / 180))),
+    west: lng - distance / (111 * Math.cos(lat * (Math.PI / 180))),
+  };
+}
 
 export default function SearchClient() {
   // Core hooks
@@ -165,13 +179,50 @@ export default function SearchClient() {
   );
 
   // Handle search term change
+  useEffect(() => {
+    // Reset active pin when URL changes (including on initial load)
+    dispatch(resetActiveStates());
+  }, [searchParams, dispatch]);
+
+  // Update the search term change handler
   const handleSearchChange = useCallback(
-    (term: string) => {
+    (newTerm: string) => {
+      dispatch(resetActiveStates());
+      dispatch(setSearchTerm(newTerm));
+
       if (mapView) {
-        updateUrl(mapView, term);
+        dispatch(setLoading(true));
+
+        const bounds = calculateBoundsFromMapView(mapView);
+
+        searchCenters({ bounds, searchTerm: newTerm })
+          .then((results) => {
+            // Assuming results now conform to Center[] due to prior fixes.
+            // If not, 'as Center[]' might be needed but avoided if possible.
+            dispatch(setCenters(results));
+          })
+          .catch((err) => {
+            console.error("Search error in handleSearchChange:", err);
+            dispatch(setError("Failed to update search results."));
+          })
+          .finally(() => {
+            dispatch(setLoading(false));
+          });
+
+        const currentParams = new URLSearchParams(searchParams.toString());
+        currentParams.set("q", newTerm);
+        router.replace(`${pathname}?${currentParams.toString()}`, {
+          scroll: false,
+        });
+      } else {
+        // Fallback: If no mapView, just update the URL's 'q' param via push.
+        // The main useEffect will pick it up.
+        const currentParams = new URLSearchParams(searchParams.toString());
+        currentParams.set("q", newTerm);
+        router.push(`${pathname}?${currentParams.toString()}`);
       }
     },
-    [mapView, updateUrl]
+    [dispatch, mapView, searchParams, router, pathname] // Ensure all dependencies are listed
   );
 
   // Center click handler

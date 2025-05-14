@@ -5,26 +5,31 @@
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  transition: transform 0.2s;
-  max-width: 280px;
+  width: 350px; /* Fixed width to ensure consistent sizing */
   margin: 0 auto;
 }
 
-.card:hover {
-  transform: translateY(-2px);
-}
+/* Removed the card hover transform */
 
 .imageContainer {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 10;
+  height: 175px; /* Fixed height */
   overflow: hidden;
+  border-radius: 12px 12px 0 0; /* Match the card's top corners */
 }
 
 .image {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.3s ease; /* Added transition for hover effect */
+  display: block;
+}
+
+/* Added image scale effect on hover */
+.card:hover .image {
+  transform: scale(1.05);
 }
 
 .content {
@@ -92,10 +97,10 @@
   white-space: nowrap;
 }
 
-/* Mobile styles for fixed positioning */
+/* Mobile styles */
 @media (max-width: 767px) {
   .card {
-    max-width: 100%;
-    width: 90vw;
+    width: 350px; /* Keep consistent width on mobile */
+    max-width: 100%; /* But don't overflow viewport */
   }
 }

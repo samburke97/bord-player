@@ -62,7 +62,7 @@ export interface Center {
   email: string | null;
   isActive: boolean;
   isOpenNow: boolean;
-  type: string | null;
+  type?: string | null;
   locationNotice?: string;
   distance?: number;
 
