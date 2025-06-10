@@ -4,6 +4,11 @@ import { cache } from "react";
 
 export const fetchCenterById = cache(
   async (centerId: string): Promise<Center | null> => {
+    // Return null during build when Prisma is not available
+    if (!prisma || Object.keys(prisma).length === 0) {
+      return null;
+    }
+
     try {
       const center = await prisma.center.findUnique({
         where: {
