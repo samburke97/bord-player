@@ -1,34 +1,14 @@
-import Script from "next/script";
+// app/page.tsx
+import { Suspense } from "react";
 import Container from "@/components/layout/Container";
 import Hero from "@/components/homepage/Hero";
-import Carousel from "@/components/homepage/Carousel";
 import HeroImages from "@/components/homepage/HeroImages";
 import ExploreMap from "@/components/homepage/ExploreMap";
-import { fetchCentersForCarousel } from "@/app/actions/centers/fetchCentersForCarousel";
-import type { CenterSummary } from "@/types/entities";
+import HomeCarousels from "@/components/homepage/HomeCarousels";
 
-// Force dynamic rendering - prevents static generation at build time
 export const dynamic = "force-dynamic";
 
-export default async function HomePage() {
-  let recentCenters: CenterSummary[] = [];
-  let popularCenters: CenterSummary[] = [];
-
-  try {
-    recentCenters = await fetchCentersForCarousel({
-      type: "recent",
-      limit: 12,
-    });
-
-    popularCenters = await fetchCentersForCarousel({
-      type: "popular",
-      limit: 12,
-    });
-  } catch (error) {
-    console.error("Error fetching homepage data:", error);
-    // Continue with empty arrays - page will still render without data
-  }
-
+export default function HomePage() {
   return (
     <Container>
       <section className="py-[172px]">
@@ -37,44 +17,12 @@ export default async function HomePage() {
       <section>
         <HeroImages />
       </section>
-      <section className="py-[124px]">
-        <div>
-          {recentCenters.length > 0 && (
-            <Carousel title="Recently Added" centers={recentCenters} />
-          )}
-          {popularCenters.length > 0 && (
-            <Carousel title="Popular Places" centers={popularCenters} />
-          )}
-          {popularCenters.length > 0 && (
-            <Carousel title="Popular Places" centers={popularCenters} />
-          )}
-        </div>
-      </section>
+      <Suspense fallback={<div>Loading...</div>}>
+        <HomeCarousels />
+      </Suspense>
       <section className="pb-[124px]">
         <ExploreMap />
       </section>
-      <Script
-        id="homepage-schema"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "SportsActivityLocation",
-            name: "Bord Sports Finder",
-            description:
-              "Find and book sports activities and facilities near you.",
-            potentialAction: {
-              "@type": "SearchAction",
-              target: {
-                "@type": "EntryPoint",
-                urlTemplate:
-                  "https://bordfinder.com/search?location={location}",
-              },
-              "query-input": "required name=location",
-            },
-          }),
-        }}
-      />
     </Container>
   );
 }
