@@ -1,6 +1,10 @@
 import { fetchCenterById } from "@/app/actions/centers/fetchCentersById";
-import styles from "./Centers.module.css";
+import { notFound } from "next/navigation";
 import CenterDetailsClient from "./CenterDetailsClient";
+
+// Force dynamic rendering - prevents static generation issues
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 type Params = {
   slug: string;
@@ -11,11 +15,17 @@ export default async function CenterDetailsPage({
 }: {
   params: Params;
 }) {
-  const center = await fetchCenterById(params.slug);
+  try {
+    const center = await fetchCenterById(params.slug);
 
-  if (!center) {
-    return <div className={styles.notFound}>Center not found</div>;
+    if (!center) {
+      notFound();
+    }
+
+    return <CenterDetailsClient center={center} />;
+  } catch (error) {
+    console.error("Error fetching center:", error);
+    // Return a proper error page or notFound
+    notFound();
   }
-
-  return <CenterDetailsClient center={center} />;
 }
