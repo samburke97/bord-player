@@ -1,9 +1,6 @@
-// app/centers/[slug]/page.tsx
-import { fetchCenterById } from "@/app/actions/centers/fetchCentersById";
-import { notFound } from "next/navigation";
-import CenterDetailsClient from "./CenterDetailsClient";
+import { Suspense } from "react";
+import CenterDetails from "./CenterDetails";
 
-// Force dynamic rendering
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
@@ -11,26 +8,10 @@ type Params = {
   slug: string;
 };
 
-export default async function CenterDetailsPage({
-  params,
-}: {
-  params: Params;
-}) {
-  // During build, just return a placeholder
-  if (process.env.NODE_ENV === "production" && !process.env.VERCEL_ENV) {
-    return <div>Loading...</div>;
-  }
-
-  try {
-    const center = await fetchCenterById(params.slug);
-
-    if (!center) {
-      notFound();
-    }
-
-    return <CenterDetailsClient center={center} />;
-  } catch (error) {
-    console.error("Error fetching center:", error);
-    notFound();
-  }
+export default function CenterDetailsPage({ params }: { params: Params }) {
+  return (
+    <Suspense fallback={<div>Loading center...</div>}>
+      <CenterDetails slug={params.slug} />
+    </Suspense>
+  );
 }
