@@ -1,8 +1,9 @@
+// app/centers/[slug]/page.tsx
 import { fetchCenterById } from "@/app/actions/centers/fetchCentersById";
 import { notFound } from "next/navigation";
 import CenterDetailsClient from "./CenterDetailsClient";
 
-// Force dynamic rendering - prevents static generation issues
+// Force dynamic rendering
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
@@ -15,6 +16,11 @@ export default async function CenterDetailsPage({
 }: {
   params: Params;
 }) {
+  // During build, just return a placeholder
+  if (process.env.NODE_ENV === "production" && !process.env.VERCEL_ENV) {
+    return <div>Loading...</div>;
+  }
+
   try {
     const center = await fetchCenterById(params.slug);
 
@@ -25,7 +31,6 @@ export default async function CenterDetailsPage({
     return <CenterDetailsClient center={center} />;
   } catch (error) {
     console.error("Error fetching center:", error);
-    // Return a proper error page or notFound
     notFound();
   }
 }
