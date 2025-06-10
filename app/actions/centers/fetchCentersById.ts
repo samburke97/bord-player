@@ -4,11 +4,6 @@ import { cache } from "react";
 
 export const fetchCenterById = cache(
   async (centerId: string): Promise<Center | null> => {
-    // Return null during build when Prisma is not available
-    if (!prisma || Object.keys(prisma).length === 0) {
-      return null;
-    }
-
     try {
       const center = await prisma.center.findUnique({
         where: {
@@ -97,11 +92,7 @@ export const fetchCenterById = cache(
         email: center.email,
         isActive: center.isActive,
         isOpenNow: isOpenNow ?? false,
-
-        // Get establishment type (from the Tag related to the center as its "establishment")
         type: center.establishment?.name || null,
-
-        // Transform relationships
         images: center.images.map((img) => img.imageUrl),
         facilities: center.facilities.map((f) => ({
           id: f.tag.id,
@@ -116,22 +107,16 @@ export const fetchCenterById = cache(
           id: t.tag.id,
           name: t.tag.name,
         })),
-
-        // Format social media links
         socials: center.socials.map((social) => ({
           id: social.id,
           platform: social.platform || "",
           url: social.url || "",
         })),
-
-        // Format website links
         links: center.links.map((link) => ({
           id: link.id,
           type: link.type || "",
           url: link.url || "",
         })),
-
-        // Format activities
         activities: center.activities.map((ca) => ({
           id: ca.activity.id,
           title: ca.activity.title,
@@ -149,8 +134,6 @@ export const fetchCenterById = cache(
             priceType: p.priceType,
           })),
         })),
-
-        // Format opening hours
         openingHours: center.openingHours.map((oh) => ({
           dayOfWeek: oh.dayOfWeek,
           isOpen: oh.isOpen,
@@ -161,11 +144,7 @@ export const fetchCenterById = cache(
       };
     } catch (error) {
       console.error("Error fetching center by ID:", error);
-      throw new Error(
-        `Failed to fetch center: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`
-      );
+      return null;
     }
   }
 );
