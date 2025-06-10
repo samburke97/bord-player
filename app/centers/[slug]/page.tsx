@@ -1,17 +1,46 @@
-import { Suspense } from "react";
-import CenterDetails from "./CenterDetails";
+// app/centers/[slug]/page.tsx
+"use client";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+import { useEffect, useState } from "react";
+import { notFound } from "next/navigation";
+import CenterDetailsClient from "./CenterDetailsClient";
+import type { Center } from "@/types/entities";
 
 type Params = {
   slug: string;
 };
 
 export default function CenterDetailsPage({ params }: { params: Params }) {
-  return (
-    <Suspense fallback={<div>Loading center...</div>}>
-      <CenterDetails slug={params.slug} />
-    </Suspense>
-  );
+  const [center, setCenter] = useState<Center | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    async function loadCenter() {
+      try {
+        // You'll need to create this API route
+        const response = await fetch(`/api/centers/${params.slug}`);
+
+        if (!response.ok) {
+          setError(true);
+          return;
+        }
+
+        const data = await response.json();
+        setCenter(data);
+      } catch (err) {
+        console.error("Error loading center:", err);
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadCenter();
+  }, [params.slug]);
+
+  if (loading) return <div>Loading...</div>;
+  if (error || !center) return notFound();
+
+  return <CenterDetailsClient center={center} />;
 }
