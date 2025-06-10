@@ -11,6 +11,11 @@ export const fetchCentersForCarousel = cache(
     limit?: number;
     sportId?: string;
   }): Promise<CenterSummary[]> => {
+    // Skip during build
+    if (process.env.NODE_ENV === "production" && !process.env.VERCEL_ENV) {
+      return [];
+    }
+
     const { type = "recent", limit = 16, sportId } = options;
 
     // Base query conditions
@@ -90,11 +95,7 @@ export const fetchCentersForCarousel = cache(
       }));
     } catch (error) {
       console.error("Error fetching centers for carousel:", error);
-      throw new Error(
-        `Failed to fetch centers: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`
-      );
+      return []; // Changed from throw to return []
     }
   }
 );
