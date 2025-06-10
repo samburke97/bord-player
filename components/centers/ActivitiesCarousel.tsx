@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import useEmblaCarousel from "embla-carousel-react";
+import type { EmblaOptionsType } from "embla-carousel";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import styles from "./ActivitiesCarousel.module.css";
 
@@ -41,8 +42,8 @@ const ActivitiesCarousel: React.FC<ActivitiesCarouselProps> = ({
   const [prevBtnDisabled, setPrevBtnDisabled] = useState(true);
   const [nextBtnDisabled, setNextBtnDisabled] = useState(false);
 
-  // Different options for desktop and mobile
-  const emblaOptions = isDesktop
+  // Different options for desktop and mobile with proper typing
+  const emblaOptions: EmblaOptionsType = isDesktop
     ? {
         align: "start",
         loop: false,
@@ -75,7 +76,7 @@ const ActivitiesCarousel: React.FC<ActivitiesCarouselProps> = ({
 
   useEffect(() => {
     if (emblaApi) {
-      const newOptions = isDesktop
+      const newOptions: EmblaOptionsType = isDesktop
         ? {
             align: "start",
             loop: false,
@@ -118,7 +119,6 @@ const ActivitiesCarousel: React.FC<ActivitiesCarouselProps> = ({
     emblaApi.on("settle", updateButtonStates);
     emblaApi.on("scroll", updateButtonStates);
     emblaApi.on("reInit", updateButtonStates);
-    emblaApi.on("scrollProgress", updateButtonStates);
 
     return () => {
       emblaApi.off("init", updateButtonStates);
@@ -126,7 +126,6 @@ const ActivitiesCarousel: React.FC<ActivitiesCarouselProps> = ({
       emblaApi.off("settle", updateButtonStates);
       emblaApi.off("scroll", updateButtonStates);
       emblaApi.off("reInit", updateButtonStates);
-      emblaApi.off("scrollProgress", updateButtonStates);
     };
   }, [emblaApi, updateButtonStates]);
 

@@ -1,3 +1,4 @@
+// components/search/CenterCard.tsx
 "use client";
 
 import React, { memo, useCallback, useState, useEffect } from "react";
@@ -7,15 +8,22 @@ import styles from "./CenterCard.module.css";
 import useEmblaCarousel from "embla-carousel-react";
 import FavoriteButton from "../ui/FavoriteButton";
 import { useDistance } from "@/hooks/useDistance";
+import { useAppSelector, useAppDispatch } from "@/store/store";
+import { setHoveredItem } from "@/store/features/searchSlice";
 
 interface CenterCardProps {
   center: Center;
-  onMouseEnter: () => void;
-  onMouseLeave: () => void;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
+  onClick?: () => void;
 }
 
 const CenterCard: React.FC<CenterCardProps> = memo(
-  ({ center, onMouseEnter, onMouseLeave }) => {
+  ({ center, onMouseEnter, onMouseLeave, onClick }) => {
+    const dispatch = useAppDispatch();
+    const userLocation = useAppSelector((state) => state.search.userLocation);
+    const hoveredItem = useAppSelector((state) => state.search.hoveredItem);
+
     const images =
       center.images && center.images.length > 0
         ? center.images
@@ -27,10 +35,13 @@ const CenterCard: React.FC<CenterCardProps> = memo(
       center.longitude ? Number(center.longitude) : null
     );
 
-    const [isHovered, setIsHovered] = useState(false);
+    const [isCarouselHovered, setIsCarouselHovered] = useState(false);
     const [currentSlide, setCurrentSlide] = useState(0);
     const [canScrollPrev, setCanScrollPrev] = useState(false);
     const [canScrollNext, setCanScrollNext] = useState(false);
+
+    // FIXED: Check if this card is being hovered from a pin
+    const isHoveredFromPin = hoveredItem === center.id;
 
     const [emblaRef, emblaApi] = useEmblaCarousel({
       loop: false,
@@ -39,6 +50,17 @@ const CenterCard: React.FC<CenterCardProps> = memo(
       align: "start",
       slidesToScroll: 1,
     });
+
+    // Handle mouse events with Redux state updates
+    const handleMouseEnter = () => {
+      dispatch(setHoveredItem(center.id));
+      if (onMouseEnter) onMouseEnter();
+    };
+
+    const handleMouseLeave = () => {
+      dispatch(setHoveredItem(null));
+      if (onMouseLeave) onMouseLeave();
+    };
 
     // Navigation handlers
     const scrollPrev = useCallback(
@@ -91,17 +113,27 @@ const CenterCard: React.FC<CenterCardProps> = memo(
         ? center.sports[0].name
         : "Sports Center";
 
+    const handleCardClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+      if (onClick) {
+        e.preventDefault();
+        onClick();
+      }
+    };
+
     return (
       <Link
         href={`/centers/${center.id}`}
-        className={styles.card}
-        onMouseEnter={onMouseEnter}
-        onMouseLeave={onMouseLeave}
+        className={`${styles.card} ${
+          isHoveredFromPin ? styles.hoveredCard : ""
+        }`}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onClick={handleCardClick}
       >
         <div
           className={styles.imageContainer}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
+          onMouseEnter={() => setIsCarouselHovered(true)}
+          onMouseLeave={() => setIsCarouselHovered(false)}
         >
           <div className={styles.favoriteContainer}>
             <FavoriteButton centerId={center.id} />
@@ -141,7 +173,7 @@ const CenterCard: React.FC<CenterCardProps> = memo(
               )}
 
               {/* Navigation arrows - only when hovering and there are multiple images */}
-              {images.length > 1 && isHovered && (
+              {images.length > 1 && isCarouselHovered && (
                 <>
                   {canScrollPrev && (
                     <button
@@ -190,12 +222,16 @@ const CenterCard: React.FC<CenterCardProps> = memo(
             </span>
             <span className={styles.metaDot}>•</span>
             <span className={styles.sportType}>{primarySport}</span>
-            {distance !== null && !distanceLoading && (
-              <>
-                <span className={styles.metaDot}>•</span>
-                <span className={styles.distance}>{distance} km</span>
-              </>
-            )}
+
+            {/* Only show distance if we have precise location */}
+            {userLocation?.isPrecise &&
+              distance !== null &&
+              !distanceLoading && (
+                <>
+                  <span className={styles.metaDot}>•</span>
+                  <span className={styles.distance}>{distance} km</span>
+                </>
+              )}
           </div>
 
           {/* Facility tags */}

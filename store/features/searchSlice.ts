@@ -15,7 +15,11 @@ interface SearchState {
   error: string | null;
 
   // Location
-  userLocation: { latitude: number; longitude: number } | null;
+  userLocation: {
+    latitude: number;
+    longitude: number;
+    isPrecise?: boolean;
+  } | null;
 
   // Map View
   mapView: MapView | null;
@@ -77,7 +81,11 @@ export const searchSlice = createSlice({
     // Location actions
     setUserLocation: (
       state,
-      action: PayloadAction<{ latitude: number; longitude: number } | null>
+      action: PayloadAction<{
+        latitude: number;
+        longitude: number;
+        isPrecise?: boolean;
+      } | null>
     ) => {
       if (!state) return initialState; // Safety check
       state.userLocation = action.payload;
@@ -114,8 +122,6 @@ export const searchSlice = createSlice({
       // Don't reset mapView or userLocation - these are helpful to keep
       // Reset loading state to false
       state.isLoading = false;
-      // Optional: reset search term if you want a fresh start each time
-      // state.searchTerm = "";
     },
 
     // Complete reset
@@ -142,8 +148,8 @@ export const {
   setMapView,
   setSearchTerm,
   resetActiveStates,
-  resetSearch,
   cleanupSearchState,
+  resetSearch,
 } = searchSlice.actions;
 
 // Export reducer

@@ -17,80 +17,92 @@ export function useGeolocation() {
   useEffect(() => {
     let isMounted = true;
 
+    const getIpLocation = async () => {
+      try {
+        console.log("Attempting to get location from IP...");
+        // IP geolocation API call
+        const response = await fetch("https://ipapi.co/json/");
+        const data = await response.json();
+
+        if (!isMounted) return;
+
+        if (data.latitude && data.longitude) {
+          console.log("IP location retrieved:", data);
+          const location = {
+            latitude: data.latitude,
+            longitude: data.longitude,
+            isPrecise: false,
+          };
+
+          setState((prev) => ({
+            ...prev,
+            latitude: location.latitude,
+            longitude: location.longitude,
+            isPrecise: false,
+            error: "Using approximate location",
+            isLoading: false,
+          }));
+
+          dispatch(setUserLocation(location));
+        } else {
+          throw new Error("IP location data is invalid");
+        }
+      } catch (error) {
+        console.error("IP geolocation error:", error);
+        if (!isMounted) return;
+        setState((prev) => ({
+          ...prev,
+          error: "Unable to determine your location",
+          isLoading: false,
+          showLocationHelp: true,
+        }));
+      }
+    };
+
     const getUserLocation = async () => {
-      // Try browser geolocation first - this triggers the native browser prompt
       if (navigator.geolocation) {
         try {
           navigator.geolocation.getCurrentPosition(
-            // Success handler - user clicked "Allow"
+            // Success handler - user granted permission
             (position) => {
               if (!isMounted) return;
+              console.log("Precise location retrieved:", position.coords);
 
               const location = {
                 latitude: position.coords.latitude,
                 longitude: position.coords.longitude,
-                isPrecise: true, // Browser geolocation is precise
+                isPrecise: true,
               };
 
-              setState((prev) => ({
-                ...prev,
+              setState({
                 latitude: location.latitude,
                 longitude: location.longitude,
                 isPrecise: true,
                 error: null,
                 isLoading: false,
                 showLocationHelp: false,
-              }));
+              });
 
               dispatch(setUserLocation(location));
             },
 
-            // Error handler - user clicked "Block" or other error
+            // Error handler - permission denied or other error
             async (error) => {
-              console.log("Browser geolocation error:", error.message);
+              console.log(
+                "Geolocation permission error:",
+                error.code,
+                error.message
+              );
 
               // Check if it was a permission denied error specifically
               const permissionDenied = error.code === error.PERMISSION_DENIED;
 
               // Fall back to IP geolocation
-              try {
-                const ipLocation = await getGeolocation();
+              await getIpLocation();
 
-                if (!isMounted) return;
-
-                if (ipLocation.latitude && ipLocation.longitude) {
-                  const location = {
-                    latitude: ipLocation.latitude,
-                    longitude: ipLocation.longitude,
-                    isPrecise: false, // IP geolocation is NOT precise
-                  };
-
-                  setState((prev) => ({
-                    ...prev,
-                    latitude: location.latitude,
-                    longitude: location.longitude,
-                    isPrecise: false,
-                    error: "Using approximate location",
-                    isLoading: false,
-                    showLocationHelp: permissionDenied, // Only show help if they denied permission
-                  }));
-
-                  dispatch(setUserLocation(location));
-                } else {
-                  setState((prev) => ({
-                    ...prev,
-                    error: "Unable to determine your location",
-                    isLoading: false,
-                    showLocationHelp: true,
-                  }));
-                }
-              } catch (ipError) {
-                if (!isMounted) return;
-
+              if (isMounted && permissionDenied) {
                 setState((prev) => ({
                   ...prev,
-                  error: "Unable to determine your location",
-                  isLoading: false,
                   showLocationHelp: true,
                 }));
               }
@@ -102,12 +114,17 @@ export function useGeolocation() {
             }
           );
         } catch (error) {
-          console.error("Geolocation error:", error);
-          // Handle error with appropriate fallback
+          console.error("Geolocation API error:", error);
+          if (isMounted) {
+            await getIpLocation();
+          }
         }
       } else {
-        // Browser doesn't support geolocation - fall back to IP
-        // ...IP geolocation code goes here
+        // Browser doesn't support geolocation
+        console.log("Geolocation not supported by this browser");
+        if (isMounted) {
+          await getIpLocation();
+        }
       }
     };
 
@@ -120,7 +137,7 @@ export function useGeolocation() {
 
   return {
     ...state,
-    // This helps users understand how to enable location in their browser settings
+    // Helper function to show browser settings instructions
     showBrowserSettings: () => {
       setState((prev) => ({
         ...prev,

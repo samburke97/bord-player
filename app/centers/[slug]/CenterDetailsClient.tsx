@@ -14,9 +14,10 @@ import ContactSection from "@/components/centers/ContactSection";
 import StickySidebar from "@/components/centers/StickySidebar";
 import Container from "@/components/layout/Container";
 import { useDistance } from "@/hooks/useDistance";
+import type { Center } from "@/types/entities";
 
 interface CenterDetailsClientProps {
-  center: any;
+  center: Center;
 }
 
 export default function CenterDetailsClient({
@@ -134,14 +135,16 @@ export default function CenterDetailsClient({
               />
 
               {/* Description */}
-              <CenterDescription description={center.description} />
+              <CenterDescription
+                description={center.description || undefined}
+              />
 
               {/* Activities Section */}
               <ActivitiesSection activities={center.activities || []} />
 
               {/* Location/Map Section */}
               <LocationSection
-                address={center.address}
+                address={center.address || undefined}
                 latitude={center.latitude}
                 longitude={center.longitude}
               />
@@ -154,11 +157,11 @@ export default function CenterDetailsClient({
 
               {/* Contact Section */}
               <ContactSection
-                address={center.address}
+                address={center.address || undefined}
                 website={center.links?.[0]?.url}
-                phone={center.phone}
-                email={center.email}
-                socials={center.socials}
+                phone={center.phone || undefined}
+                email={center.email || undefined}
+                socials={[]}
               />
             </div>
 
@@ -171,7 +174,7 @@ export default function CenterDetailsClient({
                   centerType={center.type || "Climbing Gym"}
                   websiteUrl={center.links?.[0]?.url}
                   isOpen={center.isOpenNow}
-                  distance={distance}
+                  distance={distance || undefined}
                 />
               </div>
             )}

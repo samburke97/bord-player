@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import useEmblaCarousel from "embla-carousel-react";
+import type { EmblaOptionsType } from "embla-carousel";
 import { MapPinIcon } from "@heroicons/react/24/outline";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
@@ -62,20 +63,20 @@ const Carousel: React.FC<CarouselProps> = ({
   const [prevBtnDisabled, setPrevBtnDisabled] = useState(true);
   const [nextBtnDisabled, setNextBtnDisabled] = useState(false);
 
-  // Different options for desktop and mobile
-  const emblaOptions = isDesktop
+  // Different options for desktop and mobile with proper typing
+  const emblaOptions: EmblaOptionsType = isDesktop
     ? {
         align: "start",
         loop: false,
         dragFree: true,
         containScroll: "trimSnaps",
-        slidesToScroll: 4, // Changed from 4 to 1 for better control
+        slidesToScroll: 4,
       }
     : {
         align: "start",
         loop: false,
         dragFree: true,
-        containScroll: true,
+        containScroll: "trimSnaps", // Fixed: was boolean, should be string
         skipSnaps: true,
       };
 
@@ -96,13 +97,13 @@ const Carousel: React.FC<CarouselProps> = ({
 
   useEffect(() => {
     if (emblaApi) {
-      const newOptions = isDesktop
+      const newOptions: EmblaOptionsType = isDesktop
         ? {
             align: "start",
             loop: false,
             dragFree: false,
             containScroll: "trimSnaps",
-            slidesToScroll: 1, // Changed from 4 to 1 for better control
+            slidesToScroll: 1,
           }
         : {
             align: "start",
@@ -140,16 +141,12 @@ const Carousel: React.FC<CarouselProps> = ({
     emblaApi.on("scroll", updateButtonStates);
     emblaApi.on("reInit", updateButtonStates);
 
-    // Also update on scroll progress to catch intermediate states
-    emblaApi.on("scrollProgress", updateButtonStates);
-
     return () => {
       emblaApi.off("init", updateButtonStates);
       emblaApi.off("select", updateButtonStates);
       emblaApi.off("settle", updateButtonStates);
       emblaApi.off("scroll", updateButtonStates);
       emblaApi.off("reInit", updateButtonStates);
-      emblaApi.off("scrollProgress", updateButtonStates);
     };
   }, [emblaApi, updateButtonStates]);
 

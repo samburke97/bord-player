@@ -1,3 +1,4 @@
+// components/search/SearchResults.tsx
 import React, { memo } from "react";
 import CenterCard from "./CenterCard";
 import type { Center } from "@/types/entities";
@@ -86,7 +87,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
             center={center}
             onMouseEnter={() => onCenterHover(center.id)}
             onMouseLeave={() => onCenterHover(null)}
-            onClick={onCenterClick ? () => onCenterClick(center.id) : undefined}
+            onClick={() => onCenterClick && onCenterClick(center.id)}
           />
         ))}
       </div>

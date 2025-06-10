@@ -1,3 +1,4 @@
+// components/search/SearchMap.tsx
 "use client";
 
 import React, { useRef, useEffect, useState, useCallback } from "react";
@@ -15,7 +16,11 @@ mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "";
 
 interface SearchMapProps {
   centers: Center[];
-  userLocation: { latitude: number; longitude: number } | null;
+  userLocation: {
+    latitude: number;
+    longitude: number;
+    isPrecise?: boolean;
+  } | null;
   onBoundsChange?: (mapView: MapView & MapBounds) => void;
   initialCenter?: [number, number];
   initialDistance?: number;
@@ -40,7 +45,7 @@ const SearchMap: React.FC<SearchMapProps> = ({
   const map = useRef<mapboxgl.Map | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
   const [currentDistance, setCurrentDistance] = useState<number>(
-    initialDistance || 13 - Math.log2(5 / 5)
+    initialDistance || 5
   );
   const handleBoundsChangeRef = useRef(onBoundsChange);
   const userMovingMapRef = useRef(false);
@@ -89,15 +94,16 @@ const SearchMap: React.FC<SearchMapProps> = ({
     handleBoundsChangeRef.current(mapView);
   }, [isMapReady]);
 
+  // Initialize map when component mounts - ONLY ONCE
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
 
-    const defaultLocation = { latitude: -27.4698, longitude: 153.0251 }; // Brisbane
-    const startLocation = userLocation || defaultLocation;
-
+    // Use the initialCenter, or userLocation, with no hard default
     const startCenter = initialCenter
       ? [initialCenter[1], initialCenter[0]]
-      : [startLocation.longitude, startLocation.latitude];
+      : userLocation
+      ? [userLocation.longitude, userLocation.latitude]
+      : [0, 0]; // Default world view - will be updated once we have location
 
     try {
       map.current = new mapboxgl.Map({
@@ -216,7 +222,14 @@ const SearchMap: React.FC<SearchMapProps> = ({
     } catch (error) {
       console.error("Error initializing map:", error);
     }
-  }, [handleBoundsChange]);
+  }, [handleBoundsChange, userLocation]);
+
+  // Update map center when userLocation changes and we don't have initialCenter
+  useEffect(() => {
+    if (map.current && userLocation && !initialCenter) {
+      map.current.setCenter([userLocation.longitude, userLocation.latitude]);
+    }
+  }, [userLocation, initialCenter]);
 
   // Map control handlers
   const handleZoomIn = useCallback(() => {
@@ -234,7 +247,8 @@ const SearchMap: React.FC<SearchMapProps> = ({
   }, []);
 
   const handleGeolocate = useCallback(() => {
-    if (map.current && userLocation) {
+    // Only fly to user location if we have precise location
+    if (map.current && userLocation && userLocation.isPrecise) {
       userMovingMapRef.current = false;
       map.current.flyTo({
         center: [userLocation.longitude, userLocation.latitude],
@@ -243,6 +257,16 @@ const SearchMap: React.FC<SearchMapProps> = ({
       });
     }
   }, [userLocation]);
+
+  // Create a wrapper function that handles the null case
+  const handleMarkerClick = useCallback(
+    (id: string | null) => {
+      if (id && onMarkerClick) {
+        onMarkerClick(id);
+      }
+    },
+    [onMarkerClick]
+  );
 
   return (
     <div className={styles.mapContainer}>
@@ -253,14 +277,17 @@ const SearchMap: React.FC<SearchMapProps> = ({
             centers={centers}
             mapRef={map}
             activePin={activePin}
-            onMarkerClick={onMarkerClick ?? (() => {})}
+            onMarkerClick={handleMarkerClick}
             distance={currentDistance}
           />
-          <UserLocationMarker mapRef={map} userLocation={userLocation} />
+          {/* Only show UserLocationMarker if we have precise location */}
+          {userLocation && userLocation.isPrecise && (
+            <UserLocationMarker mapRef={map} userLocation={userLocation} />
+          )}
           <MapControls
             onZoomIn={handleZoomIn}
             onZoomOut={handleZoomOut}
-            onGeolocate={handleGeolocate}
+            onGeolocate={userLocation?.isPrecise ? handleGeolocate : undefined}
           />
           <LoadingIndicator isLoading={isLoading} />
         </>

@@ -24,10 +24,12 @@ export function calculateDistanceFromZoom(zoom: number): number {
 
 /**
  * Converts MapView to mapboxgl.LngLatBoundsLike for use with fitBounds
- * @param mapView - MapView object
+ * @param mapView - MapView object, potentially with bounds information
  * @returns Bounds object compatible with mapboxgl
  */
-export function mapViewToBounds(mapView: MapView): mapboxgl.LngLatBoundsLike {
+export function mapViewToBounds(
+  mapView: MapView & Partial<MapBounds>
+): mapboxgl.LngLatBoundsLike {
   // If explicit bounds are provided, use them
   if (mapView.north && mapView.south && mapView.east && mapView.west) {
     return [

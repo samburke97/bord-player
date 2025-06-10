@@ -32,54 +32,102 @@ export default async function fetchCenters(): Promise<Center[]> {
             sport: true,
           },
         },
-
+        openingHours: true, // Include opening hours
+        activities: {
+          include: {
+            activity: {
+              include: {
+                pricingVariants: true, // Include pricing if needed
+              },
+            },
+          },
+          orderBy: {
+            displayOrder: "asc",
+          },
+        },
         links: true,
         socials: true,
-        establishment: true, // This gets the establishment tag
+        establishment: true,
       },
     });
 
     return centers.map((center) => ({
       id: center.id,
       name: center.name,
-      description: center.description || "",
+      address: center.address,
+      description: center.description,
+      latitude: center.latitude ? Number(center.latitude) : null,
+      longitude: center.longitude ? Number(center.longitude) : null,
+      logoUrl: center.logoUrl,
+      phone: center.phone,
+      email: center.email,
+      isActive: center.isActive, // Fixed: use isActive instead of is_active
+      isOpenNow: false, // TODO: Implement opening hours logic to determine if open
+      type: center.establishment?.name || null,
+
       // Transform images array to match expected format
       images: center.images.map((img) => img.imageUrl),
-      last_edited: center.lastEdited,
-      phone: center.phone || "",
-      email: center.email || "",
-      // Map links from the relationship
-      links: center.links.map((link) => ({
-        id: link.id,
-        type: link.type || "",
-        url: link.url || "",
+
+      // Map facilities from the facilities relationship
+      facilities: center.facilities.map((f) => ({
+        id: f.tag.id,
+        name: f.tag.name,
+        imageUrl: f.tag.imageUrl,
       })),
-      latitude: center.latitude,
-      longitude: center.longitude,
-      // Map socials from the relationship
-      socials: center.socials.map((social) => ({
-        id: social.id,
-        platform: social.platform || "",
-        url: social.url || "",
+
+      // Map tags from the tags relationship - should be Tag[] not string[]
+      tags: center.tags.map((t) => ({
+        id: t.tag.id,
+        name: t.tag.name,
       })),
-      // Map establishment details
-      establishment: center.establishment
-        ? [{ id: center.establishment.id, name: center.establishment.name }]
-        : [],
+
       // Map sports from the sportCenters relationship
       sports: center.sportCenters.map((sc) => ({
         id: sc.sport.id,
         name: sc.sport.name,
       })),
-      // Map facilities from the facilities relationship
-      facilities: center.facilities.map((f) => ({
-        id: f.tag.id,
-        name: f.tag.name,
+
+      // Map opening hours
+      openingHours: center.openingHours.map((oh) => ({
+        dayOfWeek: oh.dayOfWeek,
+        isOpen: oh.isOpen,
+        openTime: oh.openTime,
+        closeTime: oh.closeTime,
+        isToday: false, // TODO: Implement logic to check if it's today
       })),
-      address: center.address || "",
-      is_active: center.isActive,
-      // Map tags from the tags relationship
-      tags: center.tags.map((t) => t.tag.name),
+
+      // Map social links
+      socials: center.socials.map((social) => ({
+        id: social.id,
+        platform: social.platform || "",
+        url: social.url || "",
+      })),
+
+      // Map web links
+      links: center.links.map((link) => ({
+        id: link.id,
+        type: link.type || "",
+        url: link.url || "",
+      })),
+
+      // Map activities
+      activities: center.activities.map((ca) => ({
+        id: ca.activity.id,
+        title: ca.activity.title,
+        description: ca.activity.description || "",
+        imageUrl: ca.activity.imageUrl || "",
+        buttonTitle: ca.activity.buttonTitle || "",
+        buttonLink: ca.activity.buttonLink || "",
+        type: "", // TODO: Map activity type if needed
+        displayOrder: ca.displayOrder,
+        pricing: ca.activity.pricingVariants.map((pv) => ({
+          id: pv.id,
+          price: Number(pv.price),
+          playerType: pv.playerType,
+          duration: pv.duration,
+          priceType: pv.priceType,
+        })),
+      })),
     }));
   } catch (error: unknown) {
     if (error instanceof Error) {

@@ -3,8 +3,35 @@
 
 import { prisma } from "@/lib/prisma";
 import { unstable_noStore as noStore } from "next/cache";
+import type { MapBounds } from "@/types/map";
 
-export async function searchCenters({ searchTerm, bounds, limit = 100 }) {
+// Define the interface for search parameters
+interface SearchCentersParams {
+  searchTerm?: string;
+  bounds: MapBounds;
+  limit?: number;
+}
+
+// Define the return type for search results
+interface SearchCenterResult {
+  id: string;
+  name: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  logoUrl: string;
+  images: string[];
+  sports: Array<{
+    id: string;
+    name: string;
+  }>;
+}
+
+export async function searchCenters({
+  searchTerm,
+  bounds,
+  limit = 100,
+}: SearchCentersParams): Promise<SearchCenterResult[]> {
   noStore();
 
   console.log("SEARCH TERM:", searchTerm);
@@ -93,6 +120,7 @@ export async function searchCenters({ searchTerm, bounds, limit = 100 }) {
           take: 10,
         },
       },
+      take: limit,
     });
 
     console.log(
@@ -125,19 +153,21 @@ export async function searchCenters({ searchTerm, bounds, limit = 100 }) {
     console.log(`Filtered to ${filteredCenters.length} centers within bounds`);
 
     // Format response for frontend
-    const formattedCenters = filteredCenters.map((center) => ({
-      id: center.id,
-      name: center.name,
-      address: center.address || "",
-      latitude: parseFloat(center.latitude?.toString() || "0"),
-      longitude: parseFloat(center.longitude?.toString() || "0"),
-      logoUrl: center.logoUrl || "/images/default-center.svg",
-      images: center.images.map((img) => img.imageUrl),
-      sports: center.sportCenters.map((sc) => ({
-        id: sc.sport.id,
-        name: sc.sport.name,
-      })),
-    }));
+    const formattedCenters: SearchCenterResult[] = filteredCenters.map(
+      (center) => ({
+        id: center.id,
+        name: center.name,
+        address: center.address || "",
+        latitude: parseFloat(center.latitude?.toString() || "0"),
+        longitude: parseFloat(center.longitude?.toString() || "0"),
+        logoUrl: center.logoUrl || "/images/default-center.svg",
+        images: center.images.map((img) => img.imageUrl),
+        sports: center.sportCenters.map((sc) => ({
+          id: sc.sport.id,
+          name: sc.sport.name,
+        })),
+      })
+    );
 
     return formattedCenters;
   } catch (error) {

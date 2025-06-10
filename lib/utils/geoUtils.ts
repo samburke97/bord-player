@@ -146,9 +146,11 @@ export function filterCentersWithinBounds(
 /**
  * Create map view from bounds
  * @param bounds - Map bounds
- * @returns MapView object
+ * @returns MapView object with bounds information
  */
-export function createMapViewFromBounds(bounds: MapBounds): MapView {
+export function createMapViewFromBounds(
+  bounds: MapBounds
+): MapView & MapBounds {
   // Calculate the center point
   const centerLat = (bounds.north + bounds.south) / 2;
   const centerLng = (bounds.east + bounds.west) / 2;

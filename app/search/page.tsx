@@ -1,5 +1,6 @@
-import SearchClient from "@/components/search/SearchClient";
+// app/search/page.tsx (alternative approach)
 import { Metadata } from "next";
+import SearchClientWrapper from "./SearchClientWrapper";
 
 export const metadata: Metadata = {
   title: "Search Sports & Activities Near You | Bord",
@@ -21,7 +22,7 @@ interface SearchPageProps {
 export default function SearchPage({ searchParams }: SearchPageProps) {
   return (
     <main>
-      <SearchClient />
+      <SearchClientWrapper />
     </main>
   );
 }

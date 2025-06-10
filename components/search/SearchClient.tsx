@@ -278,12 +278,21 @@ export default function SearchClient() {
     [dispatch, mapView, updateUrl, latitude, longitude]
   );
 
-  // Center click handler
-  const handleCenterClick = useCallback(
-    (id: string) => {
+  // FIXED: Separate handlers for marker vs card clicks
+  // This handler is ONLY for when a pin is clicked - just activates it
+  const handleMarkerClick = useCallback(
+    (id: string | null) => {
       dispatch(setActivePin(id));
     },
     [dispatch]
+  );
+
+  // This handler is ONLY for when a card is clicked - navigates to center page
+  const handleCenterClick = useCallback(
+    (id: string) => {
+      router.push(`/centers/${id}`);
+    },
+    [router]
   );
 
   // Center hover handler
@@ -377,8 +386,8 @@ export default function SearchClient() {
               isLoading={isLoading}
               activePin={activePin}
               searchTerm={searchTerm}
-              onCenterClick={handleCenterClick}
               onCenterHover={handleCenterHover}
+              onCenterClick={handleCenterClick} // For navigation when clicking a card
             />
           </div>
         </div>
@@ -403,7 +412,7 @@ export default function SearchClient() {
                 }
                 initialDistance={mapView?.distance || 5}
                 activePin={activePin}
-                onMarkerClick={handleCenterClick}
+                onMarkerClick={handleMarkerClick} // FIXED: Use the correct handler here
                 onMapClick={() => dispatch(resetActiveStates())}
                 isLoading={isLoading}
               />

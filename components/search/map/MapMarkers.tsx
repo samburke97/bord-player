@@ -1,9 +1,11 @@
-import React, { useEffect, useRef, useState, memo, useCallback } from "react";
+// components/search/map/MapMarkers.tsx
+import React, { useEffect, useRef, useState, memo } from "react";
 import mapboxgl from "mapbox-gl";
 import { createRoot } from "react-dom/client";
 import MapCard from "./MapCard";
 import type { Center } from "@/types";
-import { useAppSelector } from "@/store/store";
+import { useAppSelector, useAppDispatch } from "@/store/store";
+import { setHoveredItem } from "@/store/features/searchSlice";
 import { calculateDistance } from "@/lib/utils/distance";
 
 interface MapMarkersProps {
@@ -11,6 +13,7 @@ interface MapMarkersProps {
   mapRef: React.MutableRefObject<mapboxgl.Map | null>;
   activePin: string | null;
   onMarkerClick: (id: string | null) => void;
+  distance?: number;
 }
 
 const MapMarkers: React.FC<MapMarkersProps> = ({
@@ -18,7 +21,10 @@ const MapMarkers: React.FC<MapMarkersProps> = ({
   mapRef,
   activePin,
   onMarkerClick,
+  distance,
 }) => {
+  const dispatch = useAppDispatch();
+  const hoveredItem = useAppSelector((state) => state.search.hoveredItem);
   const [isMobile, setIsMobile] = useState(false);
   const markersRef = useRef<Record<string, mapboxgl.Marker>>({});
   const cardMarkerRef = useRef<mapboxgl.Marker | null>(null);
@@ -27,6 +33,7 @@ const MapMarkers: React.FC<MapMarkersProps> = ({
 
   const userLocation = useAppSelector((state) => state.search.userLocation);
 
+  // Check for mobile view
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth <= 768);
     checkMobile();
@@ -34,27 +41,36 @@ const MapMarkers: React.FC<MapMarkersProps> = ({
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
+  // Create or update markers
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
 
+    // Remove existing markers
     Object.values(markersRef.current).forEach((marker) => marker.remove());
     markersRef.current = {};
 
+    // Get primary color from CSS variables
     const primaryColor =
       getComputedStyle(document.documentElement)
         .getPropertyValue("--primary-300")
         .trim() || "#39b252";
+
+    // Track existing markers
     const existingMarkerIds = new Set(Object.keys(markersRef.current));
     const newMarkerIds = new Set<string>();
 
+    // Helper to update marker appearance
     const updateMarkerAppearance = (
       element: HTMLElement,
       isActive: boolean,
       isHovered: boolean = false
     ) => {
+      // Store center ID as data attribute for easy retrieval
+      element.dataset.centerId = element.dataset.centerId || "";
       element.dataset.active = isActive ? "true" : "false";
       element.dataset.hovered = isHovered ? "true" : "false";
+
       if (isActive) {
         element.style.backgroundColor = primaryColor;
         element.style.width = activeSize;
@@ -82,50 +98,73 @@ const MapMarkers: React.FC<MapMarkersProps> = ({
       const lat = Number(center.latitude);
       const lng = Number(center.longitude);
       if (isNaN(lat) || isNaN(lng)) return;
+
       const isActive = center.id === activePin;
+      const isHovered = center.id === hoveredItem;
 
       if (existingMarkerIds.has(center.id)) {
+        // Update existing marker
         const marker = markersRef.current[center.id];
         marker.setLngLat([lng, lat]);
-        updateMarkerAppearance(marker.getElement(), isActive);
+        updateMarkerAppearance(marker.getElement(), isActive, isHovered);
       } else {
+        // Create new marker
         const el = document.createElement("div");
+        el.dataset.centerId = center.id;
         el.style.borderRadius = "50%";
         el.style.cursor = "pointer";
         el.style.transition =
           "width 0.15s ease, height 0.15s ease, background-color 0.15s ease";
         el.style.boxSizing = "border-box";
-        updateMarkerAppearance(el, isActive);
+        updateMarkerAppearance(el, isActive, isHovered);
 
+        // FIXED: Add proper hover tracking with Redux
         el.addEventListener("mouseenter", () => {
-          if (el.dataset.active !== "true")
+          dispatch(setHoveredItem(center.id));
+          if (el.dataset.active !== "true") {
             updateMarkerAppearance(el, false, true);
-        });
-        el.addEventListener("mouseleave", () => {
-          if (el.dataset.active !== "true")
-            updateMarkerAppearance(el, false, false);
+          }
         });
 
-        const marker = new mapboxgl.Marker({ element: el, anchor: "center" })
-          .setLngLat([lng, lat])
-          .addTo(map);
+        el.addEventListener("mouseleave", () => {
+          dispatch(setHoveredItem(null));
+          if (el.dataset.active !== "true") {
+            updateMarkerAppearance(el, false, false);
+          }
+        });
+
+        // FIXED: Click should only toggle active pin, not navigate
         el.addEventListener("click", (e) => {
           e.stopPropagation();
           const isCurrentlyActive = center.id === activePin;
-          Object.values(markersRef.current).forEach((m) =>
-            updateMarkerAppearance(m.getElement(), false, false)
-          );
+
+          // Update all markers appearance
+          Object.values(markersRef.current).forEach((m) => {
+            const markerEl = m.getElement();
+            const markerId = markerEl.dataset.centerId || "";
+            updateMarkerAppearance(
+              markerEl,
+              markerId === center.id && !isCurrentlyActive,
+              false
+            );
+          });
+
+          // Call the marker click handler to update Redux state
           if (!isCurrentlyActive) {
-            updateMarkerAppearance(el, true, false);
             onMarkerClick(center.id);
           } else {
             onMarkerClick(null);
           }
         });
+
+        const marker = new mapboxgl.Marker({ element: el, anchor: "center" })
+          .setLngLat([lng, lat])
+          .addTo(map);
         markersRef.current[center.id] = marker;
       }
     });
 
+    // Remove markers that are no longer needed
     existingMarkerIds.forEach((id) => {
       if (!newMarkerIds.has(id)) {
         markersRef.current[id].remove();
@@ -139,8 +178,42 @@ const MapMarkers: React.FC<MapMarkersProps> = ({
         markersRef.current = {};
       }
     };
-  }, [centers, mapRef, activePin, onMarkerClick, activeSize, normalSize]);
+  }, [
+    centers,
+    mapRef,
+    activePin,
+    hoveredItem,
+    onMarkerClick,
+    normalSize,
+    activeSize,
+    dispatch,
+  ]);
 
+  // FIXED: Updated effect to respond to hoveredItem changes
+  useEffect(() => {
+    Object.entries(markersRef.current).forEach(([centerId, marker]) => {
+      const el = marker.getElement();
+      const isActive = centerId === activePin;
+      const isHovered = centerId === hoveredItem;
+
+      // Update marker appearance based on hover state
+      if (isActive) {
+        el.style.backgroundColor = "#39b252"; // Primary color
+        el.style.width = activeSize;
+        el.style.height = activeSize;
+      } else if (isHovered) {
+        el.style.backgroundColor = "#666";
+        el.style.width = activeSize;
+        el.style.height = activeSize;
+      } else {
+        el.style.backgroundColor = "#444";
+        el.style.width = normalSize;
+        el.style.height = normalSize;
+      }
+    });
+  }, [hoveredItem, activePin, activeSize, normalSize]);
+
+  // Show detail card for active pin
   useEffect(() => {
     const map = mapRef.current;
     let mobileContainer: HTMLDivElement | null = null;
@@ -168,7 +241,7 @@ const MapMarkers: React.FC<MapMarkersProps> = ({
       userLocation &&
       typeof userLocation.latitude === "number" &&
       typeof userLocation.longitude === "number" &&
-      true
+      userLocation.isPrecise
     ) {
       try {
         calculatedDistance = calculateDistance(
