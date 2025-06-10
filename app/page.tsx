@@ -7,44 +7,17 @@ import Carousel from "@/components/homepage/Carousel";
 import HeroImages from "@/components/homepage/HeroImages";
 import ExploreMap from "@/components/homepage/ExploreMap";
 import { fetchCentersForCarousel } from "@/app/actions/centers/fetchCentersForCarousel";
-import type { CenterSummary } from "@/types/entities";
-
-// Force dynamic rendering to prevent build-time database access
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
 
 export default async function HomePage() {
-  let recentCenters: CenterSummary[] = [];
-  let popularCenters: CenterSummary[] = [];
+  const recentCenters = await fetchCentersForCarousel({
+    type: "recent",
+    limit: 12,
+  });
 
-  try {
-    // Fetch data with error handling
-    const [recentResult, popularResult] = await Promise.allSettled([
-      fetchCentersForCarousel({
-        type: "recent",
-        limit: 12,
-      }),
-      fetchCentersForCarousel({
-        type: "popular",
-        limit: 12,
-      }),
-    ]);
-
-    if (recentResult.status === "fulfilled") {
-      recentCenters = recentResult.value;
-    } else {
-      console.error("Failed to fetch recent centers:", recentResult.reason);
-    }
-
-    if (popularResult.status === "fulfilled") {
-      popularCenters = popularResult.value;
-    } else {
-      console.error("Failed to fetch popular centers:", popularResult.reason);
-    }
-  } catch (error) {
-    console.error("Error fetching homepage data:", error);
-    // Continue with empty arrays - the page will still render
-  }
+  const popularCenters = await fetchCentersForCarousel({
+    type: "popular",
+    limit: 12,
+  });
 
   return (
     <Container>
