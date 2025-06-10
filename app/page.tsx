@@ -1,5 +1,3 @@
-"use server";
-
 import Script from "next/script";
 import Container from "@/components/layout/Container";
 import Hero from "@/components/homepage/Hero";
@@ -7,17 +5,29 @@ import Carousel from "@/components/homepage/Carousel";
 import HeroImages from "@/components/homepage/HeroImages";
 import ExploreMap from "@/components/homepage/ExploreMap";
 import { fetchCentersForCarousel } from "@/app/actions/centers/fetchCentersForCarousel";
+import type { CenterSummary } from "@/types/entities";
+
+// Force dynamic rendering - prevents static generation at build time
+export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const recentCenters = await fetchCentersForCarousel({
-    type: "recent",
-    limit: 12,
-  });
+  let recentCenters: CenterSummary[] = [];
+  let popularCenters: CenterSummary[] = [];
 
-  const popularCenters = await fetchCentersForCarousel({
-    type: "popular",
-    limit: 12,
-  });
+  try {
+    recentCenters = await fetchCentersForCarousel({
+      type: "recent",
+      limit: 12,
+    });
+
+    popularCenters = await fetchCentersForCarousel({
+      type: "popular",
+      limit: 12,
+    });
+  } catch (error) {
+    console.error("Error fetching homepage data:", error);
+    // Continue with empty arrays - page will still render without data
+  }
 
   return (
     <Container>
