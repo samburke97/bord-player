@@ -1,4 +1,4 @@
-// lib/prisma.ts - Final Version
+// lib/prisma.ts - Build-Safe Version
 import { PrismaClient } from "@prisma/client";
 
 declare global {
@@ -46,44 +46,6 @@ export const prisma = globalForPrisma.__prisma ?? createPrismaClient();
 
 if (process.env.NODE_ENV !== "production" && prisma) {
   globalForPrisma.__prisma = prisma;
-}
-
-// Safe query wrapper with better error handling
-export async function safePrismaQuery<T>(
-  queryFn: () => Promise<T>,
-  fallback: T,
-  context?: string
-): Promise<T> {
-  if (!prisma) {
-    console.warn(
-      `Prisma client not available${
-        context ? ` for ${context}` : ""
-      }, returning fallback`
-    );
-    return fallback;
-  }
-
-  try {
-    // Test connection before running query
-    await prisma.$connect();
-    const result = await queryFn();
-    return result;
-  } catch (error) {
-    console.error(
-      `Prisma query failed${context ? ` for ${context}` : ""}:`,
-      error
-    );
-    return fallback;
-  } finally {
-    // Don't disconnect in development (keeps connection alive)
-    if (process.env.NODE_ENV === "production") {
-      try {
-        await prisma.$disconnect();
-      } catch (error) {
-        console.warn("Failed to disconnect Prisma client:", error);
-      }
-    }
-  }
 }
 
 // Graceful shutdown handler
