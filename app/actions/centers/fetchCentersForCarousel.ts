@@ -1,79 +1,51 @@
-import { prisma } from "@/lib/prisma";
-import { CenterSummary } from "@/types";
+"use server";
 
-/**
- * Fetch centers for carousel display with optimized data shape
- */
-export async function fetchCentersForCarousel(options: {
-  type: "recent" | "popular" | "bySport" | "all";
+import { prisma, safePrismaQuery } from "@/lib/prisma";
+import { unstable_noStore as noStore } from "next/cache";
+
+interface CarouselParams {
+  type: "recent" | "popular";
   limit?: number;
-  sportId?: string;
-}): Promise<CenterSummary[]> {
-  // Skip during build - more aggressive check
-  if (!process.env.DATABASE_URL || process.env.SKIP_ENV_VALIDATION) {
-    return [];
-  }
+}
 
-  const { type = "recent", limit = 16, sportId } = options;
+export async function fetchCentersForCarousel({
+  type,
+  limit = 12,
+}: CarouselParams) {
+  noStore();
 
-  // Base query conditions
-  const baseWhere = {
-    isActive: true,
-    isDeleted: false,
-  };
-
-  // Add type-specific conditions
-  let where: any = { ...baseWhere };
-  let orderBy: any = { createdAt: "desc" }; // Default sort by newest
-
-  switch (type) {
-    case "recent":
-      // Already sorted by createdAt desc
-      break;
-
-    case "popular":
-      orderBy = [{ sportCenters: { _count: "desc" } }, { createdAt: "desc" }];
-      break;
-
-    case "bySport":
-      if (sportId) {
-        where = {
-          ...where,
-          sportCenters: {
-            some: {
-              sportId: sportId,
-            },
-          },
-        };
-      }
-      break;
-  }
-
-  try {
-    const centers = await prisma.center.findMany({
-      where,
-      orderBy,
-      take: limit,
+  return safePrismaQuery(async () => {
+    const centers = await prisma!.center.findMany({
+      where: {
+        isActive: true,
+        isDeleted: false,
+      },
       include: {
         images: {
-          orderBy: {
-            order: "asc",
-          },
+          select: { imageUrl: true },
+          orderBy: { order: "asc" },
           take: 1,
         },
-        facilities: {
-          include: {
-            tag: true,
+        sportCenters: {
+          select: {
+            sport: {
+              select: { id: true, name: true },
+            },
           },
           take: 3,
         },
-        sportCenters: {
-          include: {
-            sport: true,
+        facilities: {
+          select: {
+            tag: {
+              select: { id: true, name: true },
+            },
           },
           take: 3,
         },
       },
+      orderBy:
+        type === "recent" ? { createdAt: "desc" } : { createdAt: "desc" },
+      take: limit,
     });
 
     return centers.map((center) => ({
@@ -91,8 +63,113 @@ export async function fetchCentersForCarousel(options: {
       })),
       isActive: center.isActive,
     }));
-  } catch (error) {
-    console.error("Error fetching centers for carousel:", error);
-    return [];
-  }
+  }, []); // Return empty array as fallback
+}
+
+// app/actions/centers/fetchCenter.ts
+("use server");
+
+import { prisma, safePrismaQuery } from "@/lib/prisma";
+import { unstable_noStore as noStore } from "next/cache";
+
+export async function fetchCenter(id: string) {
+  noStore();
+
+  return safePrismaQuery(async () => {
+    const center = await prisma!.center.findFirst({
+      where: {
+        id,
+        isActive: true,
+        isDeleted: false,
+      },
+      include: {
+        images: {
+          select: { imageUrl: true },
+          orderBy: { order: "asc" },
+        },
+        facilities: {
+          select: {
+            tag: {
+              select: { id: true, name: true },
+            },
+          },
+        },
+        sportCenters: {
+          select: {
+            sport: {
+              select: { id: true, name: true },
+            },
+          },
+        },
+        openingHours: {
+          orderBy: { dayOfWeek: "asc" },
+        },
+        socials: true,
+        links: {
+          where: { type: "website" },
+          take: 1,
+        },
+        activities: {
+          include: {
+            pricingVariants: true,
+          },
+          orderBy: { displayOrder: "asc" },
+        },
+        establishment: {
+          select: { name: true },
+        },
+      },
+    });
+
+    if (!center) {
+      return null;
+    }
+
+    return {
+      id: center.id,
+      name: center.name,
+      address: center.address,
+      description: center.description,
+      latitude: center.latitude ? Number(center.latitude) : null,
+      longitude: center.longitude ? Number(center.longitude) : null,
+      logoUrl: center.logoUrl,
+      phone: center.phone,
+      email: center.email,
+      isActive: center.isActive,
+      type: center.establishment?.name || "Sports Center",
+      images: center.images.map((img) => img.imageUrl),
+      facilities: center.facilities.map((f) => ({
+        id: f.tag.id,
+        name: f.tag.name,
+      })),
+      sports: center.sportCenters.map((sc) => ({
+        id: sc.sport.id,
+        name: sc.sport.name,
+      })),
+      openingHours: center.openingHours.map((oh) => ({
+        dayOfWeek: oh.dayOfWeek,
+        isOpen: oh.isOpen,
+        openTime: oh.openTime,
+        closeTime: oh.closeTime,
+      })),
+      socials: center.socials || [],
+      websiteUrl: center.links[0]?.url || null,
+      activities: center.activities.map((activity) => ({
+        id: activity.id,
+        title: activity.title,
+        description: activity.description,
+        imageUrl: activity.imageUrl,
+        buttonTitle: activity.buttonTitle,
+        buttonLink: activity.buttonLink,
+        type: center.establishment?.name || "Activity",
+        pricing: activity.pricingVariants.map((pv) => ({
+          id: pv.id,
+          price: Number(pv.price),
+          playerType: pv.playerType,
+          duration: pv.duration,
+          priceType: pv.priceType,
+        })),
+      })),
+    };
+  }, null); // Return null as fallback
 }
