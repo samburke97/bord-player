@@ -1,55 +1,47 @@
-// lib/prisma.ts - Build-Safe Version
+// lib/prisma.ts - Simplified and Robust
 import { PrismaClient } from "@prisma/client";
 
 declare global {
   var __prisma: PrismaClient | undefined;
 }
 
-function createPrismaClient() {
-  // Skip Prisma creation during build if no DATABASE_URL
-  if (
-    process.env.NEXT_PHASE === "phase-production-build" &&
-    !process.env.DATABASE_URL
-  ) {
-    console.log("Skipping Prisma client creation during build phase");
-    return null;
-  }
+let prisma: PrismaClient;
 
+if (process.env.NODE_ENV === "production") {
+  // In production, always create a new client
   if (!process.env.DATABASE_URL) {
-    console.warn("DATABASE_URL not found");
-    return null;
+    throw new Error("DATABASE_URL is required in production");
   }
 
-  try {
-    return new PrismaClient({
-      log:
-        process.env.NODE_ENV === "development"
-          ? ["query", "error", "warn"]
-          : ["error"],
+  prisma = new PrismaClient({
+    log: ["error"],
+    datasources: {
+      db: {
+        url: process.env.DATABASE_URL,
+      },
+    },
+  });
+} else {
+  // In development, use global to prevent multiple instances
+  if (!global.__prisma) {
+    if (!process.env.DATABASE_URL) {
+      throw new Error("DATABASE_URL is required");
+    }
+
+    global.__prisma = new PrismaClient({
+      log: ["query", "error", "warn"],
       datasources: {
         db: {
           url: process.env.DATABASE_URL,
         },
       },
     });
-  } catch (error) {
-    console.error("Failed to create Prisma client:", error);
-    return null;
   }
+  prisma = global.__prisma;
 }
 
-const globalForPrisma = globalThis as unknown as {
-  __prisma: PrismaClient | undefined;
-};
-
-export const prisma = globalForPrisma.__prisma ?? createPrismaClient();
-
-if (process.env.NODE_ENV !== "production" && prisma) {
-  globalForPrisma.__prisma = prisma;
-}
-
-// Graceful shutdown handler
-if (typeof window === "undefined" && prisma) {
+// Graceful shutdown
+if (typeof window === "undefined") {
   const shutdown = async () => {
     try {
       await prisma.$disconnect();
@@ -62,3 +54,5 @@ if (typeof window === "undefined" && prisma) {
   process.on("SIGINT", shutdown);
   process.on("SIGTERM", shutdown);
 }
+
+export { prisma };
