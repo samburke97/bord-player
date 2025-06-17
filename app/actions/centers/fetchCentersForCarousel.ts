@@ -1,6 +1,7 @@
+// app/actions/centers/fetchCentersForCarousel.ts
 "use server";
 
-import { prisma, safePrismaQuery } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { unstable_noStore as noStore } from "next/cache";
 
 interface CarouselParams {
@@ -14,11 +15,28 @@ export async function fetchCentersForCarousel({
 }: CarouselParams) {
   noStore();
 
-  return safePrismaQuery(async () => {
-    const centers = await prisma!.center.findMany({
+  try {
+    // Check if we're in a build environment without database access
+    if (!process.env.DATABASE_URL) {
+      console.warn("No database URL available, returning empty array");
+      return [];
+    }
+
+    // Check if Prisma is available
+    if (!prisma) {
+      console.warn("Prisma client not available, returning empty array");
+      return [];
+    }
+
+    // Test database connection
+    await prisma.$connect();
+
+    const centers = await prisma.center.findMany({
       where: {
         isActive: true,
         isDeleted: false,
+        // Add conditions based on type
+        ...(type === "recent" ? {} : {}), // You can add specific conditions here
       },
       include: {
         images: {
@@ -44,7 +62,7 @@ export async function fetchCentersForCarousel({
         },
       },
       orderBy:
-        type === "recent" ? { createdAt: "desc" } : { createdAt: "desc" },
+        type === "recent" ? { createdAt: "desc" } : { createdAt: "desc" }, // You can change this to popularity metric
       take: limit,
     });
 
@@ -63,113 +81,16 @@ export async function fetchCentersForCarousel({
       })),
       isActive: center.isActive,
     }));
-  }, []); // Return empty array as fallback
-}
+  } catch (error) {
+    console.error(`Error fetching ${type} centers:`, error);
 
-// app/actions/centers/fetchCenter.ts
-("use server");
-
-import { prisma, safePrismaQuery } from "@/lib/prisma";
-import { unstable_noStore as noStore } from "next/cache";
-
-export async function fetchCenter(id: string) {
-  noStore();
-
-  return safePrismaQuery(async () => {
-    const center = await prisma!.center.findFirst({
-      where: {
-        id,
-        isActive: true,
-        isDeleted: false,
-      },
-      include: {
-        images: {
-          select: { imageUrl: true },
-          orderBy: { order: "asc" },
-        },
-        facilities: {
-          select: {
-            tag: {
-              select: { id: true, name: true },
-            },
-          },
-        },
-        sportCenters: {
-          select: {
-            sport: {
-              select: { id: true, name: true },
-            },
-          },
-        },
-        openingHours: {
-          orderBy: { dayOfWeek: "asc" },
-        },
-        socials: true,
-        links: {
-          where: { type: "website" },
-          take: 1,
-        },
-        activities: {
-          include: {
-            pricingVariants: true,
-          },
-          orderBy: { displayOrder: "asc" },
-        },
-        establishment: {
-          select: { name: true },
-        },
-      },
-    });
-
-    if (!center) {
-      return null;
+    // Return empty array instead of throwing
+    return [];
+  } finally {
+    try {
+      await prisma.$disconnect();
+    } catch (disconnectError) {
+      console.warn("Error disconnecting from database:", disconnectError);
     }
-
-    return {
-      id: center.id,
-      name: center.name,
-      address: center.address,
-      description: center.description,
-      latitude: center.latitude ? Number(center.latitude) : null,
-      longitude: center.longitude ? Number(center.longitude) : null,
-      logoUrl: center.logoUrl,
-      phone: center.phone,
-      email: center.email,
-      isActive: center.isActive,
-      type: center.establishment?.name || "Sports Center",
-      images: center.images.map((img) => img.imageUrl),
-      facilities: center.facilities.map((f) => ({
-        id: f.tag.id,
-        name: f.tag.name,
-      })),
-      sports: center.sportCenters.map((sc) => ({
-        id: sc.sport.id,
-        name: sc.sport.name,
-      })),
-      openingHours: center.openingHours.map((oh) => ({
-        dayOfWeek: oh.dayOfWeek,
-        isOpen: oh.isOpen,
-        openTime: oh.openTime,
-        closeTime: oh.closeTime,
-      })),
-      socials: center.socials || [],
-      websiteUrl: center.links[0]?.url || null,
-      activities: center.activities.map((activity) => ({
-        id: activity.id,
-        title: activity.title,
-        description: activity.description,
-        imageUrl: activity.imageUrl,
-        buttonTitle: activity.buttonTitle,
-        buttonLink: activity.buttonLink,
-        type: center.establishment?.name || "Activity",
-        pricing: activity.pricingVariants.map((pv) => ({
-          id: pv.id,
-          price: Number(pv.price),
-          playerType: pv.playerType,
-          duration: pv.duration,
-          priceType: pv.priceType,
-        })),
-      })),
-    };
-  }, null); // Return null as fallback
+  }
 }
