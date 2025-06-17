@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
 import CenterDetails from "./CenterDetails";
 
 export const dynamic = "force-dynamic";
@@ -11,7 +10,7 @@ type Params = {
 
 export default function CenterDetailsPage({ params }: { params: Params }) {
   return (
-    <Suspense fallback={<div>Loading center...</div>}>
+    <Suspense>
       <CenterDetails slug={params.slug} />
     </Suspense>
   );
