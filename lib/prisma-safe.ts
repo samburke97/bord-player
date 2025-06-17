@@ -1,56 +1,74 @@
-// lib/prisma-safe.ts
+// lib/prisma-safe.ts - Fixed Version
 import { prisma } from "@/lib/prisma";
 import type { PrismaClient } from "@prisma/client";
 
-/**
- * Type-safe wrapper for Prisma operations
- * Returns the result or a fallback value if Prisma is unavailable
- */
 export async function withPrisma<T>(
   operation: (client: PrismaClient) => Promise<T>,
   fallback: T,
   context?: string
 ): Promise<T> {
   try {
-    // Check if we're in a build environment without database access
+    // More aggressive error handling in production
     if (!process.env.DATABASE_URL) {
-      console.warn(
-        `No database URL available${
-          context ? ` for ${context}` : ""
-        }, returning fallback`
-      );
+      const message = `No DATABASE_URL available${
+        context ? ` for ${context}` : ""
+      }`;
+      console.error(message);
+
+      if (process.env.NODE_ENV === "production") {
+        throw new Error(message);
+      }
       return fallback;
     }
 
-    // Check if Prisma is available
     if (!prisma) {
-      console.warn(
-        `Prisma client not available${
-          context ? ` for ${context}` : ""
-        }, returning fallback`
-      );
+      const message = `Prisma client not available${
+        context ? ` for ${context}` : ""
+      }`;
+      console.error(message);
+
+      if (process.env.NODE_ENV === "production") {
+        throw new Error(message);
+      }
       return fallback;
     }
 
-    // Test database connection
-    await prisma.$connect();
+    // Test connection with timeout
+    const connectionPromise = prisma.$connect();
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("Database connection timeout")), 10000)
+    );
 
-    // Execute the operation with the guaranteed non-null client
+    await Promise.race([connectionPromise, timeoutPromise]);
+
+    // Execute operation
     const result = await operation(prisma);
+    console.log(
+      `✅ Database operation successful${context ? ` for ${context}` : ""}`
+    );
     return result;
   } catch (error) {
     console.error(
-      `Prisma operation failed${context ? ` for ${context}` : ""}:`,
+      `❌ Prisma operation failed${context ? ` for ${context}` : ""}:`,
       error
     );
+
+    // In production, log more details for debugging
+    if (process.env.NODE_ENV === "production") {
+      console.error("Environment check:", {
+        hasDatabaseUrl: !!process.env.DATABASE_URL,
+        hasDirectUrl: !!process.env.DIRECT_URL,
+        nodeEnv: process.env.NODE_ENV,
+        hasPrisma: !!prisma,
+      });
+    }
+
     return fallback;
   } finally {
-    if (prisma) {
+    // Only disconnect in serverless environments
+    if (prisma && process.env.NODE_ENV === "production") {
       try {
-        // Only disconnect in production to avoid connection churn
-        if (process.env.NODE_ENV === "production") {
-          await prisma.$disconnect();
-        }
+        await prisma.$disconnect();
       } catch (disconnectError) {
         console.warn("Error disconnecting from database:", disconnectError);
       }
