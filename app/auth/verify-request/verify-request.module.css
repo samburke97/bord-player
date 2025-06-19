@@ -1,0 +1,177 @@
+/* app/auth/verify-request/verify-request.module.css */
+
+.container {
+  min-height: 100vh;
+  width: 100%;
+  background-color: var(--background);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-lg);
+}
+
+.content {
+  width: 100%;
+  max-width: 500px;
+}
+
+.card {
+  background-color: var(--con-lightest);
+  border: 1px solid var(--out-light);
+  border-radius: 12px;
+  padding: var(--spacing-3xl);
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.iconContainer {
+  margin-bottom: var(--spacing-xl);
+}
+
+.successIcon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background-color: var(--primary-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  color: var(--primary-400);
+}
+
+.textContent {
+  margin-bottom: var(--spacing-xl);
+}
+
+.instructions {
+  margin: var(--spacing-lg) 0;
+}
+
+.instructions p {
+  color: var(--for-medium);
+  font-size: var(--font-size-md);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.resendMessage {
+  padding: var(--spacing-md);
+  margin: var(--spacing-md) 0;
+  background-color: var(--green-100);
+  color: var(--green-400);
+  border-radius: 8px;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-xl);
+}
+
+.backLink {
+  text-decoration: none;
+}
+
+.helpSection {
+  margin-top: var(--spacing-xl);
+  border-top: 1px solid var(--out-light);
+  padding-top: var(--spacing-lg);
+}
+
+.helpDetails {
+  text-align: left;
+}
+
+.helpSummary {
+  color: var(--primary-400);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  padding: var(--spacing-sm);
+  border-radius: 4px;
+  transition: background-color var(--transition-fast);
+  list-style: none;
+  outline: none;
+}
+
+.helpSummary:hover {
+  background-color: var(--con-light);
+}
+
+.helpSummary::-webkit-details-marker {
+  display: none;
+}
+
+.helpSummary::before {
+  content: "→";
+  margin-right: var(--spacing-sm);
+  transition: transform var(--transition-fast);
+}
+
+.helpDetails[open] .helpSummary::before {
+  transform: rotate(90deg);
+}
+
+.helpContent {
+  padding: var(--spacing-md) var(--spacing-sm) 0;
+  color: var(--for-medium);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
+.helpList {
+  margin: var(--spacing-md) 0;
+  padding-left: var(--spacing-lg);
+}
+
+.helpList li {
+  margin-bottom: var(--spacing-xs);
+}
+
+.helpContact {
+  margin-top: var(--spacing-md);
+  font-size: var(--font-size-sm);
+}
+
+.supportLink {
+  color: var(--primary-400);
+  text-decoration: none;
+  font-weight: var(--font-weight-medium);
+}
+
+.supportLink:hover {
+  text-decoration: underline;
+}
+
+/* Responsive styles */
+@media (max-width: 767px) {
+  .container {
+    padding: var(--spacing-md);
+  }
+
+  .card {
+    padding: var(--spacing-xl);
+  }
+
+  .successIcon {
+    width: 56px;
+    height: 56px;
+  }
+}
+
+/* Dark mode adjustments */
+:root[data-theme="dark"] .card,
+.dark-mode .card {
+  background-color: var(--con-lightest);
+  border-color: var(--out-light);
+}
+
+:root[data-theme="dark"] .successIcon,
+.dark-mode .successIcon {
+  background-color: var(--primary-500);
+  color: var(--primary-200);
+}

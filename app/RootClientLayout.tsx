@@ -1,6 +1,7 @@
 "use client";
 
 import { Provider } from "react-redux";
+import { SessionProvider } from "next-auth/react";
 import { store } from "@/store/store";
 import { ThemeProvider } from "@/store/ThemeProvider";
 import Header from "@/components/layout/headers/Header";
@@ -63,13 +64,15 @@ export default function RootClientLayout({
 
   return (
     <Provider store={store}>
-      <ThemeProvider>
-        {isClientSide && !shouldHideNavBar && <Header />}
-        <main className={isSearchPage ? "search-page-main" : ""}>
-          {children}
-        </main>
-        {!shouldHideFooter && <Footer />}
-      </ThemeProvider>
+      <SessionProvider>
+        <ThemeProvider>
+          {isClientSide && !shouldHideNavBar && <Header />}
+          <main className={isSearchPage ? "search-page-main" : ""}>
+            {children}
+          </main>
+          {!shouldHideFooter && <Footer />}
+        </ThemeProvider>
+      </SessionProvider>
     </Provider>
   );
 }
