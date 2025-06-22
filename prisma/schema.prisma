@@ -1,4 +1,4 @@
-// schema.prisma - Complete Schema with User/Business System
+// schema.prisma - Fixed Schema
 
 generator client {
   provider = "prisma-client-js"
@@ -8,6 +8,52 @@ datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
+}
+
+// ============================================================================
+// ENUMS (Define all enums first)
+// ============================================================================
+
+enum UserRole {
+  USER           // Regular user
+  ADMIN          // Platform admin
+  SUPER_ADMIN    // Super admin
+}
+
+enum BusinessRole {
+  OWNER          // Business owner (can do everything)
+  MANAGER        // Can manage most aspects
+  STAFF          // Can manage bookings and basic operations
+  VIEWER         // Read-only access
+}
+
+enum BusinessType {
+  SPORTS_CENTER
+  GYM
+  SWIMMING_POOL
+  TENNIS_CLUB
+  GOLF_COURSE
+  CLIMBING_GYM
+  MARTIAL_ARTS
+  DANCE_STUDIO
+  YOGA_STUDIO
+  OTHER
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+}
+
+enum GroupType {
+  FACILITY
+  SPORT
+  CATEGORY
+  ACTIVITY
+  GENERAL
 }
 
 // ============================================================================
@@ -187,176 +233,9 @@ model UserBusiness {
 }
 
 // ============================================================================
-// USER ACTIVITY MODELS
+// CORE DOMAIN MODELS
 // ============================================================================
 
-model Booking {
-  id          String        @id @default(uuid())
-  userId      String        @map("user_id")
-  centerId    String        @map("center_id")
-  
-  // Booking details
-  activityId  String?       @map("activity_id")
-  date        DateTime
-  startTime   DateTime      @map("start_time")
-  endTime     DateTime      @map("end_time")
-  participants Int          @default(1)
-  
-  // Pricing
-  totalAmount Decimal       @db.Decimal(10, 2) @map("total_amount")
-  currency    String        @default("USD")
-  
-  // Status
-  status      BookingStatus @default(PENDING)
-  
-  // Timestamps
-  createdAt   DateTime      @default(now()) @map("created_at")
-  updatedAt   DateTime      @updatedAt @map("updated_at")
-  
-  // Relationships
-  user        User          @relation(fields: [userId], references: [id])
-  center      Center        @relation(fields: [centerId], references: [id])
-  
-  @@index([userId])
-  @@index([centerId])
-  @@index([date])
-  @@index([status])
-  @@map("bookings")
-}
-
-model Review {
-  id        String   @id @default(uuid())
-  userId    String   @map("user_id")
-  centerId  String   @map("center_id")
-  
-  // Review content
-  rating    Int      // 1-5 stars
-  title     String?
-  content   String?
-  
-  // Status
-  isVisible Boolean  @default(true) @map("is_visible")
-  
-  // Timestamps
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  
-  // Relationships
-  user      User     @relation(fields: [userId], references: [id])
-  center    Center   @relation(fields: [centerId], references: [id])
-
-  @@unique([userId, centerId]) // One review per user per center
-  @@index([centerId])
-  @@index([rating])
-  @@map("reviews")
-}
-
-model UserFavorite {
-  id        String   @id @default(uuid())
-  userId    String   @map("user_id")
-  centerId  String   @map("center_id")
-  createdAt DateTime @default(now()) @map("created_at")
-  
-  // Relationships
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  center    Center   @relation(fields: [centerId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, centerId])
-  @@index([userId])
-  @@map("user_favorites")
-}
-
-// ============================================================================
-// ENUMS
-// ============================================================================
-
-enum UserRole {
-  USER           // Regular user
-  ADMIN          // Platform admin
-  SUPER_ADMIN    // Super admin
-}
-
-enum BusinessRole {
-  OWNER          // Business owner (can do everything)
-  MANAGER        // Can manage most aspects
-  STAFF          // Can manage bookings and basic operations
-  VIEWER         // Read-only access
-}
-
-enum BusinessType {
-  SPORTS_CENTER
-  GYM
-  SWIMMING_POOL
-  TENNIS_CLUB
-  GOLF_COURSE
-  CLIMBING_GYM
-  MARTIAL_ARTS
-  DANCE_STUDIO
-  YOGA_STUDIO
-  OTHER
-}
-
-enum BookingStatus {
-  PENDING
-  CONFIRMED
-  CANCELLED
-  COMPLETED
-  NO_SHOW
-}
-
-// ============================================================================
-// EXISTING MODELS (Updated with new relationships)
-// ============================================================================
-
-// Update your existing Center model to include new relationships
-model Center {
-  id              String    @id @default(uuid())
-  name            String
-  address         String?
-  latitude        Decimal?
-  longitude       Decimal?
-  description     String?
-  highlights      Json?     @map("highlights")
-  logoUrl         String?   @map("logo_url")
-  lastEdited      DateTime  @default(now()) @map("last_edited")
-  lastSeeded      DateTime? @map("last_seeded")
-  phone           String?
-  email           String?
-  establishment   Tag?      @relation("establishment", fields: [establishmentId], references: [id])
-  establishmentId String?   @map("establishment")
-  isActive        Boolean   @default(false) @map("is_active")
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  isDeleted       Boolean   @default(false)
-  deletedAt       DateTime?
-
-  // Business relationship
-  businessId      String?   @map("business_id")
-  business        Business? @relation(fields: [businessId], references: [id])
-
-  // Existing relationships
-  tags         CenterTag[]
-  facilities   CenterFacility[]
-  images       CenterImage[]
-  links        CenterLink[]
-  socials      CenterSocial[]
-  openingHours OpeningHours[]
-  sportCenters SportCenter[]
-  activities   CenterActivity[]
-  
-  // New relationships
-  bookings     Booking[]
-  reviews      Review[]
-  favorites    UserFavorite[]
-
-  @@index([name])
-  @@index([establishmentId])
-  @@index([isActive])
-  @@index([businessId])
-  @@index([latitude, longitude])
-  @@map("centers")
-}
-// Core Domain Models
 model Tag {
   id         String    @id @default(uuid())
   name       String
@@ -404,7 +283,11 @@ model Center {
   isDeleted       Boolean   @default(false)
   deletedAt       DateTime?
 
-  // Relationships
+  // Business relationship
+  businessId      String?   @map("business_id")
+  business        Business? @relation(fields: [businessId], references: [id])
+
+  // Existing relationships
   tags         CenterTag[]
   facilities   CenterFacility[]
   images       CenterImage[]
@@ -412,12 +295,18 @@ model Center {
   socials      CenterSocial[]
   openingHours OpeningHours[]
   sportCenters SportCenter[]
-  activities   CenterActivity[] // Relation to activities
+  activities   CenterActivity[]
+  
+  // New relationships
+  bookings     Booking[]
+  reviews      Review[]
+  favorites    UserFavorite[]
 
   @@index([name])
   @@index([establishmentId])
   @@index([isActive])
-  @@index([latitude, longitude]) // For geo queries
+  @@index([businessId])
+  @@index([latitude, longitude])
   @@map("centers")
 }
 
@@ -522,7 +411,7 @@ model CenterSocial {
 model Group {
   id         String    @id @default(uuid())
   name       String
-  type       GroupType @default(GENERAL)
+  type       GroupType @default(CATEGORY)
   tagCount   Int       @default(0) @map("tag_count")
   lastEdited DateTime  @default(now()) @map("last_edited")
   lastSeeded DateTime? @map("last_seeded")
@@ -692,4 +581,84 @@ model ActivityPricing {
   @@index([playerType])
   @@index([priceType])
   @@map("activity_pricing")
+}
+
+// ============================================================================
+// USER ACTIVITY MODELS
+// ============================================================================
+
+model Booking {
+  id          String        @id @default(uuid())
+  userId      String        @map("user_id")
+  centerId    String        @map("center_id")
+  
+  // Booking details
+  activityId  String?       @map("activity_id")
+  date        DateTime
+  startTime   DateTime      @map("start_time")
+  endTime     DateTime      @map("end_time")
+  participants Int          @default(1)
+  
+  // Pricing
+  totalAmount Decimal       @db.Decimal(10, 2) @map("total_amount")
+  currency    String        @default("USD")
+  
+  // Status
+  status      BookingStatus @default(PENDING)
+  
+  // Timestamps
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+  
+  // Relationships
+  user        User          @relation(fields: [userId], references: [id])
+  center      Center        @relation(fields: [centerId], references: [id])
+  
+  @@index([userId])
+  @@index([centerId])
+  @@index([date])
+  @@index([status])
+  @@map("bookings")
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  centerId  String   @map("center_id")
+  
+  // Review content
+  rating    Int      // 1-5 stars
+  title     String?
+  content   String?
+  
+  // Status
+  isVisible Boolean  @default(true) @map("is_visible")
+  
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  // Relationships
+  user      User     @relation(fields: [userId], references: [id])
+  center    Center   @relation(fields: [centerId], references: [id])
+
+  @@unique([userId, centerId]) // One review per user per center
+  @@index([centerId])
+  @@index([rating])
+  @@map("reviews")
+}
+
+model UserFavorite {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  centerId  String   @map("center_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  // Relationships
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  center    Center   @relation(fields: [centerId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, centerId])
+  @@index([userId])
+  @@map("user_favorites")
 }

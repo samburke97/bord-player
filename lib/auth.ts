@@ -31,7 +31,7 @@ export const authOptions: AuthOptions = {
 
     EmailProvider({
       server: "", // Not needed with custom send function
-      from: "noreply@bordfinder.com",
+      from: "noreply@bordsports.com",
       async sendVerificationRequest({
         identifier: email,
         url,
@@ -52,7 +52,7 @@ export const authOptions: AuthOptions = {
                 </head>
                 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
                   <div style="text-align: center; margin-bottom: 40px;">
-                    <img src="https://bordfinder.com/bord.svg" alt="Bord" style="height: 40px;">
+                    <img src="https://bordsports.com/bord.svg" alt="Bord" style="height: 40px;">
                   </div>
                   
                   <h1 style="color: #333; font-size: 24px; margin-bottom: 20px;">Sign in to Bord</h1>
