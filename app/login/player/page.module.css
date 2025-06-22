@@ -1,4 +1,4 @@
-/* app/login/login.module.css */
+/* app/login/business/page.module.css and app/login/player/page.module.css */
 .container {
   min-height: 100vh;
   display: flex;
@@ -26,57 +26,78 @@
   max-width: 400px;
 }
 
-/* Account Type Selection Styles */
-.accountOptions {
+/* Authentication Form Styles */
+.authButtons {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
   margin-top: var(--spacing-xl);
+  margin-bottom: var(--spacing-xl);
 }
 
-.accountOption {
-  width: 100%;
-  padding: var(--spacing-lg);
+.socialButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
   border: 1px solid var(--out-medium);
   border-radius: var(--border-radius-lg);
   background-color: var(--background);
+  color: var(--foreground);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
   transition: all var(--transition-fast);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  text-align: left;
+  text-decoration: none;
+  height: 48px;
+  font-family: var(--font-family);
 }
 
-.accountOption:hover {
+.socialButton:hover:not(:disabled) {
   background-color: var(--con-light);
   border-color: var(--out-dark);
 }
 
-.accountInfo {
-  flex: 1;
+.socialButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-.accountTitle {
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-semibold);
-  color: var(--foreground);
-  margin: 0 0 var(--spacing-xs) 0;
-}
-
-.accountDescription {
+.divider {
+  display: flex;
+  align-items: center;
+  margin: var(--spacing-xl) 0;
+  color: var(--for-medium);
   font-size: var(--font-size-sm);
-  color: var(--for-medium);
-  margin: 0;
+  text-align: center;
+  font-weight: var(--font-weight-medium);
 }
 
-.arrow {
-  color: var(--for-light);
-  transition: color var(--transition-fast);
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background-color: var(--out-medium);
 }
 
-.accountOption:hover .arrow {
-  color: var(--for-medium);
+.divider::before {
+  margin-right: var(--spacing-md);
+}
+
+.divider::after {
+  margin-left: var(--spacing-md);
+}
+
+.emailForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.continueButtonContainer {
+  margin-top: var(--spacing-md);
 }
 
 /* Image Container */
@@ -102,6 +123,14 @@
   );
 }
 
+/* Loading State */
+.loadingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+}
+
 /* Mobile Responsive */
 @media (max-width: 768px) {
   .content {
@@ -114,5 +143,9 @@
 
   .formContainer {
     padding: var(--spacing-xl);
+  }
+
+  .formWrapper {
+    max-width: 100%;
   }
 }
