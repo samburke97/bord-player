@@ -1,8 +1,0 @@
-// app/auth/layout.tsx
-export default function AuthDirectoryLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return <div className="min-h-screen bg-white">{children}</div>;
-}
