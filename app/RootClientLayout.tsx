@@ -4,7 +4,7 @@ import { Provider } from "react-redux";
 import { SessionProvider } from "next-auth/react";
 import { store } from "@/store/store";
 import { ThemeProvider } from "@/store/ThemeProvider";
-import Header from "@/components/layout/headers/Header";
+import Header from "@/components/layout/headers/nav/Header";
 import Footer from "@/components/layout/Footer";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
