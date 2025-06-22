@@ -1,4 +1,3 @@
-// app/auth/error/page.tsx
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
@@ -75,7 +74,7 @@ function AuthErrorContent() {
   );
 }
 
-export default function AuthErrorPage() {
+export default function AuthErrorContentWrapper() {
   return (
     <Suspense
       fallback={

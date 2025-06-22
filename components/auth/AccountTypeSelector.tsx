@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import Button from "@/components/ui/Button";
 import TitleDescription from "@/components/ui/TitleDescription";
 
 interface AccountType {
@@ -34,16 +33,16 @@ export default function AccountTypeSelector() {
   const handleSelection = (type: string) => {
     setSelectedType(type);
 
-    // Redirect based on account type
+    // Navigate to specific login pages
     if (type === "business") {
-      window.location.href = "https://admin.bordfinder.com/login";
+      router.push("/login/business");
     } else {
-      router.push("/login");
+      router.push("/login/player");
     }
   };
 
   return (
-    <div className="max-w-md mx-auto p-6">
+    <div className="max-w-md mx-auto p-6 min-h-screen flex flex-col justify-center">
       <TitleDescription
         title="Select Account Type"
         description="Please select the account you want to sign up or log in with."

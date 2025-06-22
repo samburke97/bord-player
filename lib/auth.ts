@@ -111,15 +111,17 @@ export const authOptions: AuthOptions = {
     },
 
     async redirect({ url, baseUrl }) {
-      // Redirect to dashboard after successful login
+      // Handle redirects based on the callback URL or default behavior
       if (url.startsWith("/")) return `${baseUrl}${url}`;
       if (new URL(url).origin === baseUrl) return url;
-      return `${baseUrl}/dashboard`;
+
+      // Default redirect to homepage for players, dashboard for business
+      return `${baseUrl}/`;
     },
   },
 
   pages: {
-    signIn: "/login",
+    signIn: "/login", // This now shows the account type selector
     verifyRequest: "/auth/verify-request",
     error: "/auth/error",
   },
