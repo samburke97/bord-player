@@ -2,6 +2,7 @@
   position: sticky;
   top: 0;
   z-index: 10;
+  padding-left: var(--spacing-4xl);
   height: 64px;
   width: 100%;
   background-color: var(--bg-standard, #ffffff);
@@ -9,7 +10,6 @@
 }
 
 .headerContent {
-  max-width: 1200px;
   margin: 0 auto;
   height: 100%;
   display: flex;

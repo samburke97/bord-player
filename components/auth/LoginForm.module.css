@@ -1,0 +1,144 @@
+/* components/auth/LoginForm.module.css */
+
+.container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--background);
+}
+
+.content {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 100vh;
+}
+
+.formContainer {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--background);
+  position: relative;
+}
+
+.formWrapper {
+  width: 418px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  margin: auto;
+  padding: 48px 0;
+}
+
+/* Social Login Buttons */
+.authButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.socialButton {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid var(--out-medium);
+  border-radius: var(--border-radius-lg);
+  background-color: var(--background);
+  color: var(--foreground);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: left;
+}
+
+.socialButton:hover:not(:disabled) {
+  background-color: var(--con-light);
+  border-color: var(--out-dark);
+}
+
+.socialButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Divider */
+.divider {
+  position: relative;
+  text-align: center;
+  color: var(--for-medium);
+  font-size: var(--font-size-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background-color: var(--out-light);
+}
+
+/* Email Form */
+.emailForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.continueButtonContainer {
+  width: 100%;
+}
+
+/* Image Container */
+.imageContainer {
+  background-image: url("../../public/images/login/login-hero.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+  min-height: 100vh;
+}
+
+.imageContainer::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(124, 235, 146, 0.1) 0%,
+    rgba(48, 134, 251, 0.1) 100%
+  );
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .content {
+    grid-template-columns: 1fr;
+  }
+
+  .imageContainer {
+    display: none;
+  }
+
+  .formContainer {
+    padding: 0;
+  }
+
+  .formWrapper {
+    width: 100%;
+    max-width: 400px;
+    padding: 32px 24px;
+  }
+}

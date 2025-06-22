@@ -1,4 +1,5 @@
 /* app/login/login.module.css */
+
 .container {
   min-height: 100vh;
   display: flex;
@@ -10,28 +11,31 @@
   flex: 1;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  min-height: calc(100vh - 64px);
+  min-height: 100vh;
 }
 
 .formContainer {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--spacing-4xl);
+  flex-direction: column;
   background-color: var(--background);
+  position: relative;
 }
 
 .formWrapper {
-  width: 100%;
-  max-width: 400px;
+  width: 418px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  margin: auto;
+  padding: 48px 0;
 }
 
 /* Account Type Selection Styles */
 .accountOptions {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
-  margin-top: var(--spacing-xl);
+  gap: 16px;
+  width: 100%;
 }
 
 .accountOption {
@@ -79,13 +83,14 @@
   color: var(--for-medium);
 }
 
-/* Image Container */
+/* Image Container - Updated to use the shared background image */
 .imageContainer {
-  background-image: url("/images/login-hero.jpg");
+  background-image: url("../../public/images/login/login-hero.jpg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   position: relative;
+  min-height: 100vh;
 }
 
 .imageContainer::before {
@@ -113,6 +118,12 @@
   }
 
   .formContainer {
-    padding: var(--spacing-xl);
+    padding: 0;
+  }
+
+  .formWrapper {
+    width: 100%;
+    max-width: 400px;
+    padding: 32px 24px;
   }
 }

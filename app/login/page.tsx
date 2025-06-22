@@ -4,7 +4,6 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Image from "next/image";
-import Container from "@/components/layout/Container";
 import ActionHeader from "@/components/layout/headers/ActionHeader";
 import TitleDescription from "@/components/ui/TitleDescription";
 import styles from "./login.module.css";
@@ -49,48 +48,45 @@ export default function LoginPage() {
 
   return (
     <div className={styles.container}>
-      <ActionHeader type="back" secondaryAction={handleBack} />
-      <Container>
-        <div className={styles.content}>
-          {/* Left side: Account Type Selector */}
-          <div className={styles.formContainer}>
-            <div className={styles.formWrapper}>
-              <TitleDescription
-                title="Select Account Type"
-                description="Please select the account you want to sign up or log in with."
-              />
+      <div className={styles.content}>
+        {/* Left side: Account Type Selector */}
+        <div className={styles.formContainer}>
+          <ActionHeader type="back" secondaryAction={handleBack} />
+          <div className={styles.formWrapper}>
+            <TitleDescription
+              title="Select Account Type"
+              description="Please select the account you want to sign up or log in with."
+            />
 
-              <div className={styles.accountOptions}>
-                {accountTypes.map((account) => (
-                  <button
-                    key={account.type}
-                    onClick={() => handleSelection(account.type)}
-                    className={styles.accountOption}
-                  >
-                    <div className={styles.accountInfo}>
-                      <h3 className={styles.accountTitle}>{account.title}</h3>
-                      <p className={styles.accountDescription}>
-                        {account.description}
-                      </p>
-                    </div>
-                    <div className={styles.arrow}>
-                      <Image
-                        src="/icons/utility-outline/right.svg"
-                        alt="Select"
-                        width={20}
-                        height={20}
-                      />
-                    </div>
-                  </button>
-                ))}
-              </div>
+            <div className={styles.accountOptions}>
+              {accountTypes.map((account) => (
+                <button
+                  key={account.type}
+                  onClick={() => handleSelection(account.type)}
+                  className={styles.accountOption}
+                >
+                  <div className={styles.accountInfo}>
+                    <h3 className={styles.accountTitle}>{account.title}</h3>
+                    <p className={styles.accountDescription}>
+                      {account.description}
+                    </p>
+                  </div>
+                  <div className={styles.arrow}>
+                    <Image
+                      src="/icons/utility-outline/right.svg"
+                      alt="Select"
+                      width={20}
+                      height={20}
+                    />
+                  </div>
+                </button>
+              ))}
             </div>
           </div>
-
-          {/* Right side: Hero image */}
-          <div className={styles.imageContainer}></div>
         </div>
-      </Container>
+        {/* Right side: Hero image */}
+        <div className={styles.imageContainer}></div>
+      </div>
     </div>
   );
 }
